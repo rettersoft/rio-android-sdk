@@ -7,17 +7,17 @@
 
 ```
 allprojects {
-		repositories {
-			...
-			maven { url 'https://jitpack.io' }
-		}
-	}
+  repositories {
+  	...
+  	maven { url 'https://jitpack.io' }
+  }
+}
 ```
 
 ##### Add the dependency
 
 ```
 dependencies {
-	        implementation 'com.github.rettersoft:rbs-android-sdk:0.9'
-	}
+  implementation 'com.github.rettersoft:rbs-android-sdk:0.9'
+}
 ```
