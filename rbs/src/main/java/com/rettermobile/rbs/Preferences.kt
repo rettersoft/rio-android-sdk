@@ -8,7 +8,6 @@ class Preferences constructor(val context: Context) {
 
     object Keys {
         const val TOKEN_INFO = "token_info"
-        const val LOGIN_TIME = "login_time"
     }
 
     var pref: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)

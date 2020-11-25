@@ -5,19 +5,20 @@ import android.text.TextUtils
 import android.util.Log
 import com.auth0.android.jwt.JWT
 import com.google.gson.Gson
+import com.rettermobile.rbs.model.RBSClientAuthStatus
+import com.rettermobile.rbs.model.RBSUser
 import com.rettermobile.rbs.service.RBSServiceImp
 import com.rettermobile.rbs.service.model.RBSTokenResponse
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
-import java.lang.Math.abs
 
 
 /**
  * Created by semihozkoroglu on 22.11.2020.
  */
-class RBS(val applicationContext: Context, val projectId: String, val clientId: String) {
+class RBS(val applicationContext: Context, val projectId: String) {
 
     private val preferences = Preferences(applicationContext)
     private val service = RBSServiceImp()
@@ -25,44 +26,39 @@ class RBS(val applicationContext: Context, val projectId: String, val clientId: 
 
     private var success: ((String?) -> Unit)? = null
     private var error: ((Throwable?) -> Unit)? = null
-
-    private var loginTime: Long = 0L
-        get() {
-            if (field == 0L) {
-                val time = preferences.getLong(Preferences.Keys.LOGIN_TIME, 0L)
-
-                field = time
-            }
-
-            return field
-        }
+    private var listener: ((RBSClientAuthStatus, RBSUser?) -> Unit)? = null
 
     private var tokenInfo: RBSTokenResponse? = null
-        get() {
-            if (field == null) {
-                val infoJson = preferences.getString(Preferences.Keys.TOKEN_INFO)
-
-                if (!TextUtils.isEmpty(infoJson)) {
-                    tokenInfo = gson.fromJson(infoJson, RBSTokenResponse::class.java)
-                }
-            }
-
-            return field
-        }
         set(value) {
             field = value
 
             if (value != null) {
                 // Save to device
                 preferences.setString(Preferences.Keys.TOKEN_INFO, gson.toJson(value))
-                preferences.setLong(Preferences.Keys.LOGIN_TIME, System.currentTimeMillis())
             } else {
                 preferences.deleteKey(Preferences.Keys.TOKEN_INFO)
-                preferences.deleteKey(Preferences.Keys.LOGIN_TIME)
             }
+
+            sendAuthStatus()
         }
 
+    init {
+        val infoJson = preferences.getString(Preferences.Keys.TOKEN_INFO)
+
+        if (!TextUtils.isEmpty(infoJson)) {
+            tokenInfo = gson.fromJson(infoJson, RBSTokenResponse::class.java)
+        }
+    }
+
+    fun setOnClientAuthStatusChangeListener(l: (RBSClientAuthStatus, RBSUser?) -> Unit) {
+        listener = l
+
+        sendAuthStatus()
+    }
+
     fun authenticateWithCustomToken(customToken: String) = runBlocking {
+        listener?.invoke(RBSClientAuthStatus.AUTHENTICATING, null)
+
         if (!TextUtils.isEmpty(customToken)) {
             val res = runBlocking { executeRunBlock(customToken = customToken).await() }
         } else {
@@ -71,7 +67,7 @@ class RBS(val applicationContext: Context, val projectId: String, val clientId: 
     }
 
     fun sendAction(
-        action: String, request: Map<String, Any> = mapOf(),
+        action: String, data: Map<String, Any> = mapOf(),
         success: ((String?) -> Unit)? = null,
         error: ((Throwable?) -> Unit)? = null
     ) {
@@ -79,7 +75,7 @@ class RBS(val applicationContext: Context, val projectId: String, val clientId: 
         this.error = error
 
         if (!TextUtils.isEmpty(action)) {
-            val res = runBlocking { executeRunBlock(action = action, request = request).await() }
+            val res = runBlocking { executeRunBlock(action = action, request = data).await() }
 
             if (res.isSuccess) {
                 success?.invoke(res.getOrNull())
@@ -122,7 +118,7 @@ class RBS(val applicationContext: Context, val projectId: String, val clientId: 
             }
         } else {
             if (TextUtils.isEmpty(tokenInfo?.accessToken)) {
-                val res = service.getAnonymousToken(projectId, clientId)
+                val res = service.getAnonymousToken(projectId)
 
                 if (res.isSuccess) {
                     Log.e("RBSService", "getAnonymousToken success")
@@ -165,10 +161,38 @@ class RBS(val applicationContext: Context, val projectId: String, val clientId: 
     }
 
     private fun isTokenRefreshRequired(): Boolean {
-        val jwt = JWT(tokenInfo!!.accessToken)
+        val jwtAccess = JWT(tokenInfo!!.accessToken)
+        val refreshTokenExpiresAt = jwtAccess.getClaim("exp").asLong()!!
 
-        val expiresIn = jwt.getClaim("timestamp").asLong()!!
+        val jwtRefresh = JWT(tokenInfo!!.refreshToken)
+        val accessTokenExpiresAt = jwtRefresh.getClaim("exp").asLong()!!
 
-        return abs(expiresIn - ((System.currentTimeMillis() - loginTime) / 1000)) < 30
+        val now = System.currentTimeMillis() / 1000
+
+        return !(refreshTokenExpiresAt > now && accessTokenExpiresAt > now)
+    }
+
+    private fun sendAuthStatus() {
+        if (tokenInfo != null) {
+            val jwtAccess = JWT(tokenInfo!!.accessToken)
+
+            val userId = jwtAccess.getClaim("userId").asString()
+            val anonymous = jwtAccess.getClaim("anonymous").asBoolean()
+
+            if (anonymous!!) {
+                listener?.invoke(
+                    RBSClientAuthStatus.SIGNED_IN_ANONYMOUSLY,
+                    RBSUser(userId, anonymous)
+                )
+            } else {
+                listener?.invoke(RBSClientAuthStatus.SIGNED_IN, RBSUser(userId, anonymous))
+            }
+        } else {
+            listener?.invoke(RBSClientAuthStatus.SIGNED_OUT, null)
+        }
+    }
+
+    fun signOut() {
+        tokenInfo = null
     }
 }

@@ -20,7 +20,7 @@ class RBSServiceImp {
         action: String,
         request: Map<String, Any>
     ): Result<ResponseBody?> {
-        Log.e("RBSService", "executeAction started")
+        Log.e("RBSService", "executeAction $action started")
         return kotlin.runCatching {
             val body: RequestBody = RequestBody.create(
                 MediaType.parse("application/json; charset=utf-8"),
@@ -31,9 +31,9 @@ class RBSServiceImp {
         }
     }
 
-    suspend fun getAnonymousToken(projectId: String, clientId: String): Result<RBSTokenResponse> {
+    suspend fun getAnonymousToken(projectId: String): Result<RBSTokenResponse> {
         Log.e("RBSService", "getAnonymous started")
-        return kotlin.runCatching { network.anonymousAuth(projectId, clientId) }
+        return kotlin.runCatching { network.anonymousAuth(projectId) }
     }
 
     suspend fun refreshToken(refreshToken: String): Result<RBSTokenResponse> {

@@ -14,10 +14,7 @@ import retrofit2.http.Query
 interface RBSService {
 
     @GET("public/anonymous-auth")
-    suspend fun anonymousAuth(
-        @Query("projectId") projectId: String,
-        @Query("clientId") clientId: String
-    ): RBSTokenResponse
+    suspend fun anonymousAuth(@Query("projectId") projectId: String): RBSTokenResponse
 
     @GET("public/auth-refresh")
     suspend fun authRefresh(@Query("refreshToken") refreshToken: String): RBSTokenResponse
