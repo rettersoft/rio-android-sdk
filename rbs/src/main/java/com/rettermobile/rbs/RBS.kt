@@ -18,10 +18,14 @@ import kotlinx.coroutines.runBlocking
 /**
  * Created by semihozkoroglu on 22.11.2020.
  */
-class RBS(val applicationContext: Context, val projectId: String) {
+class RBS(
+    val applicationContext: Context,
+    val projectId: String,
+    serviceUrl: String = "https://core.rtbs.io/"
+) {
 
     private val preferences = Preferences(applicationContext)
-    private val service = RBSServiceImp()
+    private val service = RBSServiceImp(serviceUrl)
     private val gson = Gson()
 
     private var success: ((String?) -> Unit)? = null

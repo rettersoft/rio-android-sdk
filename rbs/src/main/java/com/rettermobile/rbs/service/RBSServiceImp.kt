@@ -11,9 +11,9 @@ import org.json.JSONObject
 /**
  * Created by semihozkoroglu on 22.11.2020.
  */
-class RBSServiceImp {
+class RBSServiceImp constructor(serviceUrl: String) {
 
-    private var network: RBSService = RBSNetwork().getConnection()
+    private var network: RBSService = RBSNetwork(serviceUrl).getConnection()
 
     suspend fun executeAction(
         accessToken: String,

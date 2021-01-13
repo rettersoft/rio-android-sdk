@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit
 /**
  * Created by semihozkoroglu on 22.11.2020.
  */
-class RBSNetwork {
+class RBSNetwork constructor(private val serviceUrl: String) {
 
     private var service: RBSService? = null
     private var okHttpClient: OkHttpClient? = null
@@ -62,7 +62,7 @@ class RBSNetwork {
             }
 
             val retrofit = Retrofit.Builder()
-                .baseUrl("https://core-test.rettermobile.com")
+                .baseUrl(serviceUrl)
                 .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
                 .client(okHttpClient!!)
                 .build()
