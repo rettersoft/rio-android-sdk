@@ -12,50 +12,69 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    val testCustomToken =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRJZCI6InJicy51c2VyLmVuZHVzZXIiLCJhbm9ueW1vdXMiOmZhbHNlLCJwcm9qZWN0SWQiOiI3YjdlY2VjNzIxZDU0NjI5YmVkMWQzYjFhZWMyMTBlOCIsInVzZXJJZCI6Im15VXNlcklkMSIsInRpbWVzdGFtcCI6MTYwNTgwOTkwMjAxMiwic2VydmljZUlkIjoidGVzdHNlcnZpY2UiLCJpYXQiOjE2MDU4MDk5MDIsImV4cCI6MTYwNzEwNTkwMn0.O1xaYQzdG7awq_jt5PxrezKTtR7OG4BEa0AxOvpTt60"
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         val rbs = RBS(
             applicationContext = applicationContext,
-            projectId = "933a51e1c87a9ccc181d21fca91c2aad"
+            projectId = "3b7eea955170401685ec7ac0187ef787",
+            serviceUrl = "https://core-test.rettermobile.com"
         )
 
         rbs.setOnClientAuthStatusChangeListener { rbsClientAuthStatus, rbsUser ->
-            runOnUiThread {
-                val builder = AlertDialog.Builder(this)
-                builder.setTitle("Status")
-                builder.setMessage(rbsClientAuthStatus.name + " " + rbsUser?.uid)
-                builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
-                builder.show()
-            }
+            val builder = AlertDialog.Builder(this)
+            builder.setTitle("Status")
+            builder.setMessage(rbsClientAuthStatus.name + " " + rbsUser?.uid)
+            builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
+            builder.show()
         }
 
         btnSignIn.setOnClickListener {
             rbs.sendAction(
                 action = "rbs.businessuserauth.request.LOGIN",
-                data = mapOf(Pair("email", "email@test.com"), Pair("password", "password")),
+                data = mapOf(Pair("email", "root"), Pair("password", "12345")),
                 success = {
 
                     val type = object : TypeToken<List<AuthResponse>>() {}.type
                     val items: List<AuthResponse> = Gson().fromJson(it!!, type)
 
                     rbs.authenticateWithCustomToken(items[0].response!!.customToken)
+                }, error = {
+                    val builder = AlertDialog.Builder(this)
+                    builder.setTitle("Status")
+                    builder.setMessage(it?.message)
+                    builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
+                    builder.show()
                 }
             )
         }
 
         btnSearch.setOnClickListener {
-            rbs.sendAction(action = "rbs.product.request.SEARCH", success = { jsonData ->
+            rbs.sendAction(action = "rbs.address.get.COUNTRIES", data = mapOf(Pair("cartId", "1de255c877")), success = { jsonData ->
                 Log.e("RBSService", jsonData) // Convert to data model with Gson()
 
                 Toast.makeText(this, jsonData, Toast.LENGTH_LONG).show()
             }, error = {
-                Toast.makeText(this, it?.message, Toast.LENGTH_LONG).show()
+                val builder = AlertDialog.Builder(this)
+                builder.setTitle("Status")
+                builder.setMessage(it?.message)
+                builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
+                builder.show()
             })
+
+            // POST action
+//            rbs.sendAction(action = "rbs.cart.request.GET", data = mapOf(Pair("cartId", "1de255c877")), success = { jsonData ->
+//                Log.e("RBSService", jsonData) // Convert to data model with Gson()
+//
+//                Toast.makeText(this, jsonData, Toast.LENGTH_LONG).show()
+//            }, error = {
+//                val builder = AlertDialog.Builder(this)
+//                builder.setTitle("Status")
+//                builder.setMessage(it?.message)
+//                builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
+//                builder.show()
+//            })
         }
 
         btnSignOut.setOnClickListener { rbs.signOut() }

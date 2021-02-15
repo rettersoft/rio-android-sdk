@@ -9,10 +9,7 @@ import com.rettermobile.rbs.model.RBSClientAuthStatus
 import com.rettermobile.rbs.model.RBSUser
 import com.rettermobile.rbs.service.RBSServiceImp
 import com.rettermobile.rbs.service.model.RBSTokenResponse
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 
 
 /**
@@ -25,11 +22,9 @@ class RBS(
 ) {
 
     private val preferences = Preferences(applicationContext)
-    private val service = RBSServiceImp(serviceUrl)
+    private val service = RBSServiceImp(projectId, serviceUrl)
     private val gson = Gson()
 
-    private var success: ((String?) -> Unit)? = null
-    private var error: ((Throwable?) -> Unit)? = null
     private var listener: ((RBSClientAuthStatus, RBSUser?) -> Unit)? = null
 
     private var tokenInfo: RBSTokenResponse? = null
@@ -60,13 +55,21 @@ class RBS(
         sendAuthStatus()
     }
 
-    fun authenticateWithCustomToken(customToken: String) = runBlocking {
-        listener?.invoke(RBSClientAuthStatus.AUTHENTICATING, null)
+    fun authenticateWithCustomToken(customToken: String, error: ((Throwable?) -> Unit)? = null) {
+        GlobalScope.launch {
+            async(Dispatchers.IO) {
+                withContext(Dispatchers.Main) {
+                    listener?.invoke(RBSClientAuthStatus.AUTHENTICATING, null)
+                }
 
-        if (!TextUtils.isEmpty(customToken)) {
-            val res = runBlocking { executeRunBlock(customToken = customToken).await() }
-        } else {
-            error?.invoke(IllegalArgumentException("customToken must not be null or empty"))
+                if (!TextUtils.isEmpty(customToken)) {
+                    executeRunBlock(customToken = customToken)
+                } else {
+                    withContext(Dispatchers.Main) {
+                        error?.invoke(IllegalArgumentException("customToken must not be null or empty"))
+                    }
+                }
+            }
         }
     }
 
@@ -75,30 +78,36 @@ class RBS(
         success: ((String?) -> Unit)? = null,
         error: ((Throwable?) -> Unit)? = null
     ) {
-        this.success = success
-        this.error = error
+        GlobalScope.launch {
+            async(Dispatchers.IO) {
+                if (!TextUtils.isEmpty(action)) {
+                    val res =
+                        kotlin.runCatching { executeRunBlock(action = action, request = data) }
 
-        if (!TextUtils.isEmpty(action)) {
-            val res = runBlocking { executeRunBlock(action = action, request = data).await() }
-
-            if (res.isSuccess) {
-                success?.invoke(res.getOrNull())
-            } else {
-                error?.invoke(res.exceptionOrNull())
+                    if (res.isSuccess) {
+                        withContext(Dispatchers.Main) {
+                            success?.invoke(res.getOrNull())
+                        }
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            error?.invoke(res.exceptionOrNull())
+                        }
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        error?.invoke(IllegalArgumentException("action must not be null or empty"))
+                    }
+                }
             }
-        } else {
-            error?.invoke(IllegalArgumentException("action must not be null or empty"))
         }
     }
 
-    private fun executeRunBlock(
+    private suspend fun executeRunBlock(
         customToken: String? = null,
         action: String? = null,
         request: Map<String, Any>? = null
-    ): Deferred<Result<String>> {
-        return GlobalScope.async {
-            kotlin.runCatching { exec(customToken, action, request) }
-        }
+    ): String {
+        return exec(customToken, action, request)
     }
 
     private suspend fun exec(
@@ -177,22 +186,35 @@ class RBS(
     }
 
     private fun sendAuthStatus() {
-        if (tokenInfo != null) {
-            val jwtAccess = JWT(tokenInfo!!.accessToken)
+        GlobalScope.launch {
+            async {
+                if (tokenInfo != null) {
+                    val jwtAccess = JWT(tokenInfo!!.accessToken)
 
-            val userId = jwtAccess.getClaim("userId").asString()
-            val anonymous = jwtAccess.getClaim("anonymous").asBoolean()
+                    val userId = jwtAccess.getClaim("userId").asString()
+                    val anonymous = jwtAccess.getClaim("anonymous").asBoolean()
 
-            if (anonymous!!) {
-                listener?.invoke(
-                    RBSClientAuthStatus.SIGNED_IN_ANONYMOUSLY,
-                    RBSUser(userId, anonymous)
-                )
-            } else {
-                listener?.invoke(RBSClientAuthStatus.SIGNED_IN, RBSUser(userId, anonymous))
+                    if (anonymous!!) {
+                        withContext(Dispatchers.Main) {
+                            listener?.invoke(
+                                RBSClientAuthStatus.SIGNED_IN_ANONYMOUSLY,
+                                RBSUser(userId, anonymous)
+                            )
+                        }
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            listener?.invoke(
+                                RBSClientAuthStatus.SIGNED_IN,
+                                RBSUser(userId, anonymous)
+                            )
+                        }
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        listener?.invoke(RBSClientAuthStatus.SIGNED_OUT, null)
+                    }
+                }
             }
-        } else {
-            listener?.invoke(RBSClientAuthStatus.SIGNED_OUT, null)
         }
     }
 

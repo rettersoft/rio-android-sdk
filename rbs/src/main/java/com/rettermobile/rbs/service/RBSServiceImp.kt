@@ -1,17 +1,18 @@
 package com.rettermobile.rbs.service
 
+import android.text.TextUtils
 import android.util.Log
 import com.rettermobile.rbs.service.model.RBSTokenResponse
+import com.rettermobile.rbs.util.getBase64EncodeString
 import okhttp3.MediaType
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import org.json.JSONObject
 
-
 /**
  * Created by semihozkoroglu on 22.11.2020.
  */
-class RBSServiceImp constructor(serviceUrl: String) {
+class RBSServiceImp constructor(val projectId: String, serviceUrl: String) {
 
     private var network: RBSService = RBSNetwork(serviceUrl).getConnection()
 
@@ -21,13 +22,28 @@ class RBSServiceImp constructor(serviceUrl: String) {
         request: Map<String, Any>
     ): Result<ResponseBody?> {
         Log.e("RBSService", "executeAction $action started")
-        return kotlin.runCatching {
-            val body: RequestBody = RequestBody.create(
-                MediaType.parse("application/json; charset=utf-8"),
-                JSONObject(request).toString()
-            )
+        return runCatching {
+            action.split(".").let {
+                if (it.size > 3) {
+                    if (TextUtils.equals(it[2], "get")) {
+                        network.getAction(
+                            projectId,
+                            action,
+                            accessToken,
+                            JSONObject(request).toString().getBase64EncodeString()
+                        )
+                    } else {
+                        val body: RequestBody = RequestBody.create(
+                            MediaType.parse("application/json; charset=utf-8"),
+                            JSONObject(request).toString()
+                        )
 
-            network.action(accessToken, action, body)
+                        network.postAction(projectId, action, accessToken, body)
+                    }
+                } else {
+                    throw IllegalStateException("Action not in an acceptable format")
+                }
+            }
         }
     }
 
