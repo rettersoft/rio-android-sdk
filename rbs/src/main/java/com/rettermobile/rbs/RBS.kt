@@ -9,6 +9,7 @@ import com.rettermobile.rbs.model.RBSClientAuthStatus
 import com.rettermobile.rbs.model.RBSUser
 import com.rettermobile.rbs.service.RBSServiceImp
 import com.rettermobile.rbs.service.model.RBSTokenResponse
+import com.rettermobile.rbs.util.RBSRegion
 import kotlinx.coroutines.*
 
 
@@ -18,11 +19,11 @@ import kotlinx.coroutines.*
 class RBS(
     val applicationContext: Context,
     val projectId: String,
-    serviceUrl: String = "https://core.rtbs.io/"
+    val region: RBSRegion = RBSRegion.EU_WEST_1
 ) {
 
     private val preferences = Preferences(applicationContext)
-    private val service = RBSServiceImp(projectId, serviceUrl)
+    private val service = RBSServiceImp(projectId, region)
     private val gson = Gson()
 
     private var listener: ((RBSClientAuthStatus, RBSUser?) -> Unit)? = null
@@ -102,18 +103,47 @@ class RBS(
         }
     }
 
+    fun generateGetActionUrl(action: String, data: Map<String, Any> = mapOf(),
+                             success: ((String?) -> Unit)? = null,
+                             error: ((Throwable?) -> Unit)? = null) {
+        GlobalScope.launch {
+            async(Dispatchers.IO) {
+                if (!TextUtils.isEmpty(action)) {
+                    val res =
+                        kotlin.runCatching { executeRunBlock(action = action, request = data, isGenerate = true) }
+
+                    if (res.isSuccess) {
+                        withContext(Dispatchers.Main) {
+                            success?.invoke(res.getOrNull())
+                        }
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            error?.invoke(res.exceptionOrNull())
+                        }
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        error?.invoke(IllegalArgumentException("action must not be null or empty"))
+                    }
+                }
+            }
+        }
+    }
+
     private suspend fun executeRunBlock(
         customToken: String? = null,
         action: String? = null,
-        request: Map<String, Any>? = null
+        request: Map<String, Any>? = null,
+        isGenerate: Boolean = false
     ): String {
-        return exec(customToken, action, request)
+        return exec(customToken, action, request, isGenerate)
     }
 
     private suspend fun exec(
         customToken: String? = null,
         action: String? = null,
-        request: Map<String, Any>? = null
+        request: Map<String, Any>? = null,
+        isGenerate: Boolean = false
     ): String {
         if (!TextUtils.isEmpty(customToken)) {
             val res = service.authWithCustomToken(customToken!!)
@@ -157,7 +187,7 @@ class RBS(
                 }
             }
 
-            val res = service.executeAction(tokenInfo!!.accessToken, action!!, request!!)
+            val res = service.executeAction(tokenInfo!!.accessToken, action!!, request!!, isGenerate)
 
             return if (res.isSuccess) {
                 Log.e("RBSService", "executeAction success")

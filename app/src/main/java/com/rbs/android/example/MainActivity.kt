@@ -7,8 +7,13 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.rbs.android.example.network.TestNetwork
 import com.rettermobile.rbs.RBS
+import com.rettermobile.rbs.util.RBSRegion
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,7 +24,7 @@ class MainActivity : AppCompatActivity() {
         val rbs = RBS(
             applicationContext = applicationContext,
             projectId = "3b7eea955170401685ec7ac0187ef787",
-            serviceUrl = "https://core-test.rettermobile.com"
+            region = RBSRegion.EU_WEST_1_BETA
         )
 
         rbs.setOnClientAuthStatusChangeListener { rbsClientAuthStatus, rbsUser ->
@@ -51,17 +56,21 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnSearch.setOnClickListener {
-            rbs.sendAction(action = "rbs.address.get.COUNTRIES", data = mapOf(Pair("cartId", "1de255c877")), success = { jsonData ->
-                Log.e("RBSService", jsonData) // Convert to data model with Gson()
+            rbs.sendAction(
+                action = "rbs.address.get.COUNTRIES",
+                data = mapOf(Pair("cartId", "1de255c877")),
+                success = { jsonData ->
+                    Log.e("RBSService", jsonData) // Convert to data model with Gson()
 
-                Toast.makeText(this, jsonData, Toast.LENGTH_LONG).show()
-            }, error = {
-                val builder = AlertDialog.Builder(this)
-                builder.setTitle("Status")
-                builder.setMessage(it?.message)
-                builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
-                builder.show()
-            })
+                    Toast.makeText(this, jsonData, Toast.LENGTH_LONG).show()
+                },
+                error = {
+                    val builder = AlertDialog.Builder(this)
+                    builder.setTitle("Status")
+                    builder.setMessage(it?.message)
+                    builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
+                    builder.show()
+                })
 
             // POST action
 //            rbs.sendAction(action = "rbs.cart.request.GET", data = mapOf(Pair("cartId", "1de255c877")), success = { jsonData ->
@@ -75,6 +84,28 @@ class MainActivity : AppCompatActivity() {
 //                builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
 //                builder.show()
 //            })
+        }
+
+        btnGenerate.setOnClickListener {
+            rbs.generateGetActionUrl(
+                action = "rbs.address.get.COUNTRIES",
+                data = mapOf(Pair("cartId", "1de255c877")),
+                success = { jsonData ->
+                    Log.e("RBSService", jsonData) // Convert to data model with Gson()
+
+                    Toast.makeText(this, jsonData, Toast.LENGTH_LONG).show()
+
+                    GlobalScope.launch {
+                        TestNetwork().getConnection(RBSRegion.EU_WEST_1_BETA.getUrl).get(jsonData!!)
+                    }
+                },
+                error = {
+                    val builder = AlertDialog.Builder(this)
+                    builder.setTitle("Status")
+                    builder.setMessage(it?.message)
+                    builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
+                    builder.show()
+                })
         }
 
         btnSignOut.setOnClickListener { rbs.signOut() }

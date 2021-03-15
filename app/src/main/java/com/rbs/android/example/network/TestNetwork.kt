@@ -1,4 +1,4 @@
-package com.rettermobile.rbs.service
+package com.rbs.android.example.network
 
 import android.util.Log
 import com.google.gson.GsonBuilder
@@ -11,11 +11,9 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 /**
- * Created by semihozkoroglu on 22.11.2020.
+ * Created by semihozkoroglu on 15.03.2021.
  */
-class RBSNetwork {
-
-    private var service: RBSService? = null
+class TestNetwork {
     private var okHttpClient: OkHttpClient? = null
 
     private fun provideOkHttp(): OkHttpClient {
@@ -55,22 +53,17 @@ class RBSNetwork {
         return builder.build()
     }
 
-    fun getConnection(serviceUrl: String): RBSService {
-        if (service == null) {
-            if (okHttpClient == null) {
-                okHttpClient = provideOkHttp()
-            }
-
-            val retrofit = Retrofit.Builder()
-                .baseUrl(serviceUrl)
-                .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
-                .client(okHttpClient!!)
-                .build()
-
-            service = retrofit.create(RBSService::class.java)
+    fun getConnection(url: String): Service {
+        if (okHttpClient == null) {
+            okHttpClient = provideOkHttp()
         }
 
-        return service!!
-    }
+        val retrofit = Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
+            .client(okHttpClient!!)
+            .build()
 
+        return retrofit.create(Service::class.java)
+    }
 }
