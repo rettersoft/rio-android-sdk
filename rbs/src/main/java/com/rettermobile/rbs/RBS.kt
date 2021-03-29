@@ -76,6 +76,7 @@ class RBS(
 
     fun sendAction(
         action: String, data: Map<String, Any> = mapOf(),
+        headers: Map<String, String> = mapOf(),
         success: ((String?) -> Unit)? = null,
         error: ((Throwable?) -> Unit)? = null
     ) {
@@ -83,7 +84,7 @@ class RBS(
             async(Dispatchers.IO) {
                 if (!TextUtils.isEmpty(action)) {
                     val res =
-                        kotlin.runCatching { executeRunBlock(action = action, request = data) }
+                        kotlin.runCatching { executeRunBlock(action = action, request = data, headers = headers) }
 
                     if (res.isSuccess) {
                         withContext(Dispatchers.Main) {
@@ -134,15 +135,17 @@ class RBS(
         customToken: String? = null,
         action: String? = null,
         request: Map<String, Any>? = null,
+        headers: Map<String, String>? = null,
         isGenerate: Boolean = false
     ): String {
-        return exec(customToken, action, request, isGenerate)
+        return exec(customToken, action, request, headers, isGenerate)
     }
 
     private suspend fun exec(
         customToken: String? = null,
         action: String? = null,
         request: Map<String, Any>? = null,
+        headers: Map<String, String>? = null,
         isGenerate: Boolean = false
     ): String {
         if (!TextUtils.isEmpty(customToken)) {
@@ -187,7 +190,7 @@ class RBS(
                 }
             }
 
-            val res = service.executeAction(tokenInfo!!.accessToken, action!!, request!!, isGenerate)
+            val res = service.executeAction(tokenInfo!!.accessToken, action!!, request!!, headers ?: mapOf(), isGenerate)
 
             return if (res.isSuccess) {
                 Log.e("RBSService", "executeAction success")

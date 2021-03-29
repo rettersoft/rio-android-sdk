@@ -39,6 +39,7 @@ class MainActivity : AppCompatActivity() {
             rbs.sendAction(
                 action = "rbs.businessuserauth.request.LOGIN",
                 data = mapOf(Pair("email", "root"), Pair("password", "12345")),
+                headers = mapOf(Pair("header1", "parameter 1"), Pair("header2", "parameter 2"), Pair("header3", "parameter 3")),
                 success = {
 
                     val type = object : TypeToken<List<AuthResponse>>() {}.type
@@ -59,6 +60,7 @@ class MainActivity : AppCompatActivity() {
             rbs.sendAction(
                 action = "rbs.address.get.COUNTRIES",
                 data = mapOf(Pair("cartId", "1de255c877")),
+                headers = mapOf(Pair("header1", "parameter 1"), Pair("header2", "parameter 2"), Pair("header3", "parameter 3")),
                 success = { jsonData ->
                     Log.e("RBSService", jsonData) // Convert to data model with Gson()
 

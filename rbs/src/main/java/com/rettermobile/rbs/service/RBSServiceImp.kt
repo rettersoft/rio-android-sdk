@@ -22,6 +22,7 @@ class RBSServiceImp constructor(val projectId: String, val region: RBSRegion) {
         accessToken: String,
         action: String,
         request: Map<String, Any>,
+        headers: Map<String, String>,
         isGenerate: Boolean = false
     ): Result<ResponseBody?> {
         Log.e("RBSService", "executeAction $action started")
@@ -37,6 +38,7 @@ class RBSServiceImp constructor(val projectId: String, val region: RBSRegion) {
                             )
                         } else {
                             networkGet.getAction(
+                                headers,
                                 projectId,
                                 action,
                                 accessToken,
@@ -49,7 +51,7 @@ class RBSServiceImp constructor(val projectId: String, val region: RBSRegion) {
                             JSONObject(request).toString()
                         )
 
-                        networkPost.postAction(projectId, action, accessToken, body)
+                        networkPost.postAction(headers, projectId, action, accessToken, body)
                     }
                 } else {
                     throw IllegalStateException("Action not in an acceptable format")
