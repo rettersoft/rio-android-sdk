@@ -77,6 +77,36 @@ class RBS(
     fun sendAction(
         action: String,
         data: Map<String, Any> = mapOf(),
+        headers: Map<String, String> = mapOf(),
+        success: ((String?) -> Unit)? = null,
+        error: ((Throwable?) -> Unit)? = null
+    ) {
+        GlobalScope.launch {
+            async(Dispatchers.IO) {
+                if (!TextUtils.isEmpty(action)) {
+                    val res =
+                        kotlin.runCatching { executeRunBlock(action = action, requestJsonString = Gson().toJson(data), headers = headers) }
+
+                    if (res.isSuccess) {
+                        withContext(Dispatchers.Main) {
+                            success?.invoke(res.getOrNull())
+                        }
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            error?.invoke(res.exceptionOrNull())
+                        }
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        error?.invoke(IllegalArgumentException("action must not be null or empty"))
+                    }
+                }
+            }
+        }
+    }
+
+    fun sendAction(
+        action: String,
         jsonString: String? = null,
         headers: Map<String, String> = mapOf(),
         success: ((String?) -> Unit)? = null,
@@ -85,14 +115,8 @@ class RBS(
         GlobalScope.launch {
             async(Dispatchers.IO) {
                 if (!TextUtils.isEmpty(action)) {
-                    val requestJsonString = if (TextUtils.isEmpty(jsonString)) {
-                        Gson().toJson(data)
-                    } else {
-                        jsonString
-                    }
-
                     val res =
-                        kotlin.runCatching { executeRunBlock(action = action, requestJsonString = requestJsonString, headers = headers) }
+                        kotlin.runCatching { executeRunBlock(action = action, requestJsonString = jsonString, headers = headers) }
 
                     if (res.isSuccess) {
                         withContext(Dispatchers.Main) {
@@ -206,7 +230,7 @@ class RBS(
                 }
             }
 
-            val res = service.executeAction(tokenInfo!!.accessToken, action!!, requestJsonString ?: "", headers ?: mapOf(), isGenerate)
+            val res = service.executeAction(tokenInfo!!.accessToken, action!!, requestJsonString ?: Gson().toJson(null), headers ?: mapOf(), isGenerate)
 
             return if (res.isSuccess) {
                 Log.e("RBSService", "executeAction success")

@@ -59,7 +59,7 @@ class MainActivity : AppCompatActivity() {
         btnSearch.setOnClickListener {
             rbs.sendAction(
                 action = "rbs.address.get.COUNTRIES",
-                data = mapOf(Pair("cartId", "1de255c877")),
+                jsonString = null,
                 headers = mapOf(Pair("header1", "parameter 1"), Pair("header2", "parameter 2"), Pair("header3", "parameter 3")),
                 success = { jsonData ->
                     Log.e("RBSService", jsonData) // Convert to data model with Gson()
