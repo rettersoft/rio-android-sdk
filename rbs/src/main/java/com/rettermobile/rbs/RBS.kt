@@ -75,7 +75,9 @@ class RBS(
     }
 
     fun sendAction(
-        action: String, data: Map<String, Any> = mapOf(),
+        action: String,
+        data: Map<String, Any> = mapOf(),
+        jsonString: String? = null,
         headers: Map<String, String> = mapOf(),
         success: ((String?) -> Unit)? = null,
         error: ((Throwable?) -> Unit)? = null
@@ -83,8 +85,14 @@ class RBS(
         GlobalScope.launch {
             async(Dispatchers.IO) {
                 if (!TextUtils.isEmpty(action)) {
+                    val requestJsonString = if (TextUtils.isEmpty(jsonString)) {
+                        Gson().toJson(data)
+                    } else {
+                        jsonString
+                    }
+
                     val res =
-                        kotlin.runCatching { executeRunBlock(action = action, request = data, headers = headers) }
+                        kotlin.runCatching { executeRunBlock(action = action, requestJsonString = requestJsonString, headers = headers) }
 
                     if (res.isSuccess) {
                         withContext(Dispatchers.Main) {
@@ -104,14 +112,22 @@ class RBS(
         }
     }
 
-    fun generateGetActionUrl(action: String, data: Map<String, Any> = mapOf(),
+    fun generateGetActionUrl(action: String,
+                             data: Map<String, Any> = mapOf(),
+                             jsonString: String? = null,
                              success: ((String?) -> Unit)? = null,
                              error: ((Throwable?) -> Unit)? = null) {
         GlobalScope.launch {
             async(Dispatchers.IO) {
                 if (!TextUtils.isEmpty(action)) {
+                    val requestJsonString = if (TextUtils.isEmpty(jsonString)) {
+                        Gson().toJson(data)
+                    } else {
+                        jsonString
+                    }
+
                     val res =
-                        kotlin.runCatching { executeRunBlock(action = action, request = data, isGenerate = true) }
+                        kotlin.runCatching { executeRunBlock(action = action, requestJsonString = requestJsonString, isGenerate = true) }
 
                     if (res.isSuccess) {
                         withContext(Dispatchers.Main) {
@@ -134,17 +150,17 @@ class RBS(
     private suspend fun executeRunBlock(
         customToken: String? = null,
         action: String? = null,
-        request: Map<String, Any>? = null,
+        requestJsonString: String? = null,
         headers: Map<String, String>? = null,
         isGenerate: Boolean = false
     ): String {
-        return exec(customToken, action, request, headers, isGenerate)
+        return exec(customToken, action, requestJsonString, headers, isGenerate)
     }
 
     private suspend fun exec(
         customToken: String? = null,
         action: String? = null,
-        request: Map<String, Any>? = null,
+        requestJsonString: String? = null,
         headers: Map<String, String>? = null,
         isGenerate: Boolean = false
     ): String {
@@ -190,7 +206,7 @@ class RBS(
                 }
             }
 
-            val res = service.executeAction(tokenInfo!!.accessToken, action!!, request!!, headers ?: mapOf(), isGenerate)
+            val res = service.executeAction(tokenInfo!!.accessToken, action!!, requestJsonString ?: "", headers ?: mapOf(), isGenerate)
 
             return if (res.isSuccess) {
                 Log.e("RBSService", "executeAction success")

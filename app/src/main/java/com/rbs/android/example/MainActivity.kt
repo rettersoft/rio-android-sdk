@@ -97,9 +97,9 @@ class MainActivity : AppCompatActivity() {
 
                     Toast.makeText(this, jsonData, Toast.LENGTH_LONG).show()
 
-                    GlobalScope.launch {
-                        TestNetwork().getConnection(RBSRegion.EU_WEST_1_BETA.getUrl).get(jsonData!!)
-                    }
+//                    GlobalScope.launch {
+//                        TestNetwork().getConnection(RBSRegion.EU_WEST_1_BETA.getUrl).get(jsonData!!)
+//                    }
                 },
                 error = {
                     val builder = AlertDialog.Builder(this)

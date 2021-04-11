@@ -21,7 +21,7 @@ class RBSServiceImp constructor(val projectId: String, val region: RBSRegion) {
     suspend fun executeAction(
         accessToken: String,
         action: String,
-        request: Map<String, Any>,
+        requestJsonString: String,
         headers: Map<String, String>,
         isGenerate: Boolean = false
     ): Result<ResponseBody?> {
@@ -30,14 +30,27 @@ class RBSServiceImp constructor(val projectId: String, val region: RBSRegion) {
             action.split(".").let {
                 if (it.size > 3) {
                     if (TextUtils.equals(it[2], "get")) {
-                        val data = Gson().toJson(request).getBase64EncodeString()
+                        val data = requestJsonString.getBase64EncodeString()
                         if (isGenerate) {
+                            Log.e("RBSService", "generateUrl projectId: $projectId")
+                            Log.e("RBSService", "generateUrl action: $action")
+                            Log.e("RBSService", "generateUrl accessToken: $accessToken")
+                            Log.e("RBSService", "generateUrl headers: ${Gson().toJson(headers)}")
+                            Log.e("RBSService", "generateUrl body: $requestJsonString")
+                            Log.e("RBSService", "generateUrl bodyEncodeString: $data")
+
                             ResponseBody.create(
                                 MediaType.get("application/json"),
                                 region.getUrl + "user/action/$projectId/$action?auth=$accessToken&data=$data"
                             )
                         } else {
-                            networkGet.getAction(
+                            Log.e("RBSService", "getAction projectId: $projectId")
+                            Log.e("RBSService", "getAction action: $action")
+                            Log.e("RBSService", "getAction accessToken: $accessToken")
+                            Log.e("RBSService", "getAction headers: ${Gson().toJson(headers)}")
+                            Log.e("RBSService", "getAction body: $requestJsonString")
+
+                            networkPost.getAction(
                                 headers,
                                 projectId,
                                 action,
@@ -48,8 +61,14 @@ class RBSServiceImp constructor(val projectId: String, val region: RBSRegion) {
                     } else {
                         val body: RequestBody = RequestBody.create(
                             MediaType.parse("application/json; charset=utf-8"),
-                            Gson().toJson(request)
+                            requestJsonString
                         )
+
+                        Log.e("RBSService", "postAction projectId: $projectId")
+                        Log.e("RBSService", "postAction action: $action")
+                        Log.e("RBSService", "postAction accessToken: $accessToken")
+                        Log.e("RBSService", "postAction headers: ${Gson().toJson(headers)}")
+                        Log.e("RBSService", "postAction body: $requestJsonString")
 
                         networkPost.postAction(headers, projectId, action, accessToken, body)
                     }
