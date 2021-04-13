@@ -105,53 +105,15 @@ class RBS(
         }
     }
 
-    fun sendAction(
-        action: String,
-        jsonString: String? = null,
-        headers: Map<String, String> = mapOf(),
-        success: ((String?) -> Unit)? = null,
-        error: ((Throwable?) -> Unit)? = null
-    ) {
-        GlobalScope.launch {
-            async(Dispatchers.IO) {
-                if (!TextUtils.isEmpty(action)) {
-                    val res =
-                        kotlin.runCatching { executeRunBlock(action = action, requestJsonString = jsonString, headers = headers) }
-
-                    if (res.isSuccess) {
-                        withContext(Dispatchers.Main) {
-                            success?.invoke(res.getOrNull())
-                        }
-                    } else {
-                        withContext(Dispatchers.Main) {
-                            error?.invoke(res.exceptionOrNull())
-                        }
-                    }
-                } else {
-                    withContext(Dispatchers.Main) {
-                        error?.invoke(IllegalArgumentException("action must not be null or empty"))
-                    }
-                }
-            }
-        }
-    }
-
     fun generateGetActionUrl(action: String,
                              data: Map<String, Any> = mapOf(),
-                             jsonString: String? = null,
                              success: ((String?) -> Unit)? = null,
                              error: ((Throwable?) -> Unit)? = null) {
         GlobalScope.launch {
             async(Dispatchers.IO) {
                 if (!TextUtils.isEmpty(action)) {
-                    val requestJsonString = if (TextUtils.isEmpty(jsonString)) {
-                        Gson().toJson(data)
-                    } else {
-                        jsonString
-                    }
-
                     val res =
-                        kotlin.runCatching { executeRunBlock(action = action, requestJsonString = requestJsonString, isGenerate = true) }
+                        kotlin.runCatching { executeRunBlock(action = action, requestJsonString = Gson().toJson(data), isGenerate = true) }
 
                     if (res.isSuccess) {
                         withContext(Dispatchers.Main) {
