@@ -1,7 +1,6 @@
 # rbs-android
 
-[![](https://jitpack.io/v/rettersoft/rbs-android.svg)](https://jitpack.io/#rettersoft/rbs-android)
-
+[![](https://jitpack.io/v/rettersoft/rbs-android-sdk.svg)](https://jitpack.io/#rettersoft/rbs-android-sdk)
 
 ##### Add it in your root build.gradle at the end of repositories:
 
@@ -18,6 +17,6 @@ allprojects {
 
 ```
 dependencies {
-  implementation 'com.github.rettersoft:rbs-android-sdk:0.9.8'
+  implementation 'com.github.rettersoft:rbs-android-sdk:{latest-version}'
 }
 ```
