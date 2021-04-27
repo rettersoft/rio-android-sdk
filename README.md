@@ -20,3 +20,10 @@ dependencies {
   implementation 'com.github.rettersoft:rbs-android-sdk:{latest-version}'
 }
 ```
+
+##### Proguard config
+
+```
+-keep class com.rettermobile** { *; }
+-keep class com.rettermobile.* { *; }
+```
