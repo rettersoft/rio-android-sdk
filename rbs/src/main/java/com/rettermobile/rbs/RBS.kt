@@ -11,6 +11,7 @@ import com.rettermobile.rbs.service.RBSServiceImp
 import com.rettermobile.rbs.service.model.RBSTokenResponse
 import com.rettermobile.rbs.util.RBSRegion
 import kotlinx.coroutines.*
+import java.util.concurrent.Semaphore
 
 
 /**
@@ -21,6 +22,8 @@ class RBS(
     val projectId: String,
     val region: RBSRegion = RBSRegion.EU_WEST_1
 ) {
+
+    private val available = Semaphore(1, true)
 
     private val preferences = Preferences(applicationContext)
     private val service = RBSServiceImp(projectId, region)
@@ -64,7 +67,20 @@ class RBS(
                 }
 
                 if (!TextUtils.isEmpty(customToken)) {
-                    executeRunBlock(customToken = customToken)
+                    val res =
+                        kotlin.runCatching {
+                            executeRunBlock(customToken = customToken)
+                        }
+
+                    if (res.isSuccess) {
+                        withContext(Dispatchers.Main) {
+                            res
+                        }
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            error?.invoke(res.exceptionOrNull())
+                        }
+                    }
                 } else {
                     withContext(Dispatchers.Main) {
                         error?.invoke(IllegalArgumentException("customToken must not be null or empty"))
@@ -85,7 +101,13 @@ class RBS(
             async(Dispatchers.IO) {
                 if (!TextUtils.isEmpty(action)) {
                     val res =
-                        kotlin.runCatching { executeRunBlock(action = action, requestJsonString = Gson().toJson(data), headers = headers) }
+                        kotlin.runCatching {
+                            executeRunBlock(
+                                action = action,
+                                requestJsonString = Gson().toJson(data),
+                                headers = headers
+                            )
+                        }
 
                     if (res.isSuccess) {
                         withContext(Dispatchers.Main) {
@@ -105,15 +127,23 @@ class RBS(
         }
     }
 
-    fun generateGetActionUrl(action: String,
-                             data: Map<String, Any> = mapOf(),
-                             success: ((String?) -> Unit)? = null,
-                             error: ((Throwable?) -> Unit)? = null) {
+    fun generateGetActionUrl(
+        action: String,
+        data: Map<String, Any> = mapOf(),
+        success: ((String?) -> Unit)? = null,
+        error: ((Throwable?) -> Unit)? = null
+    ) {
         GlobalScope.launch {
             async(Dispatchers.IO) {
                 if (!TextUtils.isEmpty(action)) {
                     val res =
-                        kotlin.runCatching { executeRunBlock(action = action, requestJsonString = Gson().toJson(data), isGenerate = true) }
+                        kotlin.runCatching {
+                            executeRunBlock(
+                                action = action,
+                                requestJsonString = Gson().toJson(data),
+                                isGenerate = true
+                            )
+                        }
 
                     if (res.isSuccess) {
                         withContext(Dispatchers.Main) {
@@ -162,7 +192,7 @@ class RBS(
             } else {
                 Log.e("RBSService", "authWithCustomToken fail")
 
-                throw res.exceptionOrNull()!!
+                throw res.exceptionOrNull() ?: IllegalAccessError("AuthWithCustomToken fail")
             }
         } else {
             if (TextUtils.isEmpty(tokenInfo?.accessToken)) {
@@ -175,9 +205,11 @@ class RBS(
                 } else {
                     Log.e("RBSService", "getAnonymousToken fail")
 
-                    throw res.exceptionOrNull()!!
+                    throw res.exceptionOrNull() ?: IllegalAccessError("GetAnonymousToken fail")
                 }
             } else {
+                available.acquire()
+
                 if (isTokenRefreshRequired()) {
                     val res = service.refreshToken(tokenInfo!!.refreshToken)
 
@@ -186,13 +218,24 @@ class RBS(
 
                         tokenInfo = res.getOrNull()
                     } else {
+                        Log.e("RBSService", "refreshToken fail signOut called")
+                        signOut()
+
                         Log.e("RBSService", "refreshToken fail")
-                        throw res.exceptionOrNull()!!
+                        throw IllegalAccessException("Refresh token expired")
                     }
                 }
+
+                available.release()
             }
 
-            val res = service.executeAction(tokenInfo!!.accessToken, action!!, requestJsonString ?: Gson().toJson(null), headers ?: mapOf(), isGenerate)
+            val res = service.executeAction(
+                tokenInfo!!.accessToken,
+                action!!,
+                requestJsonString ?: Gson().toJson(null),
+                headers ?: mapOf(),
+                isGenerate
+            )
 
             return if (res.isSuccess) {
                 Log.e("RBSService", "executeAction success")
@@ -203,21 +246,21 @@ class RBS(
             } else {
                 Log.e("RBSService", "executeAction fail")
 
-                throw res.exceptionOrNull()!!
+                throw res.exceptionOrNull() ?: IllegalAccessError("ExecuteAction fail")
             }
         }
     }
 
     private fun isTokenRefreshRequired(): Boolean {
         val jwtAccess = JWT(tokenInfo!!.accessToken)
-        val refreshTokenExpiresAt = jwtAccess.getClaim("exp").asLong()!!
+        val accessTokenExpiresAt = jwtAccess.getClaim("exp").asLong()!!
 
         val jwtRefresh = JWT(tokenInfo!!.refreshToken)
-        val accessTokenExpiresAt = jwtRefresh.getClaim("exp").asLong()!!
+        val refreshTokenExpiresAt = jwtRefresh.getClaim("exp").asLong()!!
 
-        val now = System.currentTimeMillis() / 1000
+        val now = (System.currentTimeMillis() / 1000) + 30
 
-        return !(refreshTokenExpiresAt > now && accessTokenExpiresAt > now)
+        return now in accessTokenExpiresAt until refreshTokenExpiresAt // now + 280 -> only wait 20 seconds for debugging
     }
 
     private fun sendAuthStatus() {

@@ -5,15 +5,9 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import com.rbs.android.example.network.TestNetwork
 import com.rettermobile.rbs.RBS
 import com.rettermobile.rbs.util.RBSRegion
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -23,43 +17,70 @@ class MainActivity : AppCompatActivity() {
 
         val rbs = RBS(
             applicationContext = applicationContext,
-            projectId = "3b7eea955170401685ec7ac0187ef787",
-            region = RBSRegion.EU_WEST_1_BETA
+            projectId = "97dd804d27a346cdb57cc7bcf56f067a",
+            region = RBSRegion.EU_WEST_1
         )
 
         rbs.setOnClientAuthStatusChangeListener { rbsClientAuthStatus, rbsUser ->
-            val builder = AlertDialog.Builder(this)
-            builder.setTitle("Status")
-            builder.setMessage(rbsClientAuthStatus.name + " " + rbsUser?.uid)
-            builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
-            builder.show()
+//            val builder = AlertDialog.Builder(this)
+//            builder.setTitle("Status")
+//            builder.setMessage(rbsClientAuthStatus.name + " " + rbsUser?.uid)
+//            builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
+//            builder.show()
         }
 
         btnSignIn.setOnClickListener {
-            rbs.sendAction(
-                action = "rbs.businessuserauth.request.LOGIN",
-                data = mapOf(Pair("email", "root"), Pair("password", "12345")),
-                headers = mapOf(Pair("header1", "parameter 1"), Pair("header2", "parameter 2"), Pair("header3", "parameter 3")),
-                success = {
+//            rbs.sendAction(
+//                action = "rbs.businessuserauth.request.LOGIN",
+//                data = mapOf(Pair("email", "root"), Pair("password", "12345")),
+//                headers = mapOf(Pair("header1", "parameter 1"), Pair("header2", "parameter 2"), Pair("header3", "parameter 3")),
+//                success = {
+//
+//                    val type = object : TypeToken<List<AuthResponse>>() {}.type
+//                    val items: List<AuthResponse> = Gson().fromJson(it!!, type)
+//
+//                    rbs.authenticateWithCustomToken(items[0].response!!.customToken)
+//                }, error = {
+//                    val builder = AlertDialog.Builder(this)
+//                    builder.setTitle("Status")
+//                    builder.setMessage(it?.message)
+//                    builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
+//                    builder.show()
+//                }
+//            )
 
-                    val type = object : TypeToken<List<AuthResponse>>() {}.type
-                    val items: List<AuthResponse> = Gson().fromJson(it!!, type)
-
-                    rbs.authenticateWithCustomToken(items[0].response!!.customToken)
-                }, error = {
+            rbs.authenticateWithCustomToken(
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGl0eSI6ImVuZHVzZXIiLCJhbm9ueW1vdXMiOmZhbHNlLCJwcm9qZWN0SWQiOiI5N2RkODA0ZDI3YTM0NmNkYjU3Y2M3YmNmNTZmMDY3YSIsInVzZXJJZCI6IjAxRjdYR1AwV1Q0NUVSMU1aWlpLQlFXVjBaIiwidGltZXN0YW1wIjoxNjIzNDE0NzIxNTcyLCJjbGFpbXMiOnsibXNpc2RuIjoiOTA1MzMzOTk2MDMwIn0sImlhdCI6MTYyMzQxNDcyMSwiZXhwIjoxNjIzNDE0ODQxLCJpc3MiOiJjb3JlLnJ0YnMuaW8ifQ.KGQNwxCIP3MKQxxxbZF4z3ThIhIft_UsRnfFwzHZ85c",
+                error = {
                     val builder = AlertDialog.Builder(this)
                     builder.setTitle("Status")
                     builder.setMessage(it?.message)
                     builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
                     builder.show()
-                }
-            )
+                })
         }
 
         btnSearch.setOnClickListener {
+//            rbs.sendAction(
+//                action = "rbs.address.get.COUNTRIES",
+//                headers = mapOf(Pair("header1", "parameter 1"), Pair("header2", "parameter 2"), Pair("header3", "parameter 3")),
+//                success = { jsonData ->
+//                    Log.e("RBSService", jsonData) // Convert to data model with Gson()
+//
+//                    Toast.makeText(this, jsonData, Toast.LENGTH_LONG).show()
+//                },
+//                error = {
+//                    val builder = AlertDialog.Builder(this)
+//                    builder.setTitle("Status")
+//                    builder.setMessage(it?.message)
+//                    builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
+//                    builder.show()
+//                })
+
+
             rbs.sendAction(
-                action = "rbs.address.get.COUNTRIES",
-                headers = mapOf(Pair("header1", "parameter 1"), Pair("header2", "parameter 2"), Pair("header3", "parameter 3")),
+                action = "rbs.cart.request.GET",
+                data = mapOf(Pair("zoneId", "avrupa1")),
                 success = { jsonData ->
                     Log.e("RBSService", jsonData) // Convert to data model with Gson()
 
