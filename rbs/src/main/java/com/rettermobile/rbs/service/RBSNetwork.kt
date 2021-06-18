@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.gson.GsonBuilder
 import com.rettermobile.rbs.BuildConfig
 import okhttp3.CacheControl
+import okhttp3.CertificatePinner
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -18,9 +19,26 @@ class RBSNetwork {
     private var service: RBSService? = null
     private var okHttpClient: OkHttpClient? = null
 
+    fun provideCertificate(): CertificatePinner {
+        return CertificatePinner.Builder()
+            .add("*.rtbs.io", "sha256/++MBgDH5WGvL9Bcn5Be30cRcL0f5O+NyoXuWtQdX1aI=")
+            .add("*.rtbs.io", "sha256/f0KW/FtqTjs108NpYj42SrGvOB2PpxIVM8nWxjPqJGE=")
+            .add("*.rtbs.io", "sha256/NqvDJlas/GRcYbcWE8S/IceH9cq77kg0jVhZeAPXq8k=")
+            .add("*.rtbs.io", "sha256/9+ze1cZgR9KO1kZrVDxA4HQ6voHRCSVNz4RdTCx4U8U=")
+            .add("*.rtbs.io", "sha256/KwccWaCgrnaw6tsrrSO61FgLacNgG2MMLq8GE6+oP5I=")
+            .add("*.rtbs.io", "sha256/FfFKxFycfaIz00eRZOgTf+Ne4POK6FgYPwhBDqgqxLQ=")
+            .add("*.rettermobile.com", "sha256/++MBgDH5WGvL9Bcn5Be30cRcL0f5O+NyoXuWtQdX1aI=")
+            .add("*.rettermobile.com", "sha256/f0KW/FtqTjs108NpYj42SrGvOB2PpxIVM8nWxjPqJGE=")
+            .add("*.rettermobile.com", "sha256/NqvDJlas/GRcYbcWE8S/IceH9cq77kg0jVhZeAPXq8k=")
+            .add("*.rettermobile.com", "sha256/9+ze1cZgR9KO1kZrVDxA4HQ6voHRCSVNz4RdTCx4U8U=")
+            .add("*.rettermobile.com", "sha256/KwccWaCgrnaw6tsrrSO61FgLacNgG2MMLq8GE6+oP5I=")
+            .add("*.rettermobile.com", "sha256/FfFKxFycfaIz00eRZOgTf+Ne4POK6FgYPwhBDqgqxLQ=")
+            .build()
+    }
+
     private fun provideOkHttp(): OkHttpClient {
         val builder = OkHttpClient.Builder()
-        val interceptor = HttpLoggingInterceptor(HttpLoggingInterceptor.Logger {
+        val interceptor = HttpLoggingInterceptor({
             Log.e("OkHttp", it)
         })
 
@@ -29,6 +47,8 @@ class RBSNetwork {
         } else {
             interceptor.level = HttpLoggingInterceptor.Level.NONE
         }
+
+        builder.certificatePinner(provideCertificate())
 
         builder.addInterceptor { chain ->
             val originalRequest = chain.request()

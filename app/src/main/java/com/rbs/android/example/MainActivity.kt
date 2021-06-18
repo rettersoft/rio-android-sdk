@@ -5,6 +5,8 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.rettermobile.rbs.RBS
 import com.rettermobile.rbs.util.RBSRegion
 import kotlinx.android.synthetic.main.activity_main.*
@@ -17,7 +19,7 @@ class MainActivity : AppCompatActivity() {
 
         val rbs = RBS(
             applicationContext = applicationContext,
-            projectId = "97dd804d27a346cdb57cc7bcf56f067a",
+            projectId = "XXXXXXXXXXX",
             region = RBSRegion.EU_WEST_1
         )
 
@@ -49,15 +51,15 @@ class MainActivity : AppCompatActivity() {
 //                }
 //            )
 
-            rbs.authenticateWithCustomToken(
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGl0eSI6ImVuZHVzZXIiLCJhbm9ueW1vdXMiOmZhbHNlLCJwcm9qZWN0SWQiOiI5N2RkODA0ZDI3YTM0NmNkYjU3Y2M3YmNmNTZmMDY3YSIsInVzZXJJZCI6IjAxRjdYR1AwV1Q0NUVSMU1aWlpLQlFXVjBaIiwidGltZXN0YW1wIjoxNjIzNDE0NzIxNTcyLCJjbGFpbXMiOnsibXNpc2RuIjoiOTA1MzMzOTk2MDMwIn0sImlhdCI6MTYyMzQxNDcyMSwiZXhwIjoxNjIzNDE0ODQxLCJpc3MiOiJjb3JlLnJ0YnMuaW8ifQ.KGQNwxCIP3MKQxxxbZF4z3ThIhIft_UsRnfFwzHZ85c",
-                error = {
-                    val builder = AlertDialog.Builder(this)
-                    builder.setTitle("Status")
-                    builder.setMessage(it?.message)
-                    builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
-                    builder.show()
-                })
+//            rbs.authenticateWithCustomToken(
+//                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGl0eSI6ImVuZHVzZXIiLCJhbm9ueW1vdXMiOmZhbHNlLCJwcm9qZWN0SWQiOiI5N2RkODA0ZDI3YTM0NmNkYjU3Y2M3YmNmNTZmMDY3YSIsInVzZXJJZCI6IjAxRjdYR1AwV1Q0NUVSMU1aWlpLQlFXVjBaIiwidGltZXN0YW1wIjoxNjIzNDE0NzIxNTcyLCJjbGFpbXMiOnsibXNpc2RuIjoiOTA1MzMzOTk2MDMwIn0sImlhdCI6MTYyMzQxNDcyMSwiZXhwIjoxNjIzNDE0ODQxLCJpc3MiOiJjb3JlLnJ0YnMuaW8ifQ.KGQNwxCIP3MKQxxxbZF4z3ThIhIft_UsRnfFwzHZ85c",
+//                error = {
+//                    val builder = AlertDialog.Builder(this)
+//                    builder.setTitle("Status")
+//                    builder.setMessage(it?.message)
+//                    builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
+//                    builder.show()
+//                })
         }
 
         btnSearch.setOnClickListener {
@@ -131,5 +133,18 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnSignOut.setOnClickListener { rbs.signOut() }
+    }
+
+
+    private inline fun <reified T> getResponse(json: String): T? {
+        val gson = Gson()
+        val type = object : TypeToken<List<Map<String, Any>>>() {}.type
+
+        val response = gson.fromJson<List<Map<String, Any>>>(json, type)
+
+        return if (response.isNullOrEmpty()) null else gson.fromJson<T>(
+            gson.toJson(response[0]["response"]),
+            T::class.java
+        )
     }
 }
