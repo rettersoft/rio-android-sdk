@@ -13,10 +13,10 @@ import okhttp3.ResponseBody
 /**
  * Created by semihozkoroglu on 22.11.2020.
  */
-class RBSServiceImp constructor(val projectId: String, val region: RBSRegion) {
+class RBSServiceImp constructor(val projectId: String, val region: RBSRegion, sslPinningEnabled: Boolean) {
 
-    private var networkGet: RBSService = RBSNetwork().getConnection(region.getUrl)
-    private var networkPost: RBSService = RBSNetwork().getConnection(region.postUrl)
+    private var networkGet: RBSService = RBSNetwork(sslPinningEnabled).getConnection(region.getUrl)
+    private var networkPost: RBSService = RBSNetwork(sslPinningEnabled).getConnection(region.postUrl)
 
     suspend fun executeAction(
         accessToken: String,

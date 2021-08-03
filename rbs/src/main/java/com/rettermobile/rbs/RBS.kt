@@ -20,13 +20,14 @@ import java.util.concurrent.Semaphore
 class RBS(
     val applicationContext: Context,
     val projectId: String,
-    val region: RBSRegion = RBSRegion.EU_WEST_1
+    val region: RBSRegion = RBSRegion.EU_WEST_1,
+    sslPinningEnabled: Boolean = true
 ) {
 
     private val available = Semaphore(1, true)
 
     private val preferences = Preferences(applicationContext)
-    private val service = RBSServiceImp(projectId, region)
+    private val service = RBSServiceImp(projectId, region, sslPinningEnabled)
     private val gson = Gson()
 
     private var listener: ((RBSClientAuthStatus, RBSUser?) -> Unit)? = null
@@ -128,6 +129,42 @@ class RBS(
     }
 
     fun generateGetActionUrl(
+        action: String,
+        data: Map<String, Any> = mapOf(),
+        success: ((String?) -> Unit)? = null,
+        error: ((Throwable?) -> Unit)? = null
+    ) {
+        GlobalScope.launch {
+            async(Dispatchers.IO) {
+                if (!TextUtils.isEmpty(action)) {
+                    val res =
+                        kotlin.runCatching {
+                            executeRunBlock(
+                                action = action,
+                                requestJsonString = Gson().toJson(data),
+                                isGenerate = true
+                            )
+                        }
+
+                    if (res.isSuccess) {
+                        withContext(Dispatchers.Main) {
+                            success?.invoke(res.getOrNull())
+                        }
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            error?.invoke(res.exceptionOrNull())
+                        }
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        error?.invoke(IllegalArgumentException("action must not be null or empty"))
+                    }
+                }
+            }
+        }
+    }
+
+    fun generatePublicGetActionUrl(
         action: String,
         data: Map<String, Any> = mapOf(),
         success: ((String?) -> Unit)? = null,

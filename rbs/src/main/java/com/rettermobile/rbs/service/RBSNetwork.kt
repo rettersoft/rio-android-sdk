@@ -14,12 +14,12 @@ import java.util.concurrent.TimeUnit
 /**
  * Created by semihozkoroglu on 22.11.2020.
  */
-class RBSNetwork {
+class RBSNetwork constructor(val sslPinningEnabled: Boolean) {
 
     private var service: RBSService? = null
     private var okHttpClient: OkHttpClient? = null
 
-    fun provideCertificate(): CertificatePinner {
+    private fun provideCertificate(): CertificatePinner {
         return CertificatePinner.Builder()
             .add("*.rtbs.io", "sha256/++MBgDH5WGvL9Bcn5Be30cRcL0f5O+NyoXuWtQdX1aI=")
             .add("*.rtbs.io", "sha256/f0KW/FtqTjs108NpYj42SrGvOB2PpxIVM8nWxjPqJGE=")
@@ -48,7 +48,9 @@ class RBSNetwork {
             interceptor.level = HttpLoggingInterceptor.Level.NONE
         }
 
-        builder.certificatePinner(provideCertificate())
+        if (sslPinningEnabled) {
+            builder.certificatePinner(provideCertificate())
+        }
 
         builder.addInterceptor { chain ->
             val originalRequest = chain.request()
