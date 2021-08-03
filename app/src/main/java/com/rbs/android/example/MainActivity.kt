@@ -19,8 +19,9 @@ class MainActivity : AppCompatActivity() {
 
         val rbs = RBS(
             applicationContext = applicationContext,
-            projectId = "XXXXXXXXXXX",
-            region = RBSRegion.EU_WEST_1
+            projectId = "36229bb229af4983a4bc6ecded2a68d2",
+//            projectId = "XXXXXXXXXXX",
+            region = RBSRegion.EU_WEST_1_BETA
         )
 
         rbs.setOnClientAuthStatusChangeListener { rbsClientAuthStatus, rbsUser ->
@@ -112,6 +113,26 @@ class MainActivity : AppCompatActivity() {
 
         btnGenerate.setOnClickListener {
             rbs.generateGetActionUrl(
+                action = "rbs.address.get.COUNTRIES",
+                data = mapOf(Pair("cartId", "1de255c877")),
+                success = { jsonData ->
+                    Log.e("RBSService", jsonData) // Convert to data model with Gson()
+
+                    Toast.makeText(this, jsonData, Toast.LENGTH_LONG).show()
+
+//                    GlobalScope.launch {
+//                        TestNetwork().getConnection(RBSRegion.EU_WEST_1_BETA.getUrl).get(jsonData!!)
+//                    }
+                },
+                error = {
+                    val builder = AlertDialog.Builder(this)
+                    builder.setTitle("Status")
+                    builder.setMessage(it?.message)
+                    builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
+                    builder.show()
+                })
+
+            rbs.generatePublicGetActionUrl(
                 action = "rbs.address.get.COUNTRIES",
                 data = mapOf(Pair("cartId", "1de255c877")),
                 success = { jsonData ->

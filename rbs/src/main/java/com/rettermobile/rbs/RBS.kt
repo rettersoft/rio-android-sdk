@@ -8,6 +8,7 @@ import com.google.gson.Gson
 import com.rettermobile.rbs.model.RBSClientAuthStatus
 import com.rettermobile.rbs.model.RBSUser
 import com.rettermobile.rbs.service.RBSServiceImp
+import com.rettermobile.rbs.service.RequestType
 import com.rettermobile.rbs.service.model.RBSTokenResponse
 import com.rettermobile.rbs.util.RBSRegion
 import kotlinx.coroutines.*
@@ -70,7 +71,10 @@ class RBS(
                 if (!TextUtils.isEmpty(customToken)) {
                     val res =
                         kotlin.runCatching {
-                            executeRunBlock(customToken = customToken)
+                            executeRunBlock(
+                                customToken = customToken,
+                                requestType = RequestType.REQUEST
+                            )
                         }
 
                     if (res.isSuccess) {
@@ -106,7 +110,8 @@ class RBS(
                             executeRunBlock(
                                 action = action,
                                 requestJsonString = Gson().toJson(data),
-                                headers = headers
+                                headers = headers,
+                                requestType = RequestType.REQUEST
                             )
                         }
 
@@ -142,7 +147,7 @@ class RBS(
                             executeRunBlock(
                                 action = action,
                                 requestJsonString = Gson().toJson(data),
-                                isGenerate = true
+                                requestType = RequestType.GENERATE_AUTH
                             )
                         }
 
@@ -178,7 +183,7 @@ class RBS(
                             executeRunBlock(
                                 action = action,
                                 requestJsonString = Gson().toJson(data),
-                                isGenerate = true
+                                requestType = RequestType.GENERATE_PUBLIC
                             )
                         }
 
@@ -205,9 +210,9 @@ class RBS(
         action: String? = null,
         requestJsonString: String? = null,
         headers: Map<String, String>? = null,
-        isGenerate: Boolean = false
+        requestType: RequestType
     ): String {
-        return exec(customToken, action, requestJsonString, headers, isGenerate)
+        return exec(customToken, action, requestJsonString, headers, requestType)
     }
 
     private suspend fun exec(
@@ -215,76 +220,79 @@ class RBS(
         action: String? = null,
         requestJsonString: String? = null,
         headers: Map<String, String>? = null,
-        isGenerate: Boolean = false
+        requestType: RequestType
     ): String {
-        if (!TextUtils.isEmpty(customToken)) {
-            val res = service.authWithCustomToken(customToken!!)
+        if (requestType != RequestType.GENERATE_PUBLIC) {
+            // Token info control
+            if (!TextUtils.isEmpty(customToken)) {
+                val res = service.authWithCustomToken(customToken!!)
 
-            return if (res.isSuccess) {
-                Log.e("RBSService", "authWithCustomToken success")
-
-                tokenInfo = res.getOrNull()
-
-                "TOKEN OK"
-            } else {
-                Log.e("RBSService", "authWithCustomToken fail")
-
-                throw res.exceptionOrNull() ?: IllegalAccessError("AuthWithCustomToken fail")
-            }
-        } else {
-            if (TextUtils.isEmpty(tokenInfo?.accessToken)) {
-                val res = service.getAnonymousToken(projectId)
-
-                if (res.isSuccess) {
-                    Log.e("RBSService", "getAnonymousToken success")
+                return if (res.isSuccess) {
+                    Log.e("RBSService", "authWithCustomToken success")
 
                     tokenInfo = res.getOrNull()
-                } else {
-                    Log.e("RBSService", "getAnonymousToken fail")
 
-                    throw res.exceptionOrNull() ?: IllegalAccessError("GetAnonymousToken fail")
+                    "TOKEN OK"
+                } else {
+                    Log.e("RBSService", "authWithCustomToken fail")
+
+                    throw res.exceptionOrNull() ?: IllegalAccessError("AuthWithCustomToken fail")
                 }
             } else {
-                available.acquire()
-
-                if (isTokenRefreshRequired()) {
-                    val res = service.refreshToken(tokenInfo!!.refreshToken)
+                if (TextUtils.isEmpty(tokenInfo?.accessToken)) {
+                    val res = service.getAnonymousToken(projectId)
 
                     if (res.isSuccess) {
-                        Log.e("RBSService", "refreshToken success")
+                        Log.e("RBSService", "getAnonymousToken success")
 
                         tokenInfo = res.getOrNull()
                     } else {
-                        Log.e("RBSService", "refreshToken fail signOut called")
-                        signOut()
+                        Log.e("RBSService", "getAnonymousToken fail")
 
-                        Log.e("RBSService", "refreshToken fail")
-                        throw IllegalAccessException("Refresh token expired")
+                        throw res.exceptionOrNull() ?: IllegalAccessError("GetAnonymousToken fail")
                     }
+                } else {
+                    available.acquire()
+
+                    if (isTokenRefreshRequired()) {
+                        val res = service.refreshToken(tokenInfo!!.refreshToken)
+
+                        if (res.isSuccess) {
+                            Log.e("RBSService", "refreshToken success")
+
+                            tokenInfo = res.getOrNull()
+                        } else {
+                            Log.e("RBSService", "refreshToken fail signOut called")
+                            signOut()
+
+                            Log.e("RBSService", "refreshToken fail")
+                            throw IllegalAccessException("Refresh token expired")
+                        }
+                    }
+
+                    available.release()
                 }
-
-                available.release()
             }
+        }
 
-            val res = service.executeAction(
-                tokenInfo!!.accessToken,
-                action!!,
-                requestJsonString ?: Gson().toJson(null),
-                headers ?: mapOf(),
-                isGenerate
-            )
+        val res = service.executeAction(
+            tokenInfo?.accessToken,
+            action!!,
+            requestJsonString ?: Gson().toJson(null),
+            headers ?: mapOf(),
+            requestType
+        )
 
-            return if (res.isSuccess) {
-                Log.e("RBSService", "executeAction success")
+        return if (res.isSuccess) {
+            Log.e("RBSService", "executeAction success")
 
-                val jsonString = res.getOrNull()?.string()
+            val jsonString = res.getOrNull()?.string()
 
-                jsonString ?: ""
-            } else {
-                Log.e("RBSService", "executeAction fail")
+            jsonString ?: ""
+        } else {
+            Log.e("RBSService", "executeAction fail")
 
-                throw res.exceptionOrNull() ?: IllegalAccessError("ExecuteAction fail")
-            }
+            throw res.exceptionOrNull() ?: IllegalAccessError("ExecuteAction fail")
         }
     }
 

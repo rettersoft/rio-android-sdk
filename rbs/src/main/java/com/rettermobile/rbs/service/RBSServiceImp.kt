@@ -13,17 +13,22 @@ import okhttp3.ResponseBody
 /**
  * Created by semihozkoroglu on 22.11.2020.
  */
-class RBSServiceImp constructor(val projectId: String, val region: RBSRegion, sslPinningEnabled: Boolean) {
+class RBSServiceImp constructor(
+    val projectId: String,
+    val region: RBSRegion,
+    sslPinningEnabled: Boolean
+) {
 
     private var networkGet: RBSService = RBSNetwork(sslPinningEnabled).getConnection(region.getUrl)
-    private var networkPost: RBSService = RBSNetwork(sslPinningEnabled).getConnection(region.postUrl)
+    private var networkPost: RBSService =
+        RBSNetwork(sslPinningEnabled).getConnection(region.postUrl)
 
     suspend fun executeAction(
-        accessToken: String,
+        accessToken: String? = null,
         action: String,
         requestJsonString: String,
         headers: Map<String, String>,
-        isGenerate: Boolean = false
+        requestType: RequestType
     ): Result<ResponseBody?> {
         Log.e("RBSService", "executeAction $action started")
         return runCatching {
@@ -31,7 +36,7 @@ class RBSServiceImp constructor(val projectId: String, val region: RBSRegion, ss
                 if (it.size > 3) {
                     if (TextUtils.equals(it[2], "get")) {
                         val data = requestJsonString.getBase64EncodeString()
-                        if (isGenerate) {
+                        if (requestType == RequestType.GENERATE_AUTH) {
                             Log.e("RBSService", "generateUrl projectId: $projectId")
                             Log.e("RBSService", "generateUrl action: $action")
                             Log.e("RBSService", "generateUrl accessToken: $accessToken")
@@ -42,6 +47,16 @@ class RBSServiceImp constructor(val projectId: String, val region: RBSRegion, ss
                             ResponseBody.create(
                                 MediaType.get("application/json"),
                                 region.getUrl + "user/action/$projectId/$action?auth=$accessToken&data=$data"
+                            )
+                        } else if (requestType == RequestType.GENERATE_PUBLIC) {
+                            Log.e("RBSService", "generateUrl public projectId: $projectId")
+                            Log.e("RBSService", "generateUrl public action: $action")
+                            Log.e("RBSService", "generateUrl public body: $requestJsonString")
+                            Log.e("RBSService", "generateUrl public bodyEncodeString: $data")
+
+                            ResponseBody.create(
+                                MediaType.get("application/json"),
+                                region.getUrl + "user/action/$projectId/$action?data=$data"
                             )
                         } else {
                             Log.e("RBSService", "getAction projectId: $projectId")
@@ -54,7 +69,7 @@ class RBSServiceImp constructor(val projectId: String, val region: RBSRegion, ss
                                 headers,
                                 projectId,
                                 action,
-                                accessToken,
+                                accessToken!!,
                                 data
                             )
                         }
@@ -70,7 +85,7 @@ class RBSServiceImp constructor(val projectId: String, val region: RBSRegion, ss
                         Log.e("RBSService", "postAction headers: ${Gson().toJson(headers)}")
                         Log.e("RBSService", "postAction body: $requestJsonString")
 
-                        networkPost.postAction(headers, projectId, action, accessToken, body)
+                        networkPost.postAction(headers, projectId, action, accessToken!!, body)
                     }
                 } else {
                     throw IllegalStateException("Action not in an acceptable format")
