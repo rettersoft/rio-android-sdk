@@ -182,7 +182,7 @@ class RBS(
         Log.e("RBSService", "generateUrl public body: $toJson")
         Log.e("RBSService", "generateUrl public bodyEncodeString: $requestJsonEncodedString")
 
-        return region.getUrl + "user/action/$projectId/$action?data=$data"
+        return region.getUrl + "user/action/$projectId/$action?data=$requestJsonEncodedString"
     }
 
     private suspend fun executeRunBlock(
