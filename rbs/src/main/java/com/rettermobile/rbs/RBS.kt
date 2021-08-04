@@ -11,6 +11,7 @@ import com.rettermobile.rbs.service.RBSServiceImp
 import com.rettermobile.rbs.service.RequestType
 import com.rettermobile.rbs.service.model.RBSTokenResponse
 import com.rettermobile.rbs.util.RBSRegion
+import com.rettermobile.rbs.util.getBase64EncodeString
 import kotlinx.coroutines.*
 import java.util.concurrent.Semaphore
 
@@ -171,38 +172,17 @@ class RBS(
 
     fun generatePublicGetActionUrl(
         action: String,
-        data: Map<String, Any> = mapOf(),
-        success: ((String?) -> Unit)? = null,
-        error: ((Throwable?) -> Unit)? = null
-    ) {
-        GlobalScope.launch {
-            async(Dispatchers.IO) {
-                if (!TextUtils.isEmpty(action)) {
-                    val res =
-                        kotlin.runCatching {
-                            executeRunBlock(
-                                action = action,
-                                requestJsonString = Gson().toJson(data),
-                                requestType = RequestType.GENERATE_PUBLIC
-                            )
-                        }
+        data: Map<String, Any> = mapOf()
+    ): String {
+        val toJson = Gson().toJson(data)
+        val requestJsonEncodedString = toJson.getBase64EncodeString()
 
-                    if (res.isSuccess) {
-                        withContext(Dispatchers.Main) {
-                            success?.invoke(res.getOrNull())
-                        }
-                    } else {
-                        withContext(Dispatchers.Main) {
-                            error?.invoke(res.exceptionOrNull())
-                        }
-                    }
-                } else {
-                    withContext(Dispatchers.Main) {
-                        error?.invoke(IllegalArgumentException("action must not be null or empty"))
-                    }
-                }
-            }
-        }
+        Log.e("RBSService", "generateUrl public projectId: $projectId")
+        Log.e("RBSService", "generateUrl public action: $action")
+        Log.e("RBSService", "generateUrl public body: $toJson")
+        Log.e("RBSService", "generateUrl public bodyEncodeString: $requestJsonEncodedString")
+
+        return region.getUrl + "user/action/$projectId/$action?data=$data"
     }
 
     private suspend fun executeRunBlock(
@@ -222,56 +202,54 @@ class RBS(
         headers: Map<String, String>? = null,
         requestType: RequestType
     ): String {
-        if (requestType != RequestType.GENERATE_PUBLIC) {
-            // Token info control
-            if (!TextUtils.isEmpty(customToken)) {
-                val res = service.authWithCustomToken(customToken!!)
+        // Token info control
+        if (!TextUtils.isEmpty(customToken)) {
+            val res = service.authWithCustomToken(customToken!!)
 
-                return if (res.isSuccess) {
-                    Log.e("RBSService", "authWithCustomToken success")
+            return if (res.isSuccess) {
+                Log.e("RBSService", "authWithCustomToken success")
+
+                tokenInfo = res.getOrNull()
+
+                "TOKEN OK"
+            } else {
+                Log.e("RBSService", "authWithCustomToken fail")
+
+                throw res.exceptionOrNull() ?: IllegalAccessError("AuthWithCustomToken fail")
+            }
+        } else {
+            if (TextUtils.isEmpty(tokenInfo?.accessToken)) {
+                val res = service.getAnonymousToken(projectId)
+
+                if (res.isSuccess) {
+                    Log.e("RBSService", "getAnonymousToken success")
 
                     tokenInfo = res.getOrNull()
-
-                    "TOKEN OK"
                 } else {
-                    Log.e("RBSService", "authWithCustomToken fail")
+                    Log.e("RBSService", "getAnonymousToken fail")
 
-                    throw res.exceptionOrNull() ?: IllegalAccessError("AuthWithCustomToken fail")
+                    throw res.exceptionOrNull() ?: IllegalAccessError("GetAnonymousToken fail")
                 }
             } else {
-                if (TextUtils.isEmpty(tokenInfo?.accessToken)) {
-                    val res = service.getAnonymousToken(projectId)
+                available.acquire()
+
+                if (isTokenRefreshRequired()) {
+                    val res = service.refreshToken(tokenInfo!!.refreshToken)
 
                     if (res.isSuccess) {
-                        Log.e("RBSService", "getAnonymousToken success")
+                        Log.e("RBSService", "refreshToken success")
 
                         tokenInfo = res.getOrNull()
                     } else {
-                        Log.e("RBSService", "getAnonymousToken fail")
+                        Log.e("RBSService", "refreshToken fail signOut called")
+                        signOut()
 
-                        throw res.exceptionOrNull() ?: IllegalAccessError("GetAnonymousToken fail")
+                        Log.e("RBSService", "refreshToken fail")
+                        throw IllegalAccessException("Refresh token expired")
                     }
-                } else {
-                    available.acquire()
-
-                    if (isTokenRefreshRequired()) {
-                        val res = service.refreshToken(tokenInfo!!.refreshToken)
-
-                        if (res.isSuccess) {
-                            Log.e("RBSService", "refreshToken success")
-
-                            tokenInfo = res.getOrNull()
-                        } else {
-                            Log.e("RBSService", "refreshToken fail signOut called")
-                            signOut()
-
-                            Log.e("RBSService", "refreshToken fail")
-                            throw IllegalAccessException("Refresh token expired")
-                        }
-                    }
-
-                    available.release()
                 }
+
+                available.release()
             }
         }
 

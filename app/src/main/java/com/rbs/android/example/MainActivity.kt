@@ -132,25 +132,14 @@ class MainActivity : AppCompatActivity() {
                     builder.show()
                 })
 
-            rbs.generatePublicGetActionUrl(
+            val jsonData = rbs.generatePublicGetActionUrl(
                 action = "rbs.address.get.COUNTRIES",
-                data = mapOf(Pair("cartId", "1de255c877")),
-                success = { jsonData ->
-                    Log.e("RBSService", jsonData) // Convert to data model with Gson()
+                data = mapOf(Pair("cartId", "1de255c877"))
+            )
 
-                    Toast.makeText(this, jsonData, Toast.LENGTH_LONG).show()
+            Log.e("RBSService", jsonData) // Convert to data model with Gson()
 
-//                    GlobalScope.launch {
-//                        TestNetwork().getConnection(RBSRegion.EU_WEST_1_BETA.getUrl).get(jsonData!!)
-//                    }
-                },
-                error = {
-                    val builder = AlertDialog.Builder(this)
-                    builder.setTitle("Status")
-                    builder.setMessage(it?.message)
-                    builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
-                    builder.show()
-                })
+            Toast.makeText(this, jsonData, Toast.LENGTH_LONG).show()
         }
 
         btnSignOut.setOnClickListener { rbs.signOut() }

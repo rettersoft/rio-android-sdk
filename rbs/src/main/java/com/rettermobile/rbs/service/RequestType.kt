@@ -5,6 +5,5 @@ package com.rettermobile.rbs.service
  */
 enum class RequestType {
     REQUEST,
-    GENERATE_AUTH,
-    GENERATE_PUBLIC,
+    GENERATE_AUTH
 }

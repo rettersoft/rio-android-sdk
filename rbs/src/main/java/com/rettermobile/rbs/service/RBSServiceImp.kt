@@ -48,16 +48,6 @@ class RBSServiceImp constructor(
                                 MediaType.get("application/json"),
                                 region.getUrl + "user/action/$projectId/$action?auth=$accessToken&data=$data"
                             )
-                        } else if (requestType == RequestType.GENERATE_PUBLIC) {
-                            Log.e("RBSService", "generateUrl public projectId: $projectId")
-                            Log.e("RBSService", "generateUrl public action: $action")
-                            Log.e("RBSService", "generateUrl public body: $requestJsonString")
-                            Log.e("RBSService", "generateUrl public bodyEncodeString: $data")
-
-                            ResponseBody.create(
-                                MediaType.get("application/json"),
-                                region.getUrl + "user/action/$projectId/$action?data=$data"
-                            )
                         } else {
                             Log.e("RBSService", "getAction projectId: $projectId")
                             Log.e("RBSService", "getAction action: $action")
