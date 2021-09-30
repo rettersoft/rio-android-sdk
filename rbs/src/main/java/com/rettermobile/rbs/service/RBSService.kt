@@ -23,13 +23,15 @@ interface RBSService {
     suspend fun getAction(
         @HeaderMap headers: Map<String, String>,
         @Path("projectId") projectId: String, @Path("action") action: String,
-        @Query("auth") auth: String, @Query(value = "data") data: String
+        @Query("auth") auth: String, @Query(value = "data") data: String,
+        @Query(value = "culture") culture: String? = null
     ): ResponseBody
 
     @POST("user/action/{projectId}/{action}")
     suspend fun postAction(
         @HeaderMap headers: Map<String, String>,
         @Path("projectId") projectId: String, @Path("action") action: String,
-        @Query("auth") auth: String, @Body params: RequestBody
+        @Query("auth") auth: String, @Body params: RequestBody,
+        @Query(value = "culture") culture: String? = null
     ): ResponseBody
 }

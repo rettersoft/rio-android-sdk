@@ -1,18 +1,27 @@
 package com.rettermobile.rbs
 
+import android.app.Activity
+import android.app.Application
 import android.content.Context
+import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
 import com.auth0.android.jwt.JWT
 import com.google.gson.Gson
 import com.rettermobile.rbs.model.RBSClientAuthStatus
+import com.rettermobile.rbs.model.RBSCulture
 import com.rettermobile.rbs.model.RBSUser
 import com.rettermobile.rbs.service.RBSServiceImp
 import com.rettermobile.rbs.service.RequestType
 import com.rettermobile.rbs.service.model.RBSTokenResponse
+import com.rettermobile.rbs.util.Logger
 import com.rettermobile.rbs.util.RBSRegion
 import com.rettermobile.rbs.util.getBase64EncodeString
+import com.rettermobile.rbs.util.isForegrounded
 import kotlinx.coroutines.*
+import okhttp3.Response
+import okhttp3.WebSocket
+import okhttp3.WebSocketListener
 import java.util.concurrent.Semaphore
 
 
@@ -23,16 +32,31 @@ class RBS(
     val applicationContext: Context,
     val projectId: String,
     val region: RBSRegion = RBSRegion.EU_WEST_1,
-    sslPinningEnabled: Boolean = true
+    sslPinningEnabled: Boolean = true,
+    socketEnable: Boolean = false
 ) {
 
-    private val available = Semaphore(1, true)
+    private var webSocketListener: WebSocketListener? = null
+    private var logListener: Logger? = null
+
+    private val availableRest = Semaphore(1, true)
+
+    private val logger = object : Logger {
+        override fun log(message: String) {
+            Log.e("RBSService", message)
+            logListener?.log(message)
+        }
+    }
 
     private val preferences = Preferences(applicationContext)
-    private val service = RBSServiceImp(projectId, region, sslPinningEnabled)
+    private val service = RBSServiceImp(projectId, region, sslPinningEnabled, logger)
     private val gson = Gson()
 
+    private var webSocket: RBSWebSocket? = null
+
     private var listener: ((RBSClientAuthStatus, RBSUser?) -> Unit)? = null
+
+    private val actionConnectTag = "CONNECT_SOCKET"
 
     private var tokenInfo: RBSTokenResponse? = null
         set(value) {
@@ -42,13 +66,48 @@ class RBS(
                 // Save to device
                 preferences.setString(Preferences.Keys.TOKEN_INFO, gson.toJson(value))
             } else {
+                // Logout
                 preferences.deleteKey(Preferences.Keys.TOKEN_INFO)
             }
 
+            sendAction(action = actionConnectTag)
             sendAuthStatus()
         }
 
     init {
+        if (socketEnable) {
+            registerActivityLifecycles()
+
+            webSocket = RBSWebSocket(region, object : WebSocketListener() {
+                override fun onOpen(webSocket: WebSocket, response: Response) {
+                    webSocketListener?.onOpen(webSocket, response)
+
+                    logger.log("RBSWebSocket socket semaphore released - onOpen")
+                }
+
+                override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+                    logger.log("RBSWebSocket reconnect to socket")
+
+                    logger.log("RBSWebSocket socket semaphore released - onFailure")
+
+                    webSocketListener?.onFailure(webSocket, t, response)
+
+                    // send dummy event for auth token
+                    sendAction(action = actionConnectTag)
+                }
+
+                override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+                    super.onClosed(webSocket, code, reason)
+
+                    logger.log("RBSWebSocket socket semaphore released - onClosed")
+                }
+
+                override fun onMessage(webSocket: WebSocket, text: String) {
+                    webSocketListener?.onMessage(webSocket, text)
+                }
+            }, logger)
+        }
+
         val infoJson = preferences.getString(Preferences.Keys.TOKEN_INFO)
 
         if (!TextUtils.isEmpty(infoJson)) {
@@ -100,6 +159,7 @@ class RBS(
         action: String,
         data: Map<String, Any> = mapOf(),
         headers: Map<String, String> = mapOf(),
+        culture: RBSCulture? = null,
         success: ((String?) -> Unit)? = null,
         error: ((Throwable?) -> Unit)? = null
     ) {
@@ -112,6 +172,7 @@ class RBS(
                                 action = action,
                                 requestJsonString = Gson().toJson(data),
                                 headers = headers,
+                                culture = culture,
                                 requestType = RequestType.REQUEST
                             )
                         }
@@ -177,10 +238,10 @@ class RBS(
         val toJson = Gson().toJson(data)
         val requestJsonEncodedString = toJson.getBase64EncodeString()
 
-        Log.e("RBSService", "generateUrl public projectId: $projectId")
-        Log.e("RBSService", "generateUrl public action: $action")
-        Log.e("RBSService", "generateUrl public body: $toJson")
-        Log.e("RBSService", "generateUrl public bodyEncodeString: $requestJsonEncodedString")
+        logger.log("generateUrl public projectId: $projectId")
+        logger.log("generateUrl public action: $action")
+        logger.log("generateUrl public body: $toJson")
+        logger.log("generateUrl public bodyEncodeString: $requestJsonEncodedString")
 
         return region.getUrl + "user/action/$projectId/$action?data=$requestJsonEncodedString"
     }
@@ -190,9 +251,10 @@ class RBS(
         action: String? = null,
         requestJsonString: String? = null,
         headers: Map<String, String>? = null,
+        culture: RBSCulture? = null,
         requestType: RequestType
     ): String {
-        return exec(customToken, action, requestJsonString, headers, requestType)
+        return exec(customToken, action, requestJsonString, headers, culture, requestType)
     }
 
     private suspend fun exec(
@@ -200,6 +262,7 @@ class RBS(
         action: String? = null,
         requestJsonString: String? = null,
         headers: Map<String, String>? = null,
+        culture: RBSCulture? = null,
         requestType: RequestType
     ): String {
         // Token info control
@@ -207,13 +270,13 @@ class RBS(
             val res = service.authWithCustomToken(customToken!!)
 
             return if (res.isSuccess) {
-                Log.e("RBSService", "authWithCustomToken success")
+                logger.log("authWithCustomToken success")
 
                 tokenInfo = res.getOrNull()
 
                 "TOKEN OK"
             } else {
-                Log.e("RBSService", "authWithCustomToken fail")
+                logger.log("authWithCustomToken fail")
 
                 throw res.exceptionOrNull() ?: IllegalAccessError("AuthWithCustomToken fail")
             }
@@ -222,55 +285,61 @@ class RBS(
                 val res = service.getAnonymousToken(projectId)
 
                 if (res.isSuccess) {
-                    Log.e("RBSService", "getAnonymousToken success")
+                    logger.log("getAnonymousToken success")
 
                     tokenInfo = res.getOrNull()
                 } else {
-                    Log.e("RBSService", "getAnonymousToken fail")
+                    logger.log("getAnonymousToken fail")
 
                     throw res.exceptionOrNull() ?: IllegalAccessError("GetAnonymousToken fail")
                 }
             } else {
-                available.acquire()
+                availableRest.acquire()
 
                 if (isTokenRefreshRequired()) {
                     val res = service.refreshToken(tokenInfo!!.refreshToken)
 
                     if (res.isSuccess) {
-                        Log.e("RBSService", "refreshToken success")
+                        logger.log("refreshToken success")
 
                         tokenInfo = res.getOrNull()
                     } else {
-                        Log.e("RBSService", "refreshToken fail signOut called")
+                        logger.log("refreshToken fail signOut called")
                         signOut()
 
-                        Log.e("RBSService", "refreshToken fail")
+                        logger.log("refreshToken fail")
                         throw IllegalAccessException("Refresh token expired")
                     }
                 }
 
-                available.release()
+                availableRest.release()
             }
         }
 
-        val res = service.executeAction(
-            tokenInfo?.accessToken,
-            action!!,
-            requestJsonString ?: Gson().toJson(null),
-            headers ?: mapOf(),
-            requestType
-        )
+        if (TextUtils.equals(action, actionConnectTag)) {
+            logger.log("RBSManager connect called")
+            webSocket?.connect(tokenInfo?.accessToken)
 
-        return if (res.isSuccess) {
-            Log.e("RBSService", "executeAction success")
-
-            val jsonString = res.getOrNull()?.string()
-
-            jsonString ?: ""
+            return ""
         } else {
-            Log.e("RBSService", "executeAction fail")
+            val res = service.executeAction(
+                tokenInfo!!.accessToken,
+                action!!,
+                requestJsonString ?: Gson().toJson(null),
+                headers ?: mapOf(),
+                culture,
+                requestType
+            )
 
-            throw res.exceptionOrNull() ?: IllegalAccessError("ExecuteAction fail")
+            return if (res.isSuccess) {
+                logger.log("executeAction success")
+
+                res.getOrNull()?.string() ?: ""
+            } else {
+                logger.log("executeAction fail")
+
+                throw res.exceptionOrNull() ?: IllegalAccessError("ExecuteAction fail")
+            }
         }
     }
 
@@ -320,6 +389,99 @@ class RBS(
     }
 
     fun signOut() {
+        webSocket?.disconnect()
         tokenInfo = null
+    }
+
+    private fun registerActivityLifecycles() {
+        (applicationContext as Application).registerActivityLifecycleCallbacks(object :
+            Application.ActivityLifecycleCallbacks {
+            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+                Log.e(
+                    "RBSService",
+                    "registerActivityLifecycles onActivityCreated isForegrounded: ${isForegrounded()}"
+                )
+            }
+
+            override fun onActivityStarted(activity: Activity) {
+                Log.e(
+                    "RBSService",
+                    "registerActivityLifecycles ${activity.javaClass.simpleName} onActivityStarted isForegrounded: ${isForegrounded()}"
+                )
+            }
+
+            override fun onActivityResumed(activity: Activity) {
+                Log.e(
+                    "RBSService",
+                    "registerActivityLifecycles ${activity.javaClass.simpleName} onActivityResumed isForegrounded: ${isForegrounded()}"
+                )
+
+                webSocket?.isConnectionPaused = false
+                sendAction(action = actionConnectTag)
+            }
+
+            override fun onActivityPaused(activity: Activity) {
+                Log.e(
+                    "RBSService",
+                    "registerActivityLifecycles ${activity.javaClass.simpleName} onActivityPaused isForegrounded: ${isForegrounded()}"
+                )
+            }
+
+            override fun onActivityStopped(activity: Activity) {
+                Log.e(
+                    "RBSService",
+                    "registerActivityLifecycles ${activity.javaClass.simpleName} onActivityStopped isForegrounded: ${isForegrounded()}"
+                )
+
+                if (!isForegrounded()) {
+                    Log.e(
+                        "RBSService",
+                        "registerActivityLifecycles ${activity.javaClass.simpleName} onActivityStopped webSocket disconnect called!"
+                    )
+
+                    webSocket?.disconnect(paused = true)
+                }
+            }
+
+            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
+                Log.e(
+                    "RBSService",
+                    "registerActivityLifecycles ${activity.javaClass.simpleName} onActivitySaveInstanceState isForegrounded: ${isForegrounded()}"
+                )
+
+                if (!isForegrounded()) {
+                    Log.e(
+                        "RBSService",
+                        "registerActivityLifecycles ${activity.javaClass.simpleName} onActivitySaveInstanceState webSocket disconnect called!"
+                    )
+
+                    webSocket?.disconnect(paused = true)
+                }
+            }
+
+            override fun onActivityDestroyed(activity: Activity) {
+                Log.e(
+                    "RBSService",
+                    "registerActivityLifecycles ${activity.javaClass.simpleName} onActivityDestroyed isForegrounded: ${isForegrounded()}"
+                )
+
+                if (!isForegrounded()) {
+                    Log.e(
+                        "RBSService",
+                        "registerActivityLifecycles ${activity.javaClass.simpleName} onActivityDestroyed webSocket disconnect called!"
+                    )
+
+                    webSocket?.disconnect(paused = true)
+                }
+            }
+        })
+    }
+
+    fun setWebSocketListener(listener: WebSocketListener) {
+        webSocketListener = listener
+    }
+
+    fun setLoggerListener(listener: Logger) {
+        logListener = listener
     }
 }

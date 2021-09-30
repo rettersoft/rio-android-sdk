@@ -10,6 +10,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
+import javax.net.ssl.HostnameVerifier
 
 /**
  * Created by semihozkoroglu on 22.11.2020.
@@ -38,9 +39,7 @@ class RBSNetwork constructor(val sslPinningEnabled: Boolean) {
 
     private fun provideOkHttp(): OkHttpClient {
         val builder = OkHttpClient.Builder()
-        val interceptor = HttpLoggingInterceptor({
-            Log.e("OkHttp", it)
-        })
+        val interceptor = HttpLoggingInterceptor(logger = HttpLoggingInterceptor.Logger.DEFAULT)
 
         if (BuildConfig.DEBUG) {
             interceptor.level = HttpLoggingInterceptor.Level.BODY
@@ -72,7 +71,7 @@ class RBSNetwork constructor(val sslPinningEnabled: Boolean) {
         builder.readTimeout(sessionTimeout, TimeUnit.SECONDS)
         builder.writeTimeout(sessionTimeout, TimeUnit.SECONDS)
 
-        builder.hostnameVerifier { _, _ -> true }
+        builder.hostnameVerifier(HostnameVerifier { hostname, session -> true })
 
         return builder.build()
     }
