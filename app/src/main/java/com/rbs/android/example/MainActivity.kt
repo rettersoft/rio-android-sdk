@@ -14,7 +14,6 @@ import com.google.gson.reflect.TypeToken
 import com.rettermobile.rbs.RBS
 import com.rettermobile.rbs.model.RBSCulture
 import com.rettermobile.rbs.util.Logger
-import com.rettermobile.rbs.util.RBSRegion
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
@@ -109,7 +108,41 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnSignIn.setOnClickListener {
-//            startActivity(Intent(this, MainActivity::class.java))
+            rbs.authenticateWithCustomToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGl0eSI6ImVuZHVzZXIiLCJhbm9ueW1vdXMiOmZhbHNlLCJwcm9qZWN0SWQiOiIwNDhkYmY0YWI4Nzg0ODc4OTUxMjlhMGM3NzhlNzk5NiIsInVzZXJJZCI6IlRFU1QiLCJ0aW1lc3RhbXAiOjE2MzY3MDg0ODkzNjIsImNsYWltcyI6e30sImlhdCI6MTYzNjcwODQ4OSwiZXhwIjoxNjQ2NzA4NDg5LCJpc3MiOiJjb3JlLXRlc3QucmV0dGVybW9iaWxlLmNvbSJ9.poi6dmvj1l4CITfYno8YKICGvpQWvh4crsl8iZoIDmc")
+
+//            rbs.sendAction(
+//                action = "rbs.core.request.GENERATE_CUSTOM_TOKEN",
+//                data = mapOf(Pair("email", "TEST"), Pair("password", "12345678")),
+//                culture = RBSCulture.TR,
+//                success = { jsonData ->
+//                    Log.e("RBSService", jsonData) // Convert to data model with Gson()
+//
+////                    Toast.makeText(this, jsonData, Toast.LENGTH_LONG).show()
+//                },
+//                error = {
+//                    val builder = AlertDialog.Builder(this)
+//                    builder.setTitle("Status")
+//                    builder.setMessage(it?.message)
+//                    builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
+//                    builder.show()
+//                })
+
+//            rbs.sendAction(
+//                action = "rbs.businessuserauth.request.LOGIN",
+//                data = mapOf(Pair("email", "ahmet"), Pair("password", "12345678")),
+//                culture = RBSCulture.TR,
+//                success = { jsonData ->
+//                    Log.e("RBSService", jsonData) // Convert to data model with Gson()
+//
+////                    Toast.makeText(this, jsonData, Toast.LENGTH_LONG).show()
+//                },
+//                error = {
+//                    val builder = AlertDialog.Builder(this)
+//                    builder.setTitle("Status")
+//                    builder.setMessage(it?.message)
+//                    builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
+//                    builder.show()
+//                })
         }
 
         btnSocket.setOnClickListener {

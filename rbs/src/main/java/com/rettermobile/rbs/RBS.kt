@@ -276,7 +276,7 @@ class RBS(
 
                 "TOKEN OK"
             } else {
-                logger.log("authWithCustomToken fail")
+                logger.log("authWithCustomToken fail ${res.exceptionOrNull()?.stackTraceToString()}")
 
                 throw res.exceptionOrNull() ?: IllegalAccessError("AuthWithCustomToken fail")
             }
@@ -337,6 +337,7 @@ class RBS(
                 res.getOrNull()?.string() ?: ""
             } else {
                 logger.log("executeAction fail")
+                logger.log("executeAction fail ${res.exceptionOrNull()?.stackTraceToString()}")
 
                 throw res.exceptionOrNull() ?: IllegalAccessError("ExecuteAction fail")
             }
@@ -389,6 +390,12 @@ class RBS(
     }
 
     fun signOut() {
+        val request = getUserId()?.let {
+                mapOf(Pair("allTokens", true), Pair("userId", it))
+            } ?: kotlin.run { mapOf(Pair("allTokens", true)) }
+
+        sendAction("rbs.core.request.LOGOUT_USER", request)
+
         webSocket?.disconnect()
         tokenInfo = null
     }
@@ -483,5 +490,11 @@ class RBS(
 
     fun setLoggerListener(listener: Logger) {
         logListener = listener
+    }
+
+    private fun getUserId(): String? {
+        val jwtAccess = JWT(tokenInfo!!.accessToken)
+
+        return jwtAccess.getClaim("userId").asString()
     }
 }
