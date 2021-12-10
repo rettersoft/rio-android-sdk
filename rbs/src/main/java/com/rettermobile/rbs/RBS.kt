@@ -1,9 +1,6 @@
 package com.rettermobile.rbs
 
-import android.app.Activity
-import android.app.Application
 import android.content.Context
-import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
 import com.auth0.android.jwt.JWT
@@ -17,11 +14,7 @@ import com.rettermobile.rbs.service.model.RBSTokenResponse
 import com.rettermobile.rbs.util.Logger
 import com.rettermobile.rbs.util.RBSRegion
 import com.rettermobile.rbs.util.getBase64EncodeString
-import com.rettermobile.rbs.util.isForegrounded
 import kotlinx.coroutines.*
-import okhttp3.Response
-import okhttp3.WebSocket
-import okhttp3.WebSocketListener
 import java.util.concurrent.Semaphore
 
 
@@ -32,11 +25,9 @@ class RBS(
     val applicationContext: Context,
     val projectId: String,
     val region: RBSRegion = RBSRegion.EU_WEST_1,
-    sslPinningEnabled: Boolean = true,
-    socketEnable: Boolean = false
+    sslPinningEnabled: Boolean = true
 ) {
 
-    private var webSocketListener: WebSocketListener? = null
     private var logListener: Logger? = null
 
     private val availableRest = Semaphore(1, true)
@@ -52,11 +43,7 @@ class RBS(
     private val service = RBSServiceImp(projectId, region, sslPinningEnabled, logger)
     private val gson = Gson()
 
-    private var webSocket: RBSWebSocket? = null
-
     private var listener: ((RBSClientAuthStatus, RBSUser?) -> Unit)? = null
-
-    private val actionConnectTag = "CONNECT_SOCKET"
 
     private var tokenInfo: RBSTokenResponse? = null
         set(value) {
@@ -70,44 +57,10 @@ class RBS(
                 preferences.deleteKey(Preferences.Keys.TOKEN_INFO)
             }
 
-            sendAction(action = actionConnectTag)
             sendAuthStatus()
         }
 
     init {
-        if (socketEnable) {
-            registerActivityLifecycles()
-
-            webSocket = RBSWebSocket(region, object : WebSocketListener() {
-                override fun onOpen(webSocket: WebSocket, response: Response) {
-                    webSocketListener?.onOpen(webSocket, response)
-
-                    logger.log("RBSWebSocket socket semaphore released - onOpen")
-                }
-
-                override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-                    logger.log("RBSWebSocket reconnect to socket")
-
-                    logger.log("RBSWebSocket socket semaphore released - onFailure")
-
-                    webSocketListener?.onFailure(webSocket, t, response)
-
-                    // send dummy event for auth token
-                    sendAction(action = actionConnectTag)
-                }
-
-                override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-                    super.onClosed(webSocket, code, reason)
-
-                    logger.log("RBSWebSocket socket semaphore released - onClosed")
-                }
-
-                override fun onMessage(webSocket: WebSocket, text: String) {
-                    webSocketListener?.onMessage(webSocket, text)
-                }
-            }, logger)
-        }
-
         val infoJson = preferences.getString(Preferences.Keys.TOKEN_INFO)
 
         if (!TextUtils.isEmpty(infoJson)) {
@@ -316,31 +269,24 @@ class RBS(
             }
         }
 
-        if (TextUtils.equals(action, actionConnectTag)) {
-            logger.log("RBSManager connect called")
-            webSocket?.connect(tokenInfo?.accessToken)
+        val res = service.executeAction(
+            tokenInfo!!.accessToken,
+            action!!,
+            requestJsonString ?: Gson().toJson(null),
+            headers ?: mapOf(),
+            culture,
+            requestType
+        )
 
-            return ""
+        return if (res.isSuccess) {
+            logger.log("executeAction success")
+
+            res.getOrNull()?.string() ?: ""
         } else {
-            val res = service.executeAction(
-                tokenInfo!!.accessToken,
-                action!!,
-                requestJsonString ?: Gson().toJson(null),
-                headers ?: mapOf(),
-                culture,
-                requestType
-            )
+            logger.log("executeAction fail")
+            logger.log("executeAction fail ${res.exceptionOrNull()?.stackTraceToString()}")
 
-            return if (res.isSuccess) {
-                logger.log("executeAction success")
-
-                res.getOrNull()?.string() ?: ""
-            } else {
-                logger.log("executeAction fail")
-                logger.log("executeAction fail ${res.exceptionOrNull()?.stackTraceToString()}")
-
-                throw res.exceptionOrNull() ?: IllegalAccessError("ExecuteAction fail")
-            }
+            throw res.exceptionOrNull() ?: IllegalAccessError("ExecuteAction fail")
         }
     }
 
@@ -396,96 +342,7 @@ class RBS(
 
         sendAction("rbs.core.request.LOGOUT_USER", request)
 
-        webSocket?.disconnect()
         tokenInfo = null
-    }
-
-    private fun registerActivityLifecycles() {
-        (applicationContext as Application).registerActivityLifecycleCallbacks(object :
-            Application.ActivityLifecycleCallbacks {
-            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-                Log.e(
-                    "RBSService",
-                    "registerActivityLifecycles onActivityCreated isForegrounded: ${isForegrounded()}"
-                )
-            }
-
-            override fun onActivityStarted(activity: Activity) {
-                Log.e(
-                    "RBSService",
-                    "registerActivityLifecycles ${activity.javaClass.simpleName} onActivityStarted isForegrounded: ${isForegrounded()}"
-                )
-            }
-
-            override fun onActivityResumed(activity: Activity) {
-                Log.e(
-                    "RBSService",
-                    "registerActivityLifecycles ${activity.javaClass.simpleName} onActivityResumed isForegrounded: ${isForegrounded()}"
-                )
-
-                webSocket?.isConnectionPaused = false
-                sendAction(action = actionConnectTag)
-            }
-
-            override fun onActivityPaused(activity: Activity) {
-                Log.e(
-                    "RBSService",
-                    "registerActivityLifecycles ${activity.javaClass.simpleName} onActivityPaused isForegrounded: ${isForegrounded()}"
-                )
-            }
-
-            override fun onActivityStopped(activity: Activity) {
-                Log.e(
-                    "RBSService",
-                    "registerActivityLifecycles ${activity.javaClass.simpleName} onActivityStopped isForegrounded: ${isForegrounded()}"
-                )
-
-                if (!isForegrounded()) {
-                    Log.e(
-                        "RBSService",
-                        "registerActivityLifecycles ${activity.javaClass.simpleName} onActivityStopped webSocket disconnect called!"
-                    )
-
-                    webSocket?.disconnect(paused = true)
-                }
-            }
-
-            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
-                Log.e(
-                    "RBSService",
-                    "registerActivityLifecycles ${activity.javaClass.simpleName} onActivitySaveInstanceState isForegrounded: ${isForegrounded()}"
-                )
-
-                if (!isForegrounded()) {
-                    Log.e(
-                        "RBSService",
-                        "registerActivityLifecycles ${activity.javaClass.simpleName} onActivitySaveInstanceState webSocket disconnect called!"
-                    )
-
-                    webSocket?.disconnect(paused = true)
-                }
-            }
-
-            override fun onActivityDestroyed(activity: Activity) {
-                Log.e(
-                    "RBSService",
-                    "registerActivityLifecycles ${activity.javaClass.simpleName} onActivityDestroyed isForegrounded: ${isForegrounded()}"
-                )
-
-                if (!isForegrounded()) {
-                    Log.e(
-                        "RBSService",
-                        "registerActivityLifecycles ${activity.javaClass.simpleName} onActivityDestroyed webSocket disconnect called!"
-                    )
-
-                    webSocket?.disconnect(paused = true)
-                }
-            }
-        })
-    }
-
-    fun setWebSocketListener(listener: WebSocketListener) {
-        webSocketListener = listener
     }
 
     fun setLoggerListener(listener: Logger) {
