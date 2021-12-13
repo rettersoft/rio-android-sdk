@@ -15,4 +15,10 @@ class RBSFirebase : Serializable {
     val customToken: String? = null
     val projectId: String? = null
     val apiKey: String? = null
+    val envs: RBSFirebaseEnv? = null
+}
+
+class RBSFirebaseEnv : Serializable {
+    val androidAppId: String? = null
+    val gcmSenderId: String? = null
 }

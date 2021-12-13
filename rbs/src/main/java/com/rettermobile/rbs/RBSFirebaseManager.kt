@@ -27,7 +27,8 @@ object RBSFirebaseManager {
         app = FirebaseApp.initializeApp(
             RBSConfig.applicationContext, FirebaseOptions.Builder()
                 .setProjectId(fireInfo.projectId!!)
-                .setApplicationId("1:814752823492:android:70cff811ab015ca446f191")
+                .setApplicationId(fireInfo.envs!!.androidAppId!!)
+                .setGcmSenderId(fireInfo.envs.gcmSenderId!!)
                 .setApiKey(fireInfo.apiKey!!)
                 .build(), "rbs-sdk"
         )
