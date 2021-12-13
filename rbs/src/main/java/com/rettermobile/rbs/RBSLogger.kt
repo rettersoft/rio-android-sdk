@@ -1,9 +1,7 @@
 package com.rettermobile.rbs
 
-import android.content.Context
 import android.util.Log
 import com.rettermobile.rbs.util.Logger
-import com.rettermobile.rbs.util.RBSRegion
 
 /**
  * Created by semihozkoroglu on 10.12.2021.

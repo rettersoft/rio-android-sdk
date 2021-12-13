@@ -10,7 +10,9 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.rettermobile.rbs.RBS
 import com.rettermobile.rbs.RBSLogger
+import com.rettermobile.rbs.cloud.RBSCloudObject
 import com.rettermobile.rbs.cloud.RBSCloudObjectOptions
+import com.rettermobile.rbs.model.RBSClientAuthStatus
 import com.rettermobile.rbs.util.Logger
 
 
@@ -27,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     private val items = ArrayList<String>()
 
     private lateinit var rbs: RBS
+    private var cloudObj: RBSCloudObject? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +46,9 @@ class MainActivity : AppCompatActivity() {
         btnSignOut = findViewById(R.id.btnSignOut)
 
         rvLogs.adapter = LogAdapter(items)
+
+        createCloudObject()
+
         btnClearLog.setOnClickListener {
             runOnUiThread {
                 items.clear()
@@ -60,49 +66,20 @@ class MainActivity : AppCompatActivity() {
         })
 
         (application as App).rbs.setOnClientAuthStatusChangeListener { rbsClientAuthStatus, rbsUser ->
-//            val builder = AlertDialog.Builder(this)
-//            builder.setTitle("Status")
-//            builder.setMessage(rbsClientAuthStatus.name + " " + rbsUser?.uid)
-//            builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
-//            builder.show()
+            if (rbsClientAuthStatus == RBSClientAuthStatus.SIGNED_IN) {
+                createCloudObject()
+            }
         }
 
         btnSignIn.setOnClickListener {
-            rbs.authenticateWithCustomToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGl0eSI6ImVuZHVzZXIiLCJhbm9ueW1vdXMiOmZhbHNlLCJwcm9qZWN0SWQiOiIwNDhkYmY0YWI4Nzg0ODc4OTUxMjlhMGM3NzhlNzk5NiIsInVzZXJJZCI6IlRFU1QiLCJ0aW1lc3RhbXAiOjE2MzY3MDg0ODkzNjIsImNsYWltcyI6e30sImlhdCI6MTYzNjcwODQ4OSwiZXhwIjoxNjQ2NzA4NDg5LCJpc3MiOiJjb3JlLXRlc3QucmV0dGVybW9iaWxlLmNvbSJ9.poi6dmvj1l4CITfYno8YKICGvpQWvh4crsl8iZoIDmc")
+            cloudObj?.call(
+                options = RBSCloudObjectOptions(method = "getToken"),
+                eventFired = {
+                    val auth = Gson().fromJson(it, AuthModel::class.java)
 
-//            rbs.sendAction(
-//                action = "rbs.core.request.GENERATE_CUSTOM_TOKEN",
-//                data = mapOf(Pair("email", "TEST"), Pair("password", "12345678")),
-//                culture = RBSCulture.TR,
-//                success = { jsonData ->
-//                    Log.e("RBSService", jsonData) // Convert to data model with Gson()
-//
-////                    Toast.makeText(this, jsonData, Toast.LENGTH_LONG).show()
-//                },
-//                error = {
-//                    val builder = AlertDialog.Builder(this)
-//                    builder.setTitle("Status")
-//                    builder.setMessage(it?.message)
-//                    builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
-//                    builder.show()
-//                })
-
-//            rbs.sendAction(
-//                action = "rbs.businessuserauth.request.LOGIN",
-//                data = mapOf(Pair("email", "ahmet"), Pair("password", "12345678")),
-//                culture = RBSCulture.TR,
-//                success = { jsonData ->
-//                    Log.e("RBSService", jsonData) // Convert to data model with Gson()
-//
-////                    Toast.makeText(this, jsonData, Toast.LENGTH_LONG).show()
-//                },
-//                error = {
-//                    val builder = AlertDialog.Builder(this)
-//                    builder.setTitle("Status")
-//                    builder.setMessage(it?.message)
-//                    builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
-//                    builder.show()
-//                })
+                    rbs.authenticateWithCustomToken(auth.customToken)
+                    RBSLogger.log("AUTHENTICATE YES")
+                })
         }
 
         btnGenerate.setOnClickListener {
@@ -129,37 +106,38 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnGetCloud.setOnClickListener {
-            rbs.getCloudObject(
-                options = RBSCloudObjectOptions(
-                    classId = "ChatRoom",
-                    instanceId = "01FPJX38KE3G8HBQ49VMF2KC3C"
-                ),
-                success = { cloudObj ->
-                    cloudObj?.user?.subscribe(eventFired = {
-                        RBSLogger.log("SUCCESS USER $it")
-                    }, errorFired = {
-                        RBSLogger.log("SUCCESS USER ${it?.message}")
-                    })
-
-                    cloudObj?.role?.subscribe(eventFired = {
-                        RBSLogger.log("SUCCESS ROLE $it")
-                    }, errorFired = {
-                        RBSLogger.log("SUCCESS ROLE ${it?.message}")
-                    })
-
-                    cloudObj?.public?.subscribe(eventFired = {
-                        RBSLogger.log("SUCCESS PUBLIC $it")
-                    }, errorFired = {
-                        RBSLogger.log("SUCCESS PUBLIC ${it?.message}")
-                    })
-
-                    btnGetCloudCall.setOnClickListener {
-                        cloudObj?.call(options = RBSCloudObjectOptions(method = "sayHello"))
-                    }
-                })
         }
 
         btnSignOut.setOnClickListener { rbs.signOut() }
+    }
+
+    private fun createCloudObject() {
+        rbs.getCloudObject(
+            options = RBSCloudObjectOptions(
+                classId = "AndroidTest",
+                instanceId = "01FPTD2HAQGB5BS7J01S0QD7Q2"
+            ),
+            success = { cloudObj ->
+                this@MainActivity.cloudObj = cloudObj
+
+                cloudObj?.user?.subscribe(eventFired = {
+                    RBSLogger.log("SUCCESS USER $it")
+                }, errorFired = {
+                    RBSLogger.log("SUCCESS USER ${it?.message}")
+                })
+
+                cloudObj?.role?.subscribe(eventFired = {
+                    RBSLogger.log("SUCCESS ROLE $it")
+                }, errorFired = {
+                    RBSLogger.log("SUCCESS ROLE ${it?.message}")
+                })
+
+                cloudObj?.public?.subscribe(eventFired = {
+                    RBSLogger.log("SUCCESS PUBLIC $it")
+                }, errorFired = {
+                    RBSLogger.log("SUCCESS PUBLIC ${it?.message}")
+                })
+            })
     }
 
 

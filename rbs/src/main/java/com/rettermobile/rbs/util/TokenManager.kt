@@ -7,6 +7,7 @@ import com.rettermobile.rbs.Preferences
 import com.rettermobile.rbs.RBSConfig
 import com.rettermobile.rbs.RBSFirebaseManager
 import com.rettermobile.rbs.RBSLogger
+import com.rettermobile.rbs.cloud.RBSCloudManager
 import com.rettermobile.rbs.exception.TokenFailException
 import com.rettermobile.rbs.model.RBSUser
 import com.rettermobile.rbs.service.RBSServiceImp
@@ -108,6 +109,7 @@ object TokenManager {
 
             tokenInfo = res.getOrNull()
 
+            RBSCloudManager.clear()
             RBSFirebaseManager.authenticate(tokenInfo?.firebase)
         } else {
             RBSLogger.log("authWithCustomToken fail ${res.exceptionOrNull()?.stackTraceToString()}")
@@ -163,7 +165,5 @@ object TokenManager {
     fun clear() {
         RBSLogger.log("token cleared")
         tokenInfo = null
-
-        RBSFirebaseManager.signOut()
     }
 }

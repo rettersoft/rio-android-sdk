@@ -54,6 +54,8 @@ object RBSFirebaseManager {
     }
 
     fun signOut() {
+        auth?.signOut()
+        auth = null
     }
 
     fun getDocument(path: String): DocumentReference {

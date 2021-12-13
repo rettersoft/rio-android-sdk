@@ -189,11 +189,17 @@ class RBS(
             mapOf(Pair("allTokens", true), Pair("userId", it))
         } ?: kotlin.run { mapOf(Pair("allTokens", true)) }
 
-        RBSCloudManager.clear()
-
         sendAction(RBSActions.LOGOUT.action, request, success = {
-            TokenManager.clear()
+            clearSession()
+        }, error = {
+            clearSession()
         })
+    }
+
+    private fun clearSession() {
+        TokenManager.clear()
+        RBSFirebaseManager.signOut()
+        RBSCloudManager.clear()
     }
 
     fun setLoggerListener(listener: Logger) {
