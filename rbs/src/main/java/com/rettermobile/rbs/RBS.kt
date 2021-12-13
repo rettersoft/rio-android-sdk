@@ -2,21 +2,16 @@ package com.rettermobile.rbs
 
 import android.content.Context
 import android.text.TextUtils
-import android.util.Log
-import com.auth0.android.jwt.JWT
 import com.google.gson.Gson
+import com.rettermobile.rbs.cloud.RBSCloudManager
+import com.rettermobile.rbs.cloud.RBSCloudObject
+import com.rettermobile.rbs.cloud.RBSCloudObjectOptions
+import com.rettermobile.rbs.exception.TokenFailException
 import com.rettermobile.rbs.model.RBSClientAuthStatus
 import com.rettermobile.rbs.model.RBSCulture
 import com.rettermobile.rbs.model.RBSUser
-import com.rettermobile.rbs.service.RBSServiceImp
-import com.rettermobile.rbs.service.RequestType
-import com.rettermobile.rbs.service.model.RBSTokenResponse
-import com.rettermobile.rbs.util.Logger
-import com.rettermobile.rbs.util.RBSRegion
-import com.rettermobile.rbs.util.getBase64EncodeString
+import com.rettermobile.rbs.util.*
 import kotlinx.coroutines.*
-import java.util.concurrent.Semaphore
-
 
 /**
  * Created by semihozkoroglu on 22.11.2020.
@@ -28,45 +23,16 @@ class RBS(
     sslPinningEnabled: Boolean = true
 ) {
 
-    private var logListener: Logger? = null
+    init {
+        RBSConfig.applicationContext = applicationContext
+        RBSConfig.projectId = projectId
+        RBSConfig.region = region
+        RBSConfig.sslPinningEnabled = sslPinningEnabled
 
-    private val availableRest = Semaphore(1, true)
-
-    private val logger = object : Logger {
-        override fun log(message: String) {
-            Log.e("RBSService", message)
-            logListener?.log(message)
-        }
+        TokenManager.tokenUpdateListener = { sendAuthStatus() }
     }
-
-    private val preferences = Preferences(applicationContext)
-    private val service = RBSServiceImp(projectId, region, sslPinningEnabled, logger)
-    private val gson = Gson()
 
     private var listener: ((RBSClientAuthStatus, RBSUser?) -> Unit)? = null
-
-    private var tokenInfo: RBSTokenResponse? = null
-        set(value) {
-            field = value
-
-            if (value != null) {
-                // Save to device
-                preferences.setString(Preferences.Keys.TOKEN_INFO, gson.toJson(value))
-            } else {
-                // Logout
-                preferences.deleteKey(Preferences.Keys.TOKEN_INFO)
-            }
-
-            sendAuthStatus()
-        }
-
-    init {
-        val infoJson = preferences.getString(Preferences.Keys.TOKEN_INFO)
-
-        if (!TextUtils.isEmpty(infoJson)) {
-            tokenInfo = gson.fromJson(infoJson, RBSTokenResponse::class.java)
-        }
-    }
 
     fun setOnClientAuthStatusChangeListener(l: (RBSClientAuthStatus, RBSUser?) -> Unit) {
         listener = l
@@ -82,27 +48,15 @@ class RBS(
                 }
 
                 if (!TextUtils.isEmpty(customToken)) {
-                    val res =
-                        kotlin.runCatching {
-                            executeRunBlock(
-                                customToken = customToken,
-                                requestType = RequestType.REQUEST
-                            )
-                        }
+                    val res = runCatching { RBSRequestManager.authenticate(customToken) }
 
                     if (res.isSuccess) {
-                        withContext(Dispatchers.Main) {
-                            res
-                        }
+                        withContext(Dispatchers.Main) { res }
                     } else {
-                        withContext(Dispatchers.Main) {
-                            error?.invoke(res.exceptionOrNull())
-                        }
+                        withContext(Dispatchers.Main) { error?.invoke(res.exceptionOrNull()) }
                     }
                 } else {
-                    withContext(Dispatchers.Main) {
-                        error?.invoke(IllegalArgumentException("customToken must not be null or empty"))
-                    }
+                    withContext(Dispatchers.Main) { error?.invoke(IllegalArgumentException("customToken must not be null or empty")) }
                 }
             }
         }
@@ -119,31 +73,49 @@ class RBS(
         GlobalScope.launch {
             async(Dispatchers.IO) {
                 if (!TextUtils.isEmpty(action)) {
-                    val res =
-                        kotlin.runCatching {
-                            executeRunBlock(
-                                action = action,
-                                requestJsonString = Gson().toJson(data),
-                                headers = headers,
-                                culture = culture,
-                                requestType = RequestType.REQUEST
-                            )
-                        }
+                    val res = runCatching { RBSRequestManager.exec(action, data, headers, culture) }
 
                     if (res.isSuccess) {
-                        withContext(Dispatchers.Main) {
-                            success?.invoke(res.getOrNull())
-                        }
+                        withContext(Dispatchers.Main) { success?.invoke(res.getOrNull()) }
                     } else {
-                        withContext(Dispatchers.Main) {
-                            error?.invoke(res.exceptionOrNull())
-                        }
+                        // check if token exception then logout
+                        checkTokenException(res.exceptionOrNull())
+
+                        withContext(Dispatchers.Main) { error?.invoke(res.exceptionOrNull()) }
                     }
                 } else {
-                    withContext(Dispatchers.Main) {
-                        error?.invoke(IllegalArgumentException("action must not be null or empty"))
-                    }
+                    withContext(Dispatchers.Main) { error?.invoke(IllegalArgumentException("action must not be null or empty")) }
                 }
+            }
+        }
+    }
+
+    fun getCloudObject(
+        options: RBSCloudObjectOptions,
+        success: ((RBSCloudObject?) -> Unit)? = null,
+        error: ((Throwable?) -> Unit)? = null
+    ) {
+        GlobalScope.launch {
+            async(Dispatchers.IO) {
+                val res =
+                    runCatching { RBSCloudManager.exec(action = RBSActions.INSTANCE, options) }
+
+                if (res.isSuccess) {
+                    withContext(Dispatchers.Main) { success?.invoke(res.getOrNull()) }
+                } else {
+                    // check if token exception then logout
+                    checkTokenException(res.exceptionOrNull())
+
+                    withContext(Dispatchers.Main) { error?.invoke(res.exceptionOrNull()) }
+                }
+            }
+        }
+    }
+
+    private fun checkTokenException(exception: Throwable?) {
+        exception?.let {
+            if (it is TokenFailException) {
+                signOut()
             }
         }
     }
@@ -157,28 +129,18 @@ class RBS(
         GlobalScope.launch {
             async(Dispatchers.IO) {
                 if (!TextUtils.isEmpty(action)) {
-                    val res =
-                        kotlin.runCatching {
-                            executeRunBlock(
-                                action = action,
-                                requestJsonString = Gson().toJson(data),
-                                requestType = RequestType.GENERATE_AUTH
-                            )
-                        }
+                    val res = runCatching { RBSRequestManager.generateUrl(action, data) }
 
                     if (res.isSuccess) {
-                        withContext(Dispatchers.Main) {
-                            success?.invoke(res.getOrNull())
-                        }
+                        withContext(Dispatchers.Main) { success?.invoke(res.getOrNull()) }
                     } else {
-                        withContext(Dispatchers.Main) {
-                            error?.invoke(res.exceptionOrNull())
-                        }
+                        // check if token exception then logout
+                        checkTokenException(res.exceptionOrNull())
+
+                        withContext(Dispatchers.Main) { error?.invoke(res.exceptionOrNull()) }
                     }
                 } else {
-                    withContext(Dispatchers.Main) {
-                        error?.invoke(IllegalArgumentException("action must not be null or empty"))
-                    }
+                    withContext(Dispatchers.Main) { error?.invoke(IllegalArgumentException("action must not be null or empty")) }
                 }
             }
         }
@@ -191,144 +153,31 @@ class RBS(
         val toJson = Gson().toJson(data)
         val requestJsonEncodedString = toJson.getBase64EncodeString()
 
-        logger.log("generateUrl public projectId: $projectId")
-        logger.log("generateUrl public action: $action")
-        logger.log("generateUrl public body: $toJson")
-        logger.log("generateUrl public bodyEncodeString: $requestJsonEncodedString")
+        RBSLogger.log("generateUrl public projectId: $projectId")
+        RBSLogger.log("generateUrl public action: $action")
+        RBSLogger.log("generateUrl public body: $toJson")
+        RBSLogger.log("generateUrl public bodyEncodeString: $requestJsonEncodedString")
 
         return region.getUrl + "user/action/$projectId/$action?data=$requestJsonEncodedString"
-    }
-
-    private suspend fun executeRunBlock(
-        customToken: String? = null,
-        action: String? = null,
-        requestJsonString: String? = null,
-        headers: Map<String, String>? = null,
-        culture: RBSCulture? = null,
-        requestType: RequestType
-    ): String {
-        return exec(customToken, action, requestJsonString, headers, culture, requestType)
-    }
-
-    private suspend fun exec(
-        customToken: String? = null,
-        action: String? = null,
-        requestJsonString: String? = null,
-        headers: Map<String, String>? = null,
-        culture: RBSCulture? = null,
-        requestType: RequestType
-    ): String {
-        // Token info control
-        if (!TextUtils.isEmpty(customToken)) {
-            val res = service.authWithCustomToken(customToken!!)
-
-            return if (res.isSuccess) {
-                logger.log("authWithCustomToken success")
-
-                tokenInfo = res.getOrNull()
-
-                "TOKEN OK"
-            } else {
-                logger.log("authWithCustomToken fail ${res.exceptionOrNull()?.stackTraceToString()}")
-
-                throw res.exceptionOrNull() ?: IllegalAccessError("AuthWithCustomToken fail")
-            }
-        } else {
-            if (TextUtils.isEmpty(tokenInfo?.accessToken)) {
-                val res = service.getAnonymousToken(projectId)
-
-                if (res.isSuccess) {
-                    logger.log("getAnonymousToken success")
-
-                    tokenInfo = res.getOrNull()
-                } else {
-                    logger.log("getAnonymousToken fail")
-
-                    throw res.exceptionOrNull() ?: IllegalAccessError("GetAnonymousToken fail")
-                }
-            } else {
-                availableRest.acquire()
-
-                if (isTokenRefreshRequired()) {
-                    val res = service.refreshToken(tokenInfo!!.refreshToken)
-
-                    if (res.isSuccess) {
-                        logger.log("refreshToken success")
-
-                        tokenInfo = res.getOrNull()
-                    } else {
-                        logger.log("refreshToken fail signOut called")
-                        signOut()
-
-                        logger.log("refreshToken fail")
-                        throw IllegalAccessException("Refresh token expired")
-                    }
-                }
-
-                availableRest.release()
-            }
-        }
-
-        val res = service.executeAction(
-            tokenInfo!!.accessToken,
-            action!!,
-            requestJsonString ?: Gson().toJson(null),
-            headers ?: mapOf(),
-            culture,
-            requestType
-        )
-
-        return if (res.isSuccess) {
-            logger.log("executeAction success")
-
-            res.getOrNull()?.string() ?: ""
-        } else {
-            logger.log("executeAction fail")
-            logger.log("executeAction fail ${res.exceptionOrNull()?.stackTraceToString()}")
-
-            throw res.exceptionOrNull() ?: IllegalAccessError("ExecuteAction fail")
-        }
-    }
-
-    private fun isTokenRefreshRequired(): Boolean {
-        val jwtAccess = JWT(tokenInfo!!.accessToken)
-        val accessTokenExpiresAt = jwtAccess.getClaim("exp").asLong()!!
-
-        val jwtRefresh = JWT(tokenInfo!!.refreshToken)
-        val refreshTokenExpiresAt = jwtRefresh.getClaim("exp").asLong()!!
-
-        val now = (System.currentTimeMillis() / 1000) + 30
-
-        return now in accessTokenExpiresAt until refreshTokenExpiresAt // now + 280 -> only wait 20 seconds for debugging
     }
 
     private fun sendAuthStatus() {
         GlobalScope.launch {
             async {
-                if (tokenInfo != null) {
-                    val jwtAccess = JWT(tokenInfo!!.accessToken)
-
-                    val userId = jwtAccess.getClaim("userId").asString()
-                    val anonymous = jwtAccess.getClaim("anonymous").asBoolean()
-
-                    if (anonymous!!) {
-                        withContext(Dispatchers.Main) {
-                            listener?.invoke(
-                                RBSClientAuthStatus.SIGNED_IN_ANONYMOUSLY,
-                                RBSUser(userId, anonymous)
-                            )
-                        }
-                    } else {
-                        withContext(Dispatchers.Main) {
-                            listener?.invoke(
-                                RBSClientAuthStatus.SIGNED_IN,
-                                RBSUser(userId, anonymous)
-                            )
-                        }
-                    }
-                } else {
+                TokenManager.user?.let { user ->
                     withContext(Dispatchers.Main) {
-                        listener?.invoke(RBSClientAuthStatus.SIGNED_OUT, null)
+                        listener?.invoke(
+                            user.isAnonymous then RBSClientAuthStatus.SIGNED_IN_ANONYMOUSLY
+                                ?: RBSClientAuthStatus.SIGNED_IN,
+                            user
+                        )
+                    }
+                } ?: run {
+                    withContext(Dispatchers.Main) {
+                        listener?.invoke(
+                            RBSClientAuthStatus.SIGNED_OUT,
+                            null
+                        )
                     }
                 }
             }
@@ -336,22 +185,18 @@ class RBS(
     }
 
     fun signOut() {
-        val request = getUserId()?.let {
-                mapOf(Pair("allTokens", true), Pair("userId", it))
-            } ?: kotlin.run { mapOf(Pair("allTokens", true)) }
+        val request = TokenManager.userId?.let {
+            mapOf(Pair("allTokens", true), Pair("userId", it))
+        } ?: kotlin.run { mapOf(Pair("allTokens", true)) }
 
-        sendAction("rbs.core.request.LOGOUT_USER", request)
+        RBSCloudManager.clear()
 
-        tokenInfo = null
+        sendAction(RBSActions.LOGOUT.action, request, success = {
+            TokenManager.clear()
+        })
     }
 
     fun setLoggerListener(listener: Logger) {
-        logListener = listener
-    }
-
-    private fun getUserId(): String? {
-        val jwtAccess = JWT(tokenInfo!!.accessToken)
-
-        return jwtAccess.getClaim("userId").asString()
+        RBSLogger.logListener = listener
     }
 }

@@ -22,3 +22,5 @@ fun isForegrounded(): Boolean {
     ActivityManager.getMyMemoryState(appProcessInfo)
     return (appProcessInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND || appProcessInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE)
 }
+
+infix fun <T> Boolean.then(param: T): T? = if (this) param else null

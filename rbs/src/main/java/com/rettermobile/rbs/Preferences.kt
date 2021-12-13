@@ -1,16 +1,17 @@
 package com.rettermobile.rbs
 
-import android.content.Context
 import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
 
-class Preferences constructor(val context: Context) {
+object Preferences {
 
     object Keys {
         const val TOKEN_INFO = "token_info"
     }
 
-    var pref: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+    // todo: mode private olacak
+    var pref: SharedPreferences =
+        PreferenceManager.getDefaultSharedPreferences(RBSConfig.applicationContext)
 
     fun getString(key: String, defValue: String): String? {
         return pref.getString(key, defValue)

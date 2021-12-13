@@ -1,8 +1,9 @@
 package com.rettermobile.rbs.service
 
-import android.util.Log
 import com.google.gson.GsonBuilder
 import com.rettermobile.rbs.BuildConfig
+import com.rettermobile.rbs.RBSConfig
+import com.rettermobile.rbs.RBSLogger
 import okhttp3.CacheControl
 import okhttp3.CertificatePinner
 import okhttp3.OkHttpClient
@@ -10,15 +11,14 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
-import javax.net.ssl.HostnameVerifier
 
 /**
  * Created by semihozkoroglu on 22.11.2020.
  */
-class RBSNetwork constructor(val sslPinningEnabled: Boolean) {
+class RBSNetwork {
 
     private var service: RBSService? = null
-    private var okHttpClient: OkHttpClient? = null
+    private var cloudService: RBSCloudService? = null
 
     private fun provideCertificate(): CertificatePinner {
         return CertificatePinner.Builder()
@@ -39,7 +39,9 @@ class RBSNetwork constructor(val sslPinningEnabled: Boolean) {
 
     private fun provideOkHttp(): OkHttpClient {
         val builder = OkHttpClient.Builder()
-        val interceptor = HttpLoggingInterceptor(logger = HttpLoggingInterceptor.Logger.DEFAULT)
+        val interceptor = HttpLoggingInterceptor() {
+            RBSLogger.log(it)
+        }
 
         if (BuildConfig.DEBUG) {
             interceptor.level = HttpLoggingInterceptor.Level.BODY
@@ -47,7 +49,7 @@ class RBSNetwork constructor(val sslPinningEnabled: Boolean) {
             interceptor.level = HttpLoggingInterceptor.Level.NONE
         }
 
-        if (sslPinningEnabled) {
+        if (RBSConfig.sslPinningEnabled) {
             builder.certificatePinner(provideCertificate())
         }
 
@@ -71,21 +73,17 @@ class RBSNetwork constructor(val sslPinningEnabled: Boolean) {
         builder.readTimeout(sessionTimeout, TimeUnit.SECONDS)
         builder.writeTimeout(sessionTimeout, TimeUnit.SECONDS)
 
-        builder.hostnameVerifier(HostnameVerifier { hostname, session -> true })
+        builder.hostnameVerifier { hostname, session -> true }
 
         return builder.build()
     }
 
     fun getConnection(serviceUrl: String): RBSService {
         if (service == null) {
-            if (okHttpClient == null) {
-                okHttpClient = provideOkHttp()
-            }
-
             val retrofit = Retrofit.Builder()
                 .baseUrl(serviceUrl)
                 .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
-                .client(okHttpClient!!)
+                .client(provideOkHttp())
                 .build()
 
             service = retrofit.create(RBSService::class.java)
@@ -94,4 +92,17 @@ class RBSNetwork constructor(val sslPinningEnabled: Boolean) {
         return service!!
     }
 
+    fun getCloudConnection(): RBSCloudService {
+        if (cloudService == null) {
+            val retrofit = Retrofit.Builder()
+                .baseUrl("https://${RBSConfig.projectId}.${RBSConfig.region.cloudApiUrl}")
+                .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
+                .client(provideOkHttp())
+                .build()
+
+            cloudService = retrofit.create(RBSCloudService::class.java)
+        }
+
+        return cloudService!!
+    }
 }
