@@ -22,6 +22,7 @@ object RBSFirebaseManager {
 
         RBSLogger.log("RBSFirebaseManager.authenticate STARTED")
 
+        auth?.signOut()
         app?.delete()
 
         app = FirebaseApp.initializeApp(

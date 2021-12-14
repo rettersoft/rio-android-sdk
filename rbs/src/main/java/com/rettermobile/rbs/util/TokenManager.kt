@@ -33,7 +33,7 @@ object TokenManager {
 
     val userId: String?
         get() {
-            return accessToken?.let {
+            return tokenInfo?.accessToken?.let {
                 val jwtAccess = JWT(it)
 
                 jwtAccess.getClaim("userId").asString()
@@ -42,7 +42,7 @@ object TokenManager {
 
     val userIdentity: String?
         get() {
-            return accessToken?.let {
+            return tokenInfo?.accessToken?.let {
                 val jwtAccess = JWT(it)
 
                 jwtAccess.getClaim("identity").asString()
