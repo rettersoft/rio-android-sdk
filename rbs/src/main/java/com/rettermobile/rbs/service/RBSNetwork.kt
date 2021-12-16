@@ -41,9 +41,9 @@ class RBSNetwork {
         val builder = OkHttpClient.Builder()
         val interceptor = HttpLoggingInterceptor() {
             RBSLogger.log(it)
+        }.apply {
+            level = HttpLoggingInterceptor.Level.BODY
         }
-
-        interceptor.level = HttpLoggingInterceptor.Level.BODY
 
         if (RBSConfig.sslPinningEnabled) {
             builder.certificatePinner(provideCertificate())
