@@ -299,7 +299,7 @@ class RBS(
 
         val now = (System.currentTimeMillis() / 1000) + 30
 
-        return now in accessTokenExpiresAt until refreshTokenExpiresAt // now + 280 -> only wait 20 seconds for debugging
+        return now !in accessTokenExpiresAt until refreshTokenExpiresAt // now + 280 -> only wait 20 seconds for debugging
     }
 
     private fun sendAuthStatus() {
