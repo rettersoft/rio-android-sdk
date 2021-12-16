@@ -64,7 +64,14 @@ class RBS(
         val infoJson = preferences.getString(Preferences.Keys.TOKEN_INFO)
 
         if (!TextUtils.isEmpty(infoJson)) {
-            tokenInfo = gson.fromJson(infoJson, RBSTokenResponse::class.java)
+            val token = gson.fromJson(infoJson, RBSTokenResponse::class.java)
+
+            tokenInfo = if (isRefreshTokenExpired(token)) {
+                // signout
+                null
+            } else {
+                token
+            }
         }
     }
 
@@ -229,7 +236,11 @@ class RBS(
 
                 "TOKEN OK"
             } else {
-                logger.log("authWithCustomToken fail ${res.exceptionOrNull()?.stackTraceToString()}")
+                logger.log(
+                    "authWithCustomToken fail ${
+                        res.exceptionOrNull()?.stackTraceToString()
+                    }"
+                )
 
                 throw res.exceptionOrNull() ?: IllegalAccessError("AuthWithCustomToken fail")
             }
@@ -249,7 +260,7 @@ class RBS(
             } else {
                 availableRest.acquire()
 
-                if (isTokenRefreshRequired()) {
+                if (isAccessTokenExpired()) {
                     val res = service.refreshToken(tokenInfo!!.refreshToken)
 
                     if (res.isSuccess) {
@@ -290,13 +301,26 @@ class RBS(
         }
     }
 
-    private fun isTokenRefreshRequired(): Boolean {
+    private fun isAccessTokenExpired(): Boolean {
+        if (isRefreshTokenExpired(tokenInfo!!)) {
+            return true
+        }
+
         val jwtAccess = JWT(tokenInfo!!.accessToken)
         val accessTokenExpiresAt = jwtAccess.getClaim("exp").asLong()!!
 
         val now = (System.currentTimeMillis() / 1000) + 30
 
         return now >= accessTokenExpiresAt  // now + 280 -> only wait 20 seconds for debugging
+    }
+
+    private fun isRefreshTokenExpired(token: RBSTokenResponse): Boolean {
+        val jwtAccess = JWT(token.refreshToken)
+        val refreshTokenExpiresAt = jwtAccess.getClaim("exp").asLong()!!
+
+        val now = (System.currentTimeMillis() / 1000) + 24 * 60 * 60
+
+        return now >= refreshTokenExpiresAt  // now + 280 -> only wait 20 seconds for debugging
     }
 
     private fun sendAuthStatus() {
@@ -334,8 +358,8 @@ class RBS(
 
     fun signOut() {
         val request = getUserId()?.let {
-                mapOf(Pair("allTokens", true), Pair("userId", it))
-            } ?: kotlin.run { mapOf(Pair("allTokens", true)) }
+            mapOf(Pair("allTokens", true), Pair("userId", it))
+        } ?: kotlin.run { mapOf(Pair("allTokens", true)) }
 
         sendAction("rbs.core.request.LOGOUT_USER", request)
 
