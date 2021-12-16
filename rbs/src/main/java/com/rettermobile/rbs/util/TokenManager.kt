@@ -12,8 +12,7 @@ import com.rettermobile.rbs.exception.TokenFailException
 import com.rettermobile.rbs.model.RBSUser
 import com.rettermobile.rbs.service.RBSServiceImp
 import com.rettermobile.rbs.service.model.RBSTokenResponse
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import java.util.concurrent.Semaphore
 
 /**
@@ -85,20 +84,55 @@ object TokenManager {
         val infoJson = Preferences.getString(Preferences.Keys.TOKEN_INFO)
 
         if (!TextUtils.isEmpty(infoJson)) {
-            tokenInfo = gson.fromJson(infoJson, RBSTokenResponse::class.java)
+            val token = gson.fromJson(infoJson, RBSTokenResponse::class.java)
+
+            tokenInfo = if (isRefreshTokenExpired(token)) {
+                // signOut
+                RBSLogger.log("TokenManager.init tokenInfo=null")
+                null
+            } else {
+                RBSLogger.log("TokenManager.init tokenInfo OK")
+                token
+            }
         }
     }
 
-    private fun isTokenRefreshRequired(): Boolean {
-        val jwtAccess = JWT(accessToken!!)
-        val accessTokenExpiresAt = jwtAccess.getClaim("exp").asLong()!!
+    private fun isAccessTokenExpired(): Boolean {
+        if (isRefreshTokenExpired(tokenInfo!!)) {
+            return true
+        }
 
-        val jwtRefresh = JWT(refreshToken!!)
-        val refreshTokenExpiresAt = jwtRefresh.getClaim("exp").asLong()!!
+        val jwtAccess = JWT(tokenInfo!!.accessToken)
+        val accessTokenExpiresAt = jwtAccess.getClaim("exp").asLong()!!
 
         val now = (System.currentTimeMillis() / 1000) + 30
 
-        return now in accessTokenExpiresAt until refreshTokenExpiresAt // now + 280 -> only wait 20 seconds for debugging
+        val isExpired =
+            now >= accessTokenExpiresAt  // now + 280 -> only wait 20 seconds for debugging
+
+        RBSLogger.log("TokenManager.isAccessTokenExpired accessToken: ${tokenInfo!!.accessToken}")
+        RBSLogger.log("TokenManager.isAccessTokenExpired accessTokenExpiresAt: $accessTokenExpiresAt")
+        RBSLogger.log("TokenManager.isAccessTokenExpired now: $now")
+        RBSLogger.log("TokenManager.isAccessTokenExpired isExpired: $isExpired")
+
+        return isExpired
+    }
+
+    private fun isRefreshTokenExpired(token: RBSTokenResponse): Boolean {
+        val jwtAccess = JWT(token.refreshToken)
+        val refreshTokenExpiresAt = jwtAccess.getClaim("exp").asLong()!!
+
+        val now = (System.currentTimeMillis() / 1000) + 24 * 60 * 60
+
+        val isExpired =
+            now >= refreshTokenExpiresAt  // now + 280 -> only wait 20 seconds for debugging
+
+        RBSLogger.log("TokenManager.isRefreshTokenExpired accessToken: ${tokenInfo!!.refreshToken}")
+        RBSLogger.log("TokenManager.isRefreshTokenExpired accessTokenExpiresAt: $refreshTokenExpiresAt")
+        RBSLogger.log("TokenManager.isRefreshTokenExpired now: $now")
+        RBSLogger.log("TokenManager.isRefreshTokenExpired isExpired: $isExpired")
+
+        return isExpired
     }
 
     suspend fun authenticate(customToken: String) {
@@ -114,7 +148,17 @@ object TokenManager {
         } else {
             RBSLogger.log("authWithCustomToken fail ${res.exceptionOrNull()?.stackTraceToString()}")
 
-            throw TokenFailException("AuthWithCustomToken fail")
+            res.exceptionOrNull()?.let {
+                if (it is HttpException) {
+                    if (it.code() >= 500) {
+                        throw it
+                    } else {
+                        throw TokenFailException("AuthWithCustomToken fail")
+                    }
+                } else {
+                    throw TokenFailException("AuthWithCustomToken fail")
+                }
+            } ?: run { throw TokenFailException("AuthWithCustomToken fail") }
         }
     }
 
@@ -135,10 +179,20 @@ object TokenManager {
             } else {
                 RBSLogger.log("TokenManager.checkToken getAnonymousToken fail")
 
-                throw TokenFailException("AnonymousToken fail")
+                res.exceptionOrNull()?.let {
+                    if (it is HttpException) {
+                        if (it.code() >= 500) {
+                            throw it
+                        } else {
+                            throw TokenFailException("AnonymousToken fail")
+                        }
+                    } else {
+                        throw TokenFailException("AnonymousToken fail")
+                    }
+                } ?: run { throw TokenFailException("AnonymousToken fail") }
             }
         } else {
-            if (isTokenRefreshRequired()) {
+            if (isAccessTokenExpired()) {
                 val res = RBSServiceImp.refreshToken(refreshToken!!)
 
                 if (res.isSuccess) {
@@ -149,7 +203,18 @@ object TokenManager {
                     RBSLogger.log(" TokenManager.checkToken refreshToken fail signOut called")
 
                     RBSLogger.log("TokenManager.checkToken refreshToken fail")
-                    throw TokenFailException("RefreshToken fail")
+
+                    res.exceptionOrNull()?.let {
+                        if (it is HttpException) {
+                            if (it.code() >= 500) {
+                                throw it
+                            } else {
+                                throw TokenFailException("RefreshToken fail")
+                            }
+                        } else {
+                            throw TokenFailException("RefreshToken fail")
+                        }
+                    } ?: run { throw TokenFailException("RefreshToken fail") }
                 }
             }
         }
