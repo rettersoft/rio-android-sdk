@@ -127,8 +127,8 @@ object TokenManager {
         val isExpired =
             now >= refreshTokenExpiresAt  // now + 280 -> only wait 20 seconds for debugging
 
-        RBSLogger.log("TokenManager.isRefreshTokenExpired accessToken: ${tokenInfo!!.refreshToken}")
-        RBSLogger.log("TokenManager.isRefreshTokenExpired accessTokenExpiresAt: $refreshTokenExpiresAt")
+        RBSLogger.log("TokenManager.isRefreshTokenExpired refreshToken: ${token.refreshToken}")
+        RBSLogger.log("TokenManager.isRefreshTokenExpired refreshTokenExpiresAt: $refreshTokenExpiresAt")
         RBSLogger.log("TokenManager.isRefreshTokenExpired now: $now")
         RBSLogger.log("TokenManager.isRefreshTokenExpired isExpired: $isExpired")
 
