@@ -294,12 +294,9 @@ class RBS(
         val jwtAccess = JWT(tokenInfo!!.accessToken)
         val accessTokenExpiresAt = jwtAccess.getClaim("exp").asLong()!!
 
-        val jwtRefresh = JWT(tokenInfo!!.refreshToken)
-        val refreshTokenExpiresAt = jwtRefresh.getClaim("exp").asLong()!!
-
         val now = (System.currentTimeMillis() / 1000) + 30
 
-        return !(now in accessTokenExpiresAt until refreshTokenExpiresAt) // now + 280 -> only wait 20 seconds for debugging
+        return now >= accessTokenExpiresAt  // now + 280 -> only wait 20 seconds for debugging
     }
 
     private fun sendAuthStatus() {
