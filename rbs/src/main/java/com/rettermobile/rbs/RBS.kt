@@ -67,9 +67,11 @@ class RBS(
             val token = gson.fromJson(infoJson, RBSTokenResponse::class.java)
 
             tokenInfo = if (isRefreshTokenExpired(token)) {
-                // signout
+                // signOut
+                logger.log("init tokenInfo setted null")
                 null
             } else {
+                logger.log("init tokenInfo ok")
                 token
             }
         }
@@ -309,18 +311,26 @@ class RBS(
         val jwtAccess = JWT(tokenInfo!!.accessToken)
         val accessTokenExpiresAt = jwtAccess.getClaim("exp").asLong()!!
 
-        val now = (System.currentTimeMillis() / 1000) + 30
+        val now = (System.currentTimeMillis() / 1000) + 30 // now + 280 -> only wait 20 seconds for debugging
 
-        return now >= accessTokenExpiresAt  // now + 280 -> only wait 20 seconds for debugging
+        val isExpired = now >= accessTokenExpiresAt
+
+        logger.log("isRefreshTokenExpired $isExpired")
+
+        return isExpired
     }
 
     private fun isRefreshTokenExpired(token: RBSTokenResponse): Boolean {
         val jwtAccess = JWT(token.refreshToken)
         val refreshTokenExpiresAt = jwtAccess.getClaim("exp").asLong()!!
 
-        val now = (System.currentTimeMillis() / 1000) + 24 * 60 * 60
+        val now = (System.currentTimeMillis() / 1000) + 24 * 60 * 60 // now + 280 -> only wait 20 seconds for debugging
 
-        return now >= refreshTokenExpiresAt  // now + 280 -> only wait 20 seconds for debugging
+        val isExpired = now >= refreshTokenExpiresAt
+
+        logger.log("isRefreshTokenExpired $isExpired")
+
+        return isExpired
     }
 
     private fun sendAuthStatus() {
