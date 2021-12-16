@@ -331,7 +331,7 @@ class RBS(
 
         val isExpired = now >= refreshTokenExpiresAt
 
-        logger.log("TokenManager.isRefreshTokenExpired accessToken: ${tokenInfo!!.refreshToken}")
+        logger.log("TokenManager.isRefreshTokenExpired accessToken: ${token.refreshToken}")
         logger.log("TokenManager.isRefreshTokenExpired accessTokenExpiresAt: $refreshTokenExpiresAt")
         logger.log("TokenManager.isRefreshTokenExpired now: $now")
         logger.log("TokenManager.isRefreshTokenExpired isExpired: $isExpired")
