@@ -43,11 +43,7 @@ class RBSNetwork {
             RBSLogger.log(it)
         }
 
-        if (BuildConfig.DEBUG) {
-            interceptor.level = HttpLoggingInterceptor.Level.BODY
-        } else {
-            interceptor.level = HttpLoggingInterceptor.Level.NONE
-        }
+        interceptor.level = HttpLoggingInterceptor.Level.BODY
 
         if (RBSConfig.sslPinningEnabled) {
             builder.certificatePinner(provideCertificate())
