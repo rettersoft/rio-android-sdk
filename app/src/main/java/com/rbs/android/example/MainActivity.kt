@@ -55,41 +55,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        rbs.setWebSocketListener(object : WebSocketListener() {
-            override fun onOpen(webSocket: WebSocket, response: Response) {
-                super.onOpen(webSocket, response)
-
-                runOnUiThread {
-                    tvState.apply {
-                        setTextColor(Color.RED)
-                        text = response.message
-                    }
-                }
-            }
-
-            override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-                super.onFailure(webSocket, t, response)
-
-                runOnUiThread {
-                    tvState.apply {
-                        setTextColor(Color.RED)
-                        text = t.message
-                    }
-                }
-            }
-
-            override fun onMessage(webSocket: WebSocket, text: String) {
-                super.onMessage(webSocket, text)
-
-                runOnUiThread {
-                    tvState.apply {
-                        setTextColor(Color.BLUE)
-                        setText(text)
-                    }
-                }
-            }
-        })
-
         rbs.setLoggerListener(object : Logger {
             override fun log(message: String) {
                 runOnUiThread {
@@ -198,7 +163,6 @@ class MainActivity : AppCompatActivity() {
 
         btnSignOut.setOnClickListener { rbs.signOut() }
     }
-
 
     private inline fun <reified T> getResponse(json: String): T? {
         val gson = Gson()

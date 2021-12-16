@@ -22,8 +22,7 @@ class App : Application() {
         rbs = RBS(
             applicationContext = applicationContext,
             projectId = "048dbf4ab878487895129a0c778e7996",
-            region = RBSRegion.EU_WEST_1_BETA,
-            socketEnable = false
+            region = RBSRegion.EU_WEST_1_BETA
         )
     }
 }
