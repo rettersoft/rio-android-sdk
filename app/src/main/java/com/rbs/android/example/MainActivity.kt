@@ -106,6 +106,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnGetCloud.setOnClickListener {
+            createCloudObject()
         }
 
         btnSignOut.setOnClickListener { rbs.signOut() }

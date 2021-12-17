@@ -10,7 +10,7 @@ enum class RBSRegion(val getUrl: String, val postUrl: String, val cloudApiUrl: S
         "api.rtbs.io/"
     ),
     EU_WEST_1_BETA(
-        "https://core-test.rettermobile.com/",
+        "https://core-test.rtbs.io/",
         "https://core-internal-beta.rtbs.io/",
         "test-api.rtbs.io"
     )
