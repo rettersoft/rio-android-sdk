@@ -34,42 +34,28 @@ object TokenManager {
         }
 
     val userId: String?
-        get() {
-            return tokenInfo?.accessToken?.let {
-                val jwtAccess = JWT(it)
-
-                jwtAccess.getClaim("userId").asString()
-            } ?: run { null }
-        }
+        get() = tokenInfo?.accessToken?.jwtUserId()
 
     val userIdentity: String?
-        get() {
-            return tokenInfo?.accessToken?.let {
-                val jwtAccess = JWT(it)
-
-                jwtAccess.getClaim("identity").asString()
-            } ?: run { null }
-        }
+        get() = tokenInfo?.accessToken?.jwtIdentity()
 
     val user: RBSUser?
         get() {
             return tokenInfo?.let {
-                val jwtAccess = JWT(accessToken!!)
-
-                val userId = jwtAccess.getClaim("userId").asString()
-                val anonymous = jwtAccess.getClaim("anonymous").asBoolean()
+                val userId = it.accessToken.jwtUserId()
+                val anonymous = it.accessToken.jwtAnonymous()
 
                 RBSUser(userId, anonymous ?: true)
             } ?: kotlin.run { null }
         }
 
-    val refreshToken: String?
-        get() {
-            return tokenInfo?.refreshToken
-        }
+    private val refreshToken: String?
+        get() = tokenInfo?.refreshToken
 
     private var tokenInfo: RBSTokenResponse? = null
         set(value) {
+            val isStatusChanged = field?.accessToken?.jwtUserId() != userId
+
             field = value
 
             if (value != null) {
@@ -80,7 +66,9 @@ object TokenManager {
                 Preferences.deleteKey(Preferences.Keys.TOKEN_INFO)
             }
 
-            tokenUpdateListener?.invoke()
+            if (isStatusChanged) {
+                tokenUpdateListener?.invoke()
+            }
         }
 
     init {

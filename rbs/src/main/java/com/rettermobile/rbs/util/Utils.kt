@@ -3,6 +3,7 @@ package com.rettermobile.rbs.util
 import android.app.ActivityManager
 import android.text.TextUtils
 import android.util.Base64
+import com.auth0.android.jwt.JWT
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
@@ -39,4 +40,22 @@ inline fun <reified T> parseResponse(json: String?): T? {
         gson.toJson(response),
         T::class.java
     )
+}
+
+fun String.jwtUserId(): String? {
+    val jwtAccess = JWT(this)
+
+    return jwtAccess.getClaim("userId").asString()
+}
+
+fun String.jwtIdentity(): String? {
+    val jwtAccess = JWT(this)
+
+    return jwtAccess.getClaim("identity").asString()
+}
+
+fun String.jwtAnonymous(): Boolean? {
+    val jwtAccess = JWT(this)
+
+    return jwtAccess.getClaim("anonymous").asBoolean()
 }
