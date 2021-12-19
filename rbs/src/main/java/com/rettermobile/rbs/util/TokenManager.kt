@@ -54,7 +54,7 @@ object TokenManager {
 
     private var tokenInfo: RBSTokenResponse? = null
         set(value) {
-            val isStatusChanged = field?.accessToken?.jwtUserId() != userId
+            val isStatusChanged = value?.accessToken?.jwtUserId() != userId
 
             field = value
 
