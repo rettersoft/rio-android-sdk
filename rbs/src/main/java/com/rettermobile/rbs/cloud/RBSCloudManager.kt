@@ -6,6 +6,8 @@ import com.rettermobile.rbs.service.RBSCloudServiceImp
 import com.rettermobile.rbs.service.model.RBSInstanceResponse
 import com.rettermobile.rbs.util.RBSActions
 import com.rettermobile.rbs.util.TokenManager
+import okhttp3.ResponseBody
+import retrofit2.Response
 
 /**
  * Created by semihozkoroglu on 10.12.2021.
@@ -16,25 +18,37 @@ object RBSCloudManager {
 
     suspend fun exec(
         action: RBSActions,
-        options: RBSCloudObjectOptions
+        options: RBSGetCloudObjectOptions
     ): RBSCloudObject {
         TokenManager.checkToken()
 
         val accessToken = TokenManager.accessToken
 
-        val res = RBSCloudServiceImp.exec(accessToken, action, options)
+        val res = kotlin.runCatching {
+            RBSCloudServiceImp.exec(
+                accessToken,
+                action,
+                RBSServiceParam(options)
+            )
+        }
 
         return if (res.isSuccess) {
             RBSLogger.log("RBSCloudManager.exec success")
 
-            val result = res.getOrNull()?.string()
+            val result = res.getOrNull()?.body()?.string()
 
             RBSLogger.log("RBSCloudManager.exec result: $result")
 
             val instanceRes = Gson().fromJson(result, RBSInstanceResponse::class.java)
 
-            cloudObjects.find { it.instanceId == instanceRes.instanceId } ?: kotlin.run {
-                RBSCloudObject(options.classId!!, instanceRes.instanceId).apply {
+            cloudObjects.find { it.params.instanceId == instanceRes.instanceId } ?: kotlin.run {
+                RBSCloudObject(
+                    RBSCloudObjectParams(
+                        options.classId!!,
+                        instanceRes.instanceId,
+                        options.key
+                    )
+                ).apply {
                     cloudObjects.add(this)
                 }
             }
@@ -50,21 +64,26 @@ object RBSCloudManager {
     }
 
     suspend fun call(
+        objectParams: RBSCloudObjectParams,
         action: RBSActions,
-        options: RBSCloudObjectOptions
-    ): String {
+        options: RBSCallMethodOptions
+    ): Response<ResponseBody> {
         TokenManager.checkToken()
 
         val accessToken = TokenManager.accessToken
 
-        val res = RBSCloudServiceImp.exec(accessToken, action, options)
+        val res = kotlin.runCatching {
+            RBSCloudServiceImp.exec(
+                accessToken,
+                action,
+                RBSServiceParam(objectParams, options)
+            )
+        }
 
         return if (res.isSuccess) {
             RBSLogger.log("RBSCloudManager.exec success")
 
-            val result = res.getOrNull()?.string()
-
-            result ?: ""
+            res.getOrNull()!!
         } else {
             RBSLogger.log(
                 "RBSCloudManager.exec fail ${

@@ -7,11 +7,13 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import com.rbs.android.example.network.TestRequest
+import com.rbs.android.example.network.TestResponse
 import com.rettermobile.rbs.RBS
 import com.rettermobile.rbs.RBSLogger
+import com.rettermobile.rbs.cloud.RBSCallMethodOptions
 import com.rettermobile.rbs.cloud.RBSCloudObject
-import com.rettermobile.rbs.cloud.RBSCloudObjectOptions
+import com.rettermobile.rbs.cloud.RBSGetCloudObjectOptions
 import com.rettermobile.rbs.model.RBSClientAuthStatus
 import com.rettermobile.rbs.util.Logger
 
@@ -73,12 +75,12 @@ class MainActivity : AppCompatActivity() {
 
         btnSignIn.setOnClickListener {
             cloudObj?.call(
-                options = RBSCloudObjectOptions(method = "getToken"),
-                eventFired = {
-                    val auth = Gson().fromJson(it, AuthModel::class.java)
-
-                    rbs.authenticateWithCustomToken(auth.customToken)
-                    RBSLogger.log("AUTHENTICATE YES")
+                options = RBSCallMethodOptions(method = "getToken"),
+                onSuccess = {
+//                    val auth = Gson().fromJson(it, AuthModel::class.java)
+//
+//                    rbs.authenticateWithCustomToken(auth.customToken)
+//                    RBSLogger.log("AUTHENTICATE YES")
                 })
         }
 
@@ -111,15 +113,20 @@ class MainActivity : AppCompatActivity() {
 
         btnGetCloud.setOnClickListener {
             cloudObj?.call(
-                options = RBSCloudObjectOptions(method = "sayHello", body = mapOf(
-                    Pair("baran", "0"),
-                    Pair("semih", "1")
-                )),
-                eventFired = {
-                    val auth = Gson().fromJson(it, AuthModel::class.java)
+                options = RBSCallMethodOptions(
+                    method = "sayHello",
+                    body = TestRequest()
+                ),
+                onSuccess = {
+                    val headers = it?.headers()
+                    val code = it?.code()
+                    val body = it?.body<TestResponse>()
 
-                    rbs.authenticateWithCustomToken(auth.customToken)
-                    RBSLogger.log("AUTHENTICATE YES")
+                    RBSLogger.log("HEADERS ${Gson().toJson(headers)}")
+                    RBSLogger.log("CODE ${Gson().toJson(code)}")
+                    RBSLogger.log("BODY ${Gson().toJson(body)}")
+                }, onError = {
+                    // ConnectionTimeOut
                 })
         }
 
@@ -128,7 +135,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun createCloudObject() {
         rbs.getCloudObject(
-            options = RBSCloudObjectOptions(
+            options = RBSGetCloudObjectOptions(
                 classId = "ChatRoom",
                 instanceId = "01FQ4BE0S74DNSPRERE0H6HQDN"
             ),
@@ -153,18 +160,5 @@ class MainActivity : AppCompatActivity() {
                     RBSLogger.log("SUCCESS PUBLIC ${it?.message}")
                 })
             })
-    }
-
-
-    private inline fun <reified T> getResponse(json: String): T? {
-        val gson = Gson()
-        val type = object : TypeToken<List<Map<String, Any>>>() {}.type
-
-        val response = gson.fromJson<List<Map<String, Any>>>(json, type)
-
-        return if (response.isNullOrEmpty()) null else gson.fromJson<T>(
-            gson.toJson(response[0]["response"]),
-            T::class.java
-        )
     }
 }

@@ -3,6 +3,8 @@ package com.rettermobile.rbs.util
 import android.app.ActivityManager
 import android.text.TextUtils
 import android.util.Base64
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 /**
  * Created by semihozkoroglu on 15.02.2021.
@@ -24,3 +26,17 @@ fun isForegrounded(): Boolean {
 }
 
 infix fun <T> Boolean.then(param: T): T? = if (this) param else null
+
+inline fun <reified T> parseResponse(json: String?): T? {
+    if (json.isNullOrEmpty()) return null
+
+    val gson = Gson()
+    val type = object : TypeToken<Map<String, Any>>() {}.type
+
+    val response = gson.fromJson<Map<String, Any>>(json, type)
+
+    return if (response.isNullOrEmpty()) null else gson.fromJson(
+        gson.toJson(response),
+        T::class.java
+    )
+}

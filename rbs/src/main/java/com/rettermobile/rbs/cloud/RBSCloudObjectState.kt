@@ -3,13 +3,15 @@ package com.rettermobile.rbs.cloud
 import com.google.firebase.firestore.ListenerRegistration
 import com.rettermobile.rbs.RBSConfig
 import com.rettermobile.rbs.RBSFirebaseManager
-import com.rettermobile.rbs.exception.NoCloudSnapFoundException
 import com.rettermobile.rbs.util.TokenManager
 
 /**
  * Created by semihozkoroglu on 13.12.2021.
  */
-sealed class RBSCloudObjectState constructor(val classId: String, val instanceId: String) {
+sealed class RBSCloudObjectState constructor(params: RBSCloudObjectParams) {
+
+    val classId = params.classId
+    val instanceId = params.instanceId
 
     private var listener: ListenerRegistration? = null
 
@@ -30,11 +32,7 @@ sealed class RBSCloudObjectState constructor(val classId: String, val instanceId
             if (error != null) {
                 errorEvent?.invoke(error)
             } else {
-                if (value?.data == null) {
-                    errorEvent?.invoke(NoCloudSnapFoundException())
-                } else {
-                    successEvent?.invoke(value.data?.toString())
-                }
+                successEvent?.invoke(value?.data?.toString())
             }
         }
     }
@@ -52,8 +50,8 @@ sealed class RBSCloudObjectState constructor(val classId: String, val instanceId
     }
 }
 
-class RBSCloudUserObjectState constructor(c: String, i: String) : RBSCloudObjectState(c, i)
+class RBSCloudUserObjectState constructor(p: RBSCloudObjectParams) : RBSCloudObjectState(p)
 
-class RBSCloudRoleObjectState constructor(c: String, i: String) : RBSCloudObjectState(c, i)
+class RBSCloudRoleObjectState constructor(p: RBSCloudObjectParams) : RBSCloudObjectState(p)
 
-class RBSCloudPublicObjectState constructor(c: String, i: String) : RBSCloudObjectState(c, i)
+class RBSCloudPublicObjectState constructor(p: RBSCloudObjectParams) : RBSCloudObjectState(p)

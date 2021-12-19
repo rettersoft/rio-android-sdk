@@ -5,7 +5,7 @@ import android.text.TextUtils
 import com.google.gson.Gson
 import com.rettermobile.rbs.cloud.RBSCloudManager
 import com.rettermobile.rbs.cloud.RBSCloudObject
-import com.rettermobile.rbs.cloud.RBSCloudObjectOptions
+import com.rettermobile.rbs.cloud.RBSGetCloudObjectOptions
 import com.rettermobile.rbs.exception.TokenFailException
 import com.rettermobile.rbs.model.RBSClientAuthStatus
 import com.rettermobile.rbs.model.RBSCulture
@@ -91,7 +91,7 @@ class RBS(
     }
 
     fun getCloudObject(
-        options: RBSCloudObjectOptions,
+        options: RBSGetCloudObjectOptions,
         success: ((RBSCloudObject?) -> Unit)? = null,
         error: ((Throwable?) -> Unit)? = null
     ) {
