@@ -23,7 +23,6 @@ class RBSServiceParam {
 
     constructor(objectOptions: RBSGetCloudObjectOptions) {
         // GET INSTANCE
-
         instanceId = objectOptions.instanceId
         classId = objectOptions.classId
         key = objectOptions.key
@@ -33,10 +32,10 @@ class RBSServiceParam {
         headers = objectOptions.headers
         queries = objectOptions.queries
 
-        path1 += if (objectOptions.key != null) {
-            "${objectOptions.key!!.first}!${objectOptions.key!!.second}"
-        } else if (!objectOptions.instanceId.isNullOrEmpty()) {
+        path1 += if (!objectOptions.instanceId.isNullOrEmpty()) {
             "${objectOptions.instanceId}"
+        } else if (objectOptions.key != null) {
+            "${objectOptions.key!!.first}!${objectOptions.key!!.second}"
         } else {
             ""
         }
@@ -46,7 +45,6 @@ class RBSServiceParam {
         // CALL
         instanceId = objectParams.instanceId
         classId = objectParams.classId
-        key = objectParams.key
         method = options.method
         httpMethod = options.httpMethod
         body = options.body
@@ -54,9 +52,7 @@ class RBSServiceParam {
         queries = options.queries
 
         path1 += "${options.method}"
-        path2 += if (objectParams.key != null) {
-            "${objectParams.key!!.first}!${objectParams.key!!.second}"
-        } else if (!objectParams.instanceId.isNullOrEmpty()) {
+        path2 += if (!objectParams.instanceId.isNullOrEmpty()) {
             "${objectParams.instanceId}"
         } else {
             ""

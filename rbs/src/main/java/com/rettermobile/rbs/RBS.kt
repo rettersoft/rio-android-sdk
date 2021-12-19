@@ -211,6 +211,4 @@ class RBS(
     fun logEnable(enable: Boolean) {
         RBSLogger.logEnable(enable)
     }
-
-    fun isSignedIn(): Boolean = TokenManager.isSignedIn
 }
