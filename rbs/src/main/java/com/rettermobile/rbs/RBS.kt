@@ -92,8 +92,8 @@ class RBS(
 
     fun getCloudObject(
         options: RBSGetCloudObjectOptions,
-        success: ((RBSCloudObject?) -> Unit)? = null,
-        error: ((Throwable?) -> Unit)? = null
+        onSuccess: ((RBSCloudObject?) -> Unit)? = null,
+        onError: ((Throwable?) -> Unit)? = null
     ) {
         GlobalScope.launch {
             async(Dispatchers.IO) {
@@ -101,12 +101,12 @@ class RBS(
                     runCatching { RBSCloudManager.exec(action = RBSActions.INSTANCE, options) }
 
                 if (res.isSuccess) {
-                    withContext(Dispatchers.Main) { success?.invoke(res.getOrNull()) }
+                    withContext(Dispatchers.Main) { onSuccess?.invoke(res.getOrNull()) }
                 } else {
                     // check if token exception then logout
                     checkTokenException(res.exceptionOrNull())
 
-                    withContext(Dispatchers.Main) { error?.invoke(res.exceptionOrNull()) }
+                    withContext(Dispatchers.Main) { onError?.invoke(res.exceptionOrNull()) }
                 }
             }
         }
@@ -209,4 +209,6 @@ class RBS(
     fun logEnable(enable: Boolean) {
         RBSLogger.logEnable(enable)
     }
+
+    fun isSignedIn(): Boolean = TokenManager.isSignedIn
 }

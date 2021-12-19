@@ -139,7 +139,7 @@ class MainActivity : AppCompatActivity() {
                 classId = "ChatRoom",
                 instanceId = "01FQ4BE0S74DNSPRERE0H6HQDN"
             ),
-            success = { cloudObj ->
+            onSuccess = { cloudObj ->
                 this@MainActivity.cloudObj = cloudObj
 
                 cloudObj?.user?.subscribe(eventFired = {

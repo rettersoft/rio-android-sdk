@@ -25,6 +25,9 @@ object TokenManager {
 
     private val gson = Gson()
 
+    val isSignedIn: Boolean
+        get() = tokenInfo != null
+
     val accessToken: String?
         get() {
             return tokenInfo?.accessToken
