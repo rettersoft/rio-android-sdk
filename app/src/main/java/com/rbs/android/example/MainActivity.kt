@@ -109,14 +109,28 @@ class MainActivity : AppCompatActivity() {
             createCloudObject()
         }
 
+        btnGetCloud.setOnClickListener {
+            cloudObj?.call(
+                options = RBSCloudObjectOptions(method = "sayHello", body = mapOf(
+                    Pair("baran", "0"),
+                    Pair("semih", "1")
+                )),
+                eventFired = {
+                    val auth = Gson().fromJson(it, AuthModel::class.java)
+
+                    rbs.authenticateWithCustomToken(auth.customToken)
+                    RBSLogger.log("AUTHENTICATE YES")
+                })
+        }
+
         btnSignOut.setOnClickListener { rbs.signOut() }
     }
 
     private fun createCloudObject() {
         rbs.getCloudObject(
             options = RBSCloudObjectOptions(
-                classId = "AndroidTest",
-                instanceId = "01FPTD2HAQGB5BS7J01S0QD7Q2"
+                classId = "ChatRoom",
+                instanceId = "01FQ4BE0S74DNSPRERE0H6HQDN"
             ),
             success = { cloudObj ->
                 this@MainActivity.cloudObj = cloudObj

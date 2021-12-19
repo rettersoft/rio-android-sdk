@@ -5,7 +5,6 @@ import com.rettermobile.rbs.RBSConfig
 import com.rettermobile.rbs.RBSLogger
 import com.rettermobile.rbs.cloud.RBSCloudObjectOptions
 import com.rettermobile.rbs.util.RBSActions
-import com.rettermobile.rbs.util.getBase64EncodeString
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -48,12 +47,6 @@ object RBSCloudServiceImp {
                 }
             }
 
-            val requestEncodedJsonString = if (options.payload.isEmpty()) {
-                null
-            } else {
-                Gson().toJson(options.payload).getBase64EncodeString()
-            }
-
             RBSLogger.log("RBSCloudManager.exec projectId: ${RBSConfig.projectId}")
             RBSLogger.log("RBSCloudManager.exec accessToken: $accessToken")
             RBSLogger.log("RBSCloudManager.exec action: $action")
@@ -62,13 +55,12 @@ object RBSCloudServiceImp {
             RBSLogger.log("RBSCloudManager.exec instanceId: ${options.instanceId}")
             RBSLogger.log("RBSCloudManager.exec headers: ${Gson().toJson(options.headers)}")
             RBSLogger.log("RBSCloudManager.exec queries: ${Gson().toJson(options.queries)}")
-            RBSLogger.log("RBSCloudManager.exec body: ${Gson().toJson(options.payload)}")
-            RBSLogger.log("RBSCloudManager.exec bodyEncodeString: $requestEncodedJsonString")
+            RBSLogger.log("RBSCloudManager.exec body: ${Gson().toJson(options.body)}")
 
-            val body: RequestBody = if (requestEncodedJsonString.isNullOrEmpty()) {
+            val body: RequestBody = if (options.body.isNullOrEmpty()) {
                 "".toRequestBody("application/json; charset=utf-8".toMediaType())
             } else {
-                requestEncodedJsonString.toRequestBody("application/json; charset=utf-8".toMediaType())
+                Gson().toJson(options.body).toRequestBody("application/json; charset=utf-8".toMediaType())
             }
 
             cloudApi.postAction(

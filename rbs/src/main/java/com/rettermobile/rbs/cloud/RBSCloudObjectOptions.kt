@@ -10,7 +10,7 @@ class RBSCloudObjectOptions constructor(
     var method: String? = null,
     var instanceId: String? = null,
     var httpMethod: RBSHttpMethod? = RBSHttpMethod.POST,
-    var payload: Map<String, String> = mapOf(),
+    var body: Map<String, Any> = mapOf(),
     var headers: Map<String, String> = mapOf(),
     var queries: Map<String, String> = mapOf(),
     var key: Pair<String, String>? = null

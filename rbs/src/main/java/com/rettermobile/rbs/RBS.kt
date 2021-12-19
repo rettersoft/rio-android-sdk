@@ -205,4 +205,8 @@ class RBS(
     fun setLoggerListener(listener: Logger) {
         RBSLogger.logListener = listener
     }
+
+    fun logEnable(enable: Boolean) {
+        RBSLogger.logEnable(enable)
+    }
 }

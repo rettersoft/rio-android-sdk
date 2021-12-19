@@ -47,6 +47,6 @@ interface RBSCloudService {
         @Path("path2") path2: String,
         @Query("_token") token: String?,
         @QueryMap queries: Map<String, String>,
-        @Body payload: RequestBody? = null,
+        @Body payload: RequestBody? = null
     ): ResponseBody
 }
