@@ -185,15 +185,17 @@ class RBS(
     }
 
     fun signOut() {
-        val request = TokenManager.userId?.let {
-            mapOf(Pair("allTokens", true), Pair("userId", it))
-        } ?: kotlin.run { mapOf(Pair("allTokens", true)) }
+//        val request = TokenManager.userId?.let {
+//            mapOf(Pair("allTokens", true), Pair("userId", it))
+//        } ?: kotlin.run { mapOf(Pair("allTokens", true)) }
 
-        sendAction(RBSActions.LOGOUT.action, request, success = {
-            clearSession()
-        }, error = {
-            clearSession()
-        })
+        clearSession()
+
+//        sendAction(RBSActions.LOGOUT.action, request, success = {
+//            clearSession()
+//        }, error = {
+//            clearSession()
+//        })
     }
 
     private fun clearSession() {
