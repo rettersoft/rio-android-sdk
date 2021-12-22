@@ -6,6 +6,7 @@ import com.rettermobile.rbs.RBSConfig
 import com.rettermobile.rbs.RBSLogger
 import com.rettermobile.rbs.model.RBSCulture
 import com.rettermobile.rbs.service.model.RBSTokenResponse
+import com.rettermobile.rbs.util.getBase64EncodeString
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -31,18 +32,21 @@ object RBSServiceImp {
             action.split(".").let {
                 if (it.size > 3) {
                     if (TextUtils.equals(it[2], "get")) {
+                        val requestEncodedJsonString = requestJsonString.getBase64EncodeString()
+
                         RBSLogger.log("getAction projectId: ${RBSConfig.projectId}")
                         RBSLogger.log("getAction action: $action")
                         RBSLogger.log("getAction accessToken: $accessToken")
                         RBSLogger.log("getAction headers: ${Gson().toJson(headers)}")
                         RBSLogger.log("getAction body: $requestJsonString")
+                        RBSLogger.log("getAction bodyEncoded: $requestEncodedJsonString")
 
                         networkPost.getAction(
                             headers,
                             RBSConfig.projectId,
                             action,
                             accessToken!!,
-                            requestJsonString,
+                            requestEncodedJsonString,
                             culture?.culture
                         )
                     } else {
