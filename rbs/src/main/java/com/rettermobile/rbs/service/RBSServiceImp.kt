@@ -22,7 +22,7 @@ object RBSServiceImp {
     suspend fun executeAction(
         accessToken: String? = null,
         action: String,
-        requestEncodedJsonString: String,
+        requestJsonString: String,
         headers: Map<String, String>,
         culture: RBSCulture? = null
     ): Result<ResponseBody?> {
@@ -35,25 +35,25 @@ object RBSServiceImp {
                         RBSLogger.log("getAction action: $action")
                         RBSLogger.log("getAction accessToken: $accessToken")
                         RBSLogger.log("getAction headers: ${Gson().toJson(headers)}")
-                        RBSLogger.log("getAction body: $requestEncodedJsonString")
+                        RBSLogger.log("getAction body: $requestJsonString")
 
                         networkPost.getAction(
                             headers,
                             RBSConfig.projectId,
                             action,
                             accessToken!!,
-                            requestEncodedJsonString,
+                            requestJsonString,
                             culture?.culture
                         )
                     } else {
                         val body: RequestBody =
-                            requestEncodedJsonString.toRequestBody("application/json; charset=utf-8".toMediaType())
+                            requestJsonString.toRequestBody("application/json; charset=utf-8".toMediaType())
 
                         RBSLogger.log("postAction projectId: ${RBSConfig.projectId}")
                         RBSLogger.log("postAction action: $action")
                         RBSLogger.log("postAction accessToken: $accessToken")
                         RBSLogger.log("postAction headers: ${Gson().toJson(headers)}")
-                        RBSLogger.log("postAction body: $requestEncodedJsonString")
+                        RBSLogger.log("postAction body: $requestJsonString")
 
                         networkPost.postAction(
                             headers,

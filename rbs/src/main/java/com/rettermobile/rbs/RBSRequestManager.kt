@@ -45,7 +45,6 @@ object RBSRequestManager {
         TokenManager.checkToken()
 
         val requestJsonString = Gson().toJson(data)
-        val requestEncodedJsonString = requestJsonString.getBase64EncodeString()
 
         val accessToken = TokenManager.accessToken
 
@@ -54,12 +53,11 @@ object RBSRequestManager {
         RBSLogger.log("RBSRequestManager.exec accessToken: $accessToken")
         RBSLogger.log("RBSRequestManager.exec headers: ${Gson().toJson(headers)}")
         RBSLogger.log("RBSRequestManager.exec body: $requestJsonString")
-        RBSLogger.log("RBSRequestManager.exec bodyEncodeString: $requestEncodedJsonString")
 
         val res = RBSServiceImp.executeAction(
             accessToken,
             action!!,
-            requestEncodedJsonString,
+            requestJsonString,
             headers ?: mapOf(),
             culture
         )
