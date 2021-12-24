@@ -31,13 +31,8 @@ infix fun <T> Boolean.then(param: T): T? = if (this) param else null
 inline fun <reified T> parseResponse(json: String?): T? {
     if (json.isNullOrEmpty()) return null
 
-    val gson = Gson()
-    val type = object : TypeToken<Map<String, Any>>() {}.type
-
-    val response = gson.fromJson<Map<String, Any>>(json, type)
-
-    return if (response.isNullOrEmpty()) null else gson.fromJson(
-        gson.toJson(response),
+    return Gson().fromJson(
+        json,
         T::class.java
     )
 }
