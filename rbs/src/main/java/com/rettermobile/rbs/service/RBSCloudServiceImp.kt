@@ -43,46 +43,20 @@ object RBSCloudServiceImp {
                 .toRequestBody("application/json; charset=utf-8".toMediaType())
         }
 
+        /**
+         * { method}/{classId}/{path1}/{path2}
+         */
+        val url = if (params.path.isEmpty()) {
+            "${action.name}/${params.classId}"
+        } else {
+            "${action.name}/${params.classId}/${params.path}"
+        }
+
         return when (params.httpMethod) {
-            RBSHttpMethod.GET -> cloudApi.getAction(
-                token = accessToken,
-                method = action.name,
-                classId = params.classId!!,
-                path1 = params.path1,
-                path2 = params.path2,
-                headers = params.headers,
-                queries = params.queries
-            )
-            RBSHttpMethod.POST -> cloudApi.postAction(
-                token = accessToken,
-                method = action.name,
-                classId = params.classId!!,
-                path1 = params.path1,
-                path2 = params.path2,
-                headers = params.headers,
-                queries = params.queries,
-                payload = body
-            )
-            RBSHttpMethod.DELETE -> cloudApi.deleteAction(
-                token = accessToken,
-                method = action.name,
-                classId = params.classId!!,
-                path1 = params.path1,
-                path2 = params.path2,
-                headers = params.headers,
-                queries = params.queries,
-                payload = body
-            )
-            RBSHttpMethod.PUT -> cloudApi.putAction(
-                token = accessToken,
-                method = action.name,
-                classId = params.classId!!,
-                path1 = params.path1,
-                path2 = params.path2,
-                headers = params.headers,
-                queries = params.queries,
-                payload = body
-            )
+            RBSHttpMethod.GET -> cloudApi.getAction(url = url, token = accessToken, headers = params.headers, queries = params.queries)
+            RBSHttpMethod.POST -> cloudApi.postAction(url = url, token = accessToken, headers = params.headers, queries = params.queries, payload = body)
+            RBSHttpMethod.DELETE -> cloudApi.deleteAction(url = url, token = accessToken, headers = params.headers, queries = params.queries, payload = body)
+            RBSHttpMethod.PUT -> cloudApi.putAction(url = url, token = accessToken, headers = params.headers, queries = params.queries, payload = body)
         }
     }
 }

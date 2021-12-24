@@ -10,48 +10,36 @@ import retrofit2.http.*
  */
 interface RBSCloudService {
 
-    @GET("{method}/{classId}/{path1}/{path2}")
+    @GET
     suspend fun getAction(
+        @Url url: String,
         @HeaderMap headers: Map<String, String>,
-        @Path("method") method: String,
-        @Path("classId") classId: String,
-        @Path("path1") path1: String,
-        @Path("path2") path2: String,
         @Query("_token") token: String?,
         @QueryMap queries: Map<String, String>
     ): Response<ResponseBody>
 
-    @DELETE("{method}/{classId}/{path1}/{path2}")
+    @DELETE
     suspend fun deleteAction(
+        @Url url: String,
         @HeaderMap headers: Map<String, String>,
-        @Path("method") method: String,
-        @Path("classId") classId: String,
-        @Path("path1") path1: String,
-        @Path("path2") path2: String,
         @Query("_token") token: String?,
         @QueryMap queries: Map<String, String>,
         @Body payload: RequestBody
     ): Response<ResponseBody>
 
-    @PUT("{method}/{classId}/{path1}/{path2}")
+    @PUT
     suspend fun putAction(
+        @Url url: String,
         @HeaderMap headers: Map<String, String>,
-        @Path("method") method: String,
-        @Path("classId") classId: String,
-        @Path("path1") path1: String,
-        @Path("path2") path2: String,
         @Query("_token") token: String?,
         @QueryMap queries: Map<String, String>,
         @Body payload: RequestBody
     ): Response<ResponseBody>
 
-    @POST("{method}/{classId}/{path1}/{path2}")
+    @POST
     suspend fun postAction(
+        @Url url: String,
         @HeaderMap headers: Map<String, String>,
-        @Path("method") method: String,
-        @Path("classId") classId: String,
-        @Path("path1") path1: String,
-        @Path("path2") path2: String,
         @Query("_token") token: String?,
         @QueryMap queries: Map<String, String>,
         @Body payload: RequestBody

@@ -18,8 +18,7 @@ class RBSServiceParam {
     var headers: Map<String, String> = mapOf()
     var queries: Map<String, String> = mapOf()
 
-    var path1 = ""
-    var path2 = ""
+    var path = ""
 
     constructor(objectOptions: RBSGetCloudObjectOptions) {
         // GET INSTANCE
@@ -32,8 +31,8 @@ class RBSServiceParam {
         headers = objectOptions.headers
         queries = objectOptions.queries
 
-        path1 += if (!objectOptions.instanceId.isNullOrEmpty()) {
-            "${objectOptions.instanceId}"
+        path += if (!objectOptions.instanceId.isNullOrEmpty()) {
+            objectOptions.instanceId
         } else if (objectOptions.key != null) {
             "${objectOptions.key!!.first}!${objectOptions.key!!.second}"
         } else {
@@ -51,11 +50,10 @@ class RBSServiceParam {
         headers = options.headers
         queries = options.queries
 
-        path1 += "${options.method}"
-        path2 += if (!objectParams.instanceId.isNullOrEmpty()) {
-            "${objectParams.instanceId}"
+        path += if (!objectParams.instanceId.isNullOrEmpty()) {
+            "${options.method}/${objectParams.instanceId}"
         } else {
-            ""
+            "${options.method}"
         }
     }
 }

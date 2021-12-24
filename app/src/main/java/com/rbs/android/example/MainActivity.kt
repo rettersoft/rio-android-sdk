@@ -137,7 +137,7 @@ class MainActivity : AppCompatActivity() {
         rbs.getCloudObject(
             options = RBSGetCloudObjectOptions(
                 classId = "ChatRoom",
-                instanceId = "01FQ4BE0S74DNSPRERE0H6HQDN"
+//                instanceId = "01FQ4BE0S74DNSPRERE0H6HQDN"
             ),
             onSuccess = { cloudObj ->
                 this@MainActivity.cloudObj = cloudObj
