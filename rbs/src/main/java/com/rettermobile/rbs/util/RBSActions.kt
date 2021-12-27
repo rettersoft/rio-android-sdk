@@ -7,5 +7,6 @@ enum class RBSActions(val action: String) {
     LOGOUT("rbs.core.request.LOGOUT_USER"),
     INSTANCE("rbs.core.request.INSTANCE"),
     CALL("rbs.core.request.CALL"),
-    STATE("rbs.core.request.STATE")
+    STATE("rbs.core.request.STATE"),
+    SIGN_IN_ANONYMOUS("rbs.core.request.SIGN_IN_ANONYMOUS")
 }

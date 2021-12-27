@@ -19,20 +19,22 @@ sealed class RBSCloudObjectState constructor(params: RBSCloudObjectParams) {
     private var errorEvent: ((Throwable?) -> Unit)? = null
 
     init {
-        var path = "/projects/${RBSConfig.projectId}/classes/$classId/instances/$instanceId/"
+        if (!params.useLocal) {
+            var path = "/projects/${RBSConfig.projectId}/classes/$classId/instances/$instanceId/"
 
-        if (this is RBSCloudUserObjectState) {
-            path += "userState/${TokenManager.userId}"
-        } else if (this is RBSCloudRoleObjectState) {
-            path += "roleState/${TokenManager.userIdentity}"
-        }
+            if (this is RBSCloudUserObjectState) {
+                path += "userState/${TokenManager.userId}"
+            } else if (this is RBSCloudRoleObjectState) {
+                path += "roleState/${TokenManager.userIdentity}"
+            }
 
-        val document = RBSFirebaseManager.getDocument(path)
-        listener = document.addSnapshotListener { value, error ->
-            if (error != null) {
-                errorEvent?.invoke(error)
-            } else {
-                successEvent?.invoke(value?.data?.toString())
+            val document = RBSFirebaseManager.getDocument(path)
+            listener = document.addSnapshotListener { value, error ->
+                if (error != null) {
+                    errorEvent?.invoke(error)
+                } else {
+                    successEvent?.invoke(value?.data?.toString())
+                }
             }
         }
     }

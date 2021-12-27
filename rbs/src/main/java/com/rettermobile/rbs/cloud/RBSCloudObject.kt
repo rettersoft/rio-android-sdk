@@ -19,7 +19,7 @@ class RBSCloudObject constructor(val params: RBSCloudObjectParams) {
 
     fun call(
         options: RBSCallMethodOptions,
-        onSuccess: ((RBSCloudSuccessResponse?) -> Unit)? = null,
+        onSuccess: ((RBSCloudSuccessResponse) -> Unit)? = null,
         onError: ((Throwable?) -> Unit)? = null
     ) {
         GlobalScope.launch {

@@ -3,6 +3,7 @@ package com.rettermobile.rbs
 import com.google.gson.Gson
 import com.rettermobile.rbs.model.RBSCulture
 import com.rettermobile.rbs.service.RBSServiceImp
+import com.rettermobile.rbs.util.RBSActions
 import com.rettermobile.rbs.util.TokenManager
 import com.rettermobile.rbs.util.getBase64EncodeString
 
@@ -54,26 +55,34 @@ object RBSRequestManager {
         RBSLogger.log("RBSRequestManager.exec headers: ${Gson().toJson(headers)}")
         RBSLogger.log("RBSRequestManager.exec body: $requestJsonString")
 
-        val res = RBSServiceImp.executeAction(
-            accessToken,
-            action!!,
-            requestJsonString,
-            headers ?: mapOf(),
-            culture
-        )
-
-        return if (res.isSuccess) {
-            RBSLogger.log("RBSRequestManager.exec success")
-
-            val result = res.getOrNull()?.string()
-
-            RBSLogger.log("RBSRequestManager.exec result: $result")
-
-            result ?: ""
+        return if (action == RBSActions.SIGN_IN_ANONYMOUS.action) {
+            "Success"
         } else {
-            RBSLogger.log("RBSRequestManager.exec fail ${res.exceptionOrNull()?.stackTraceToString()}")
+            val res = RBSServiceImp.executeAction(
+                accessToken,
+                action!!,
+                requestJsonString,
+                headers ?: mapOf(),
+                culture
+            )
 
-            throw res.exceptionOrNull() ?: IllegalAccessError("RBSRequestManager.exec fail")
+            if (res.isSuccess) {
+                RBSLogger.log("RBSRequestManager.exec success")
+
+                val result = res.getOrNull()?.string()
+
+                RBSLogger.log("RBSRequestManager.exec result: $result")
+
+                result ?: ""
+            } else {
+                RBSLogger.log(
+                    "RBSRequestManager.exec fail ${
+                        res.exceptionOrNull()?.stackTraceToString()
+                    }"
+                )
+
+                throw res.exceptionOrNull() ?: IllegalAccessError("RBSRequestManager.exec fail")
+            }
         }
     }
 }

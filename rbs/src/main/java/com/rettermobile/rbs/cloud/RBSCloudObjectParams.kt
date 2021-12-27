@@ -5,5 +5,6 @@ package com.rettermobile.rbs.cloud
  */
 class RBSCloudObjectParams constructor(
     val classId: String,
-    val instanceId: String?
+    val instanceId: String?,
+    val useLocal: Boolean = false
 )

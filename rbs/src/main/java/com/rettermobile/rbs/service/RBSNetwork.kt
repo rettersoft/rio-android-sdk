@@ -40,7 +40,7 @@ class RBSNetwork {
     private fun provideOkHttp(): OkHttpClient {
         val builder = OkHttpClient.Builder()
         val interceptor = HttpLoggingInterceptor() {
-            RBSLogger.log(it)
+            RBSLogger.log("Okhttp: $it")
         }.apply {
             level = HttpLoggingInterceptor.Level.BODY
         }

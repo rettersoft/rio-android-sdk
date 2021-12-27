@@ -20,43 +20,63 @@ object RBSCloudManager {
     ): RBSCloudObject {
         TokenManager.checkToken()
 
-        val accessToken = TokenManager.accessToken
-
-        val res = kotlin.runCatching {
-            RBSCloudServiceImp.exec(
-                accessToken,
-                action,
-                RBSServiceParam(options)
-            )
-        }
-
-        return if (res.isSuccess) {
-            RBSLogger.log("RBSCloudManager.exec success")
-
-            val result = res.getOrNull()?.body()?.string()
-
-            RBSLogger.log("RBSCloudManager.exec result: $result")
-
-            val instanceRes = Gson().fromJson(result, RBSInstanceResponse::class.java)
-
-            cloudObjects.find { it.params.instanceId == instanceRes.instanceId } ?: kotlin.run {
+        val foundedObj = cloudObjects.find { it.params.instanceId == options.instanceId }
+        return foundedObj?.let {
+            RBSLogger.log("RBSCloudManager.exec cloudObjects returned from list")
+            it
+        } ?: kotlin.run {
+            if (options.useLocal && !options.instanceId.isNullOrEmpty()) {
+                RBSLogger.log("RBSCloudManager.exec create cloud object in-memory")
                 RBSCloudObject(
                     RBSCloudObjectParams(
                         options.classId!!,
-                        instanceRes.instanceId
+                        options.instanceId!!,
+                        useLocal = true
                     )
-                ).apply {
-                    cloudObjects.add(this)
+                )
+            } else {
+                val accessToken = TokenManager.accessToken
+
+                RBSLogger.log("RBSCloudManager.exec create cloud object service call executed")
+
+                val res = kotlin.runCatching {
+                    RBSCloudServiceImp.exec(
+                        accessToken,
+                        action,
+                        RBSServiceParam(options)
+                    )
+                }
+
+                if (res.isSuccess) {
+                    RBSLogger.log("RBSCloudManager.exec success")
+
+                    val result = res.getOrNull()?.body()?.string()
+
+                    RBSLogger.log("RBSCloudManager.exec result: $result")
+
+                    val instanceRes = Gson().fromJson(result, RBSInstanceResponse::class.java)
+
+                    cloudObjects.find { it.params.instanceId == instanceRes.instanceId }
+                        ?: kotlin.run {
+                            RBSCloudObject(
+                                RBSCloudObjectParams(
+                                    options.classId!!,
+                                    instanceRes.instanceId
+                                )
+                            ).apply {
+                                cloudObjects.add(this)
+                            }
+                        }
+                } else {
+                    RBSLogger.log(
+                        "RBSCloudManager.exec fail ${
+                            res.exceptionOrNull()?.stackTraceToString()
+                        }"
+                    )
+
+                    throw res.exceptionOrNull() ?: IllegalAccessError("RBSCloudManager.exec fail")
                 }
             }
-        } else {
-            RBSLogger.log(
-                "RBSCloudManager.exec fail ${
-                    res.exceptionOrNull()?.stackTraceToString()
-                }"
-            )
-
-            throw res.exceptionOrNull() ?: IllegalAccessError("RBSCloudManager.exec fail")
         }
     }
 

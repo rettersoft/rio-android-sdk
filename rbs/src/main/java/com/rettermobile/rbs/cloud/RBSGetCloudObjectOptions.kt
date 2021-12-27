@@ -14,5 +14,6 @@ class RBSGetCloudObjectOptions constructor(
     var httpMethod: RBSHttpMethod = RBSHttpMethod.POST,
     var body: Any? = null,
     var headers: Map<String, String> = mapOf(),
-    var queries: Map<String, String> = mapOf()
+    var queries: Map<String, String> = mapOf(),
+    var useLocal: Boolean = false
 )

@@ -21,7 +21,7 @@ class App : Application() {
 
         rbs = RBS(
             applicationContext = applicationContext,
-            projectId = "6eedd7ca16be4ae8982451fdfdba7e15",
+            projectId = "69ec1ef0039b4332b3e102f082a98ec2",
             region = RBSRegion.EU_WEST_1_BETA
         )
     }

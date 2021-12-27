@@ -6,6 +6,7 @@ import com.google.gson.Gson
 import com.rettermobile.rbs.cloud.RBSCloudManager
 import com.rettermobile.rbs.cloud.RBSCloudObject
 import com.rettermobile.rbs.cloud.RBSGetCloudObjectOptions
+import com.rettermobile.rbs.exception.CloudNullException
 import com.rettermobile.rbs.exception.TokenFailException
 import com.rettermobile.rbs.model.RBSClientAuthStatus
 import com.rettermobile.rbs.model.RBSCulture
@@ -62,6 +63,10 @@ class RBS(
         }
     }
 
+    fun signInAnonymously() {
+        sendAction(action = RBSActions.SIGN_IN_ANONYMOUS.action)
+    }
+
     fun sendAction(
         action: String,
         data: Map<String, Any> = mapOf(),
@@ -92,7 +97,7 @@ class RBS(
 
     fun getCloudObject(
         options: RBSGetCloudObjectOptions,
-        onSuccess: ((RBSCloudObject?) -> Unit)? = null,
+        onSuccess: ((RBSCloudObject) -> Unit)? = null,
         onError: ((Throwable?) -> Unit)? = null
     ) {
         GlobalScope.launch {
@@ -101,7 +106,11 @@ class RBS(
                     runCatching { RBSCloudManager.exec(action = RBSActions.INSTANCE, options) }
 
                 if (res.isSuccess) {
-                    withContext(Dispatchers.Main) { onSuccess?.invoke(res.getOrNull()) }
+                    if (res.getOrNull() != null) {
+                        withContext(Dispatchers.Main) { onSuccess?.invoke(res.getOrNull()!!) }
+                    } else {
+                        withContext(Dispatchers.Main) { onError?.invoke(CloudNullException("Cloud object returned null")) }
+                    }
                 } else {
                     // check if token exception then logout
                     checkTokenException(res.exceptionOrNull())

@@ -14,15 +14,16 @@ import com.rettermobile.rbs.RBSLogger
 import com.rettermobile.rbs.cloud.RBSCallMethodOptions
 import com.rettermobile.rbs.cloud.RBSCloudObject
 import com.rettermobile.rbs.cloud.RBSGetCloudObjectOptions
-import com.rettermobile.rbs.model.RBSClientAuthStatus
 import com.rettermobile.rbs.util.Logger
+import retrofit2.HttpException
 
 
 class MainActivity : AppCompatActivity() {
 
     lateinit var rvLogs: RecyclerView
     lateinit var btnClearLog: Button
-    lateinit var btnGetCloud: Button
+    lateinit var signInAnonymously: Button
+    lateinit var btnGetCloudCreate: Button
     lateinit var btnGetCloudCall: Button
     lateinit var btnSignIn: Button
     lateinit var btnGenerate: Button
@@ -39,17 +40,20 @@ class MainActivity : AppCompatActivity() {
 
         rbs = (application as App).rbs
 
+        val userRepository = UserRepository(rbs)
+
         rvLogs = findViewById(R.id.rvLogs)
-        btnGetCloud = findViewById(R.id.btnGetCloud)
         btnGetCloudCall = findViewById(R.id.btnGetCloudCall)
+        btnGetCloudCreate = findViewById(R.id.btnGetCloudCreate)
         btnClearLog = findViewById(R.id.btnClearLog)
+        signInAnonymously = findViewById(R.id.signInAnonymously)
         btnSignIn = findViewById(R.id.btnSignIn)
         btnGenerate = findViewById(R.id.btnGenerate)
         btnSignOut = findViewById(R.id.btnSignOut)
 
         rvLogs.adapter = LogAdapter(items)
 
-        createCloudObject()
+        signInAnonymously.setOnClickListener { rbs.signInAnonymously() }
 
         btnClearLog.setOnClickListener {
             runOnUiThread {
@@ -57,6 +61,8 @@ class MainActivity : AppCompatActivity() {
                 rvLogs.adapter?.notifyDataSetChanged()
             }
         }
+
+        btnGetCloudCreate.setOnClickListener { createCloudObject() }
 
         rbs.setLoggerListener(object : Logger {
             override fun log(message: String) {
@@ -67,21 +73,17 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        (application as App).rbs.setOnClientAuthStatusChangeListener { rbsClientAuthStatus, rbsUser ->
-            if (rbsClientAuthStatus == RBSClientAuthStatus.SIGNED_IN) {
-                createCloudObject()
-            }
-        }
-
         btnSignIn.setOnClickListener {
-            cloudObj?.call(
-                options = RBSCallMethodOptions(method = "getToken"),
-                onSuccess = {
-//                    val auth = Gson().fromJson(it, AuthModel::class.java)
-//
+            if (cloudObj == null) {
+                createCloudObject()
+            } else {
+                cloudObj?.call(
+                    options = RBSCallMethodOptions(method = "getToken"),
+                    onSuccess = {
 //                    rbs.authenticateWithCustomToken(auth.customToken)
 //                    RBSLogger.log("AUTHENTICATE YES")
-                })
+                    })
+            }
         }
 
         btnGenerate.setOnClickListener {
@@ -92,6 +94,11 @@ class MainActivity : AppCompatActivity() {
                     Log.e("RBSService", jsonData!!) // Convert to data model with Gson()
                 },
                 error = {
+                    if (it is HttpException) {
+                        if (it.code() == 302) {
+                            // redirect to login
+                        }
+                    }
                     val builder = AlertDialog.Builder(this)
                     builder.setTitle("Status")
                     builder.setMessage(it?.message)
@@ -107,27 +114,27 @@ class MainActivity : AppCompatActivity() {
             Log.e("RBSService", jsonData) // Convert to data model with Gson()
         }
 
-        btnGetCloud.setOnClickListener {
-            createCloudObject()
-        }
+        btnGetCloudCall.setOnClickListener {
+            if (cloudObj == null) {
+                createCloudObject()
+            } else {
+                cloudObj?.call(
+                    options = RBSCallMethodOptions(
+                        method = "sayHello",
+                        body = TestRequest()
+                    ),
+                    onSuccess = {
+                        val headers = it?.headers()
+                        val code = it?.code()
+                        val body = it?.body<TestResponse>()
 
-        btnGetCloud.setOnClickListener {
-            cloudObj?.call(
-                options = RBSCallMethodOptions(
-                    method = "sayHello",
-                    body = TestRequest()
-                ),
-                onSuccess = {
-                    val headers = it?.headers()
-                    val code = it?.code()
-                    val body = it?.body<TestResponse>()
-
-                    RBSLogger.log("HEADERS ${Gson().toJson(headers)}")
-                    RBSLogger.log("CODE ${Gson().toJson(code)}")
-                    RBSLogger.log("BODY ${Gson().toJson(body)}")
-                }, onError = {
-                    // ConnectionTimeOut
-                })
+                        RBSLogger.log("HEADERS ${Gson().toJson(headers)}")
+                        RBSLogger.log("CODE ${Gson().toJson(code)}")
+                        RBSLogger.log("BODY ${Gson().toJson(body)}")
+                    }, onError = {
+                        // ConnectionTimeOut
+                    })
+            }
         }
 
         btnSignOut.setOnClickListener { rbs.signOut() }
@@ -136,25 +143,26 @@ class MainActivity : AppCompatActivity() {
     private fun createCloudObject() {
         rbs.getCloudObject(
             options = RBSGetCloudObjectOptions(
-                classId = "ChatRoom",
-//                instanceId = "01FQ4BE0S74DNSPRERE0H6HQDN"
+                classId = "TestClass",
+                instanceId = "01FQXSX0S23GQA59ZS45H66YGC",
+                useLocal = true
             ),
             onSuccess = { cloudObj ->
                 this@MainActivity.cloudObj = cloudObj
 
-                cloudObj?.user?.subscribe(eventFired = {
+                cloudObj.user.subscribe(eventFired = {
                     RBSLogger.log("SUCCESS USER $it")
                 }, errorFired = {
                     RBSLogger.log("SUCCESS USER ${it?.message}")
                 })
 
-                cloudObj?.role?.subscribe(eventFired = {
+                cloudObj.role.subscribe(eventFired = {
                     RBSLogger.log("SUCCESS ROLE $it")
                 }, errorFired = {
                     RBSLogger.log("SUCCESS ROLE ${it?.message}")
                 })
 
-                cloudObj?.public?.subscribe(eventFired = {
+                cloudObj.public.subscribe(eventFired = {
                     RBSLogger.log("SUCCESS PUBLIC $it")
                 }, errorFired = {
                     RBSLogger.log("SUCCESS PUBLIC ${it?.message}")
