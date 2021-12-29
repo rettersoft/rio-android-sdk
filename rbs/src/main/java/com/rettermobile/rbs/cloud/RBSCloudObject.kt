@@ -46,13 +46,11 @@ class RBSCloudObject constructor(val params: RBSCloudObjectParams) {
 
         val accessToken = TokenManager.accessToken
 
-        val res = kotlin.runCatching {
-            RBSCloudServiceImp.exec(
-                accessToken,
-                action,
-                RBSServiceParam(objectParams, options)
-            )
-        }
+        val res = RBSCloudServiceImp.exec(
+            accessToken,
+            action,
+            RBSServiceParam(objectParams, options)
+        )
 
         return if (res.isSuccess) {
             RBSLogger.log("RBSCloudManager.exec success")

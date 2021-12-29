@@ -3,8 +3,11 @@ package com.rbs.android.example
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.ProgressBar
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
+import androidx.core.widget.ContentLoadingProgressBar
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
 import com.rbs.android.example.network.TestRequest
@@ -28,6 +31,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var btnSignIn: Button
     lateinit var btnGenerate: Button
     lateinit var btnSignOut: Button
+    lateinit var loading: ProgressBar
 
     private val items = ArrayList<String>()
 
@@ -40,7 +44,15 @@ class MainActivity : AppCompatActivity() {
 
         rbs = (application as App).rbs
 
-        val userRepository = UserRepository(rbs)
+        rbs.setOnClientAuthStatusChangeListener { rbsClientAuthStatus, rbsUser ->
+            RBSLogger.log(
+                "rbsClientAuthStatus: $rbsClientAuthStatus rbsUser: ${
+                    Gson().toJson(
+                        rbsUser
+                    )
+                }"
+            )
+        }
 
         rvLogs = findViewById(R.id.rvLogs)
         btnGetCloudCall = findViewById(R.id.btnGetCloudCall)
@@ -50,6 +62,8 @@ class MainActivity : AppCompatActivity() {
         btnSignIn = findViewById(R.id.btnSignIn)
         btnGenerate = findViewById(R.id.btnGenerate)
         btnSignOut = findViewById(R.id.btnSignOut)
+        loading = findViewById(R.id.loading)
+        loading.isVisible = false
 
         rvLogs.adapter = LogAdapter(items)
 
@@ -141,11 +155,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createCloudObject() {
+        loading.isVisible = true
+
         rbs.getCloudObject(
             options = RBSGetCloudObjectOptions(
                 classId = "TestClass",
-                instanceId = "01FQXSX0S23GQA59ZS45H66YGC",
-                useLocal = true
+                instanceId = "01FQXSX0S23GQA59ZS45H66YGC"
             ),
             onSuccess = { cloudObj ->
                 this@MainActivity.cloudObj = cloudObj
@@ -167,6 +182,10 @@ class MainActivity : AppCompatActivity() {
                 }, errorFired = {
                     RBSLogger.log("SUCCESS PUBLIC ${it?.message}")
                 })
+
+                loading.isVisible = false
+            }, onError = {
+                loading.isVisible = false
             })
     }
 }

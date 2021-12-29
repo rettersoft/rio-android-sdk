@@ -23,40 +23,42 @@ object RBSCloudServiceImp {
         accessToken: String? = null,
         action: RBSActions,
         params: RBSServiceParam
-    ): Response<ResponseBody> {
-        RBSLogger.log("getCloud $action started")
+    ): Result<Response<ResponseBody>> {
+        return runCatching {
+            RBSLogger.log("getCloud $action started")
 
-        RBSLogger.log("RBSCloudManager.exec projectId: ${RBSConfig.projectId}")
-        RBSLogger.log("RBSCloudManager.exec accessToken: $accessToken")
-        RBSLogger.log("RBSCloudManager.exec action: $action")
-        RBSLogger.log("RBSCloudManager.exec classId: ${params.classId}")
-        RBSLogger.log("RBSCloudManager.exec methodId: ${params.method}")
-        RBSLogger.log("RBSCloudManager.exec instanceId: ${params.instanceId}")
-        RBSLogger.log("RBSCloudManager.exec headers: ${Gson().toJson(params.headers)}")
-        RBSLogger.log("RBSCloudManager.exec queries: ${Gson().toJson(params.queries)}")
-        RBSLogger.log("RBSCloudManager.exec body: ${Gson().toJson(params.body)}")
+            RBSLogger.log("RBSCloudManager.exec projectId: ${RBSConfig.projectId}")
+            RBSLogger.log("RBSCloudManager.exec accessToken: $accessToken")
+            RBSLogger.log("RBSCloudManager.exec action: $action")
+            RBSLogger.log("RBSCloudManager.exec classId: ${params.classId}")
+            RBSLogger.log("RBSCloudManager.exec methodId: ${params.method}")
+            RBSLogger.log("RBSCloudManager.exec instanceId: ${params.instanceId}")
+            RBSLogger.log("RBSCloudManager.exec headers: ${Gson().toJson(params.headers)}")
+            RBSLogger.log("RBSCloudManager.exec queries: ${Gson().toJson(params.queries)}")
+            RBSLogger.log("RBSCloudManager.exec body: ${Gson().toJson(params.body)}")
 
-        val body: RequestBody = if (params.body == null) {
-            "".toRequestBody("application/json; charset=utf-8".toMediaType())
-        } else {
-            Gson().toJson(params.body)
-                .toRequestBody("application/json; charset=utf-8".toMediaType())
-        }
+            val body: RequestBody = if (params.body == null) {
+                "".toRequestBody("application/json; charset=utf-8".toMediaType())
+            } else {
+                Gson().toJson(params.body)
+                    .toRequestBody("application/json; charset=utf-8".toMediaType())
+            }
 
-        /**
-         * { method}/{classId}/{path1}/{path2}
-         */
-        val url = if (params.path.isEmpty()) {
-            "${action.name}/${params.classId}"
-        } else {
-            "${action.name}/${params.classId}/${params.path}"
-        }
+            /**
+             * { method}/{classId}/{path1}/{path2}
+             */
+            val url = if (params.path.isEmpty()) {
+                "${action.name}/${params.classId}"
+            } else {
+                "${action.name}/${params.classId}/${params.path}"
+            }
 
-        return when (params.httpMethod) {
-            RBSHttpMethod.GET -> cloudApi.getAction(url = url, token = accessToken, headers = params.headers, queries = params.queries)
-            RBSHttpMethod.POST -> cloudApi.postAction(url = url, token = accessToken, headers = params.headers, queries = params.queries, payload = body)
-            RBSHttpMethod.DELETE -> cloudApi.deleteAction(url = url, token = accessToken, headers = params.headers, queries = params.queries, payload = body)
-            RBSHttpMethod.PUT -> cloudApi.putAction(url = url, token = accessToken, headers = params.headers, queries = params.queries, payload = body)
+            when (params.httpMethod) {
+                RBSHttpMethod.GET -> cloudApi.getAction(url = url, token = accessToken, headers = params.headers, queries = params.queries)
+                RBSHttpMethod.POST -> cloudApi.postAction(url = url, token = accessToken, headers = params.headers, queries = params.queries, payload = body)
+                RBSHttpMethod.DELETE -> cloudApi.deleteAction(url = url, token = accessToken, headers = params.headers, queries = params.queries, payload = body)
+                RBSHttpMethod.PUT -> cloudApi.putAction(url = url, token = accessToken, headers = params.headers, queries = params.queries, payload = body)
+            }
         }
     }
 }

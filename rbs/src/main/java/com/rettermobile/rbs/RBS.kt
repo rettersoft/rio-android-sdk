@@ -24,6 +24,9 @@ class RBS(
     sslPinningEnabled: Boolean = true
 ) {
 
+    private val job: Job = Job()
+    private val scope = CoroutineScope(Dispatchers.Default + job)
+
     init {
         RBSConfig.applicationContext = applicationContext
         RBSConfig.projectId = projectId
@@ -42,23 +45,21 @@ class RBS(
     }
 
     fun authenticateWithCustomToken(customToken: String, error: ((Throwable?) -> Unit)? = null) {
-        GlobalScope.launch {
-            async(Dispatchers.IO) {
-                withContext(Dispatchers.Main) {
-                    listener?.invoke(RBSClientAuthStatus.AUTHENTICATING, null)
-                }
+        scope.launch(exceptionHandler) {
+            withContext(Dispatchers.Main) {
+                listener?.invoke(RBSClientAuthStatus.AUTHENTICATING, null)
+            }
 
-                if (!TextUtils.isEmpty(customToken)) {
-                    val res = runCatching { RBSRequestManager.authenticate(customToken) }
+            if (!TextUtils.isEmpty(customToken)) {
+                val res = runCatching { RBSRequestManager.authenticate(customToken) }
 
-                    if (res.isSuccess) {
-                        withContext(Dispatchers.Main) { res }
-                    } else {
-                        withContext(Dispatchers.Main) { error?.invoke(res.exceptionOrNull()) }
-                    }
+                if (res.isSuccess) {
+                    withContext(Dispatchers.Main) { res }
                 } else {
-                    withContext(Dispatchers.Main) { error?.invoke(IllegalArgumentException("customToken must not be null or empty")) }
+                    withContext(Dispatchers.Main) { error?.invoke(res.exceptionOrNull()) }
                 }
+            } else {
+                withContext(Dispatchers.Main) { error?.invoke(IllegalArgumentException("customToken must not be null or empty")) }
             }
         }
     }
@@ -75,22 +76,20 @@ class RBS(
         success: ((String?) -> Unit)? = null,
         error: ((Throwable?) -> Unit)? = null
     ) {
-        GlobalScope.launch {
-            async(Dispatchers.IO) {
-                if (!TextUtils.isEmpty(action)) {
-                    val res = runCatching { RBSRequestManager.exec(action, data, headers, culture) }
+        scope.launch(exceptionHandler) {
+            if (!TextUtils.isEmpty(action)) {
+                val res = runCatching { RBSRequestManager.exec(action, data, headers, culture) }
 
-                    if (res.isSuccess) {
-                        withContext(Dispatchers.Main) { success?.invoke(res.getOrNull()) }
-                    } else {
-                        // check if token exception then logout
-                        checkTokenException(res.exceptionOrNull())
-
-                        withContext(Dispatchers.Main) { error?.invoke(res.exceptionOrNull()) }
-                    }
+                if (res.isSuccess) {
+                    withContext(Dispatchers.Main) { success?.invoke(res.getOrNull()) }
                 } else {
-                    withContext(Dispatchers.Main) { error?.invoke(IllegalArgumentException("action must not be null or empty")) }
+                    // check if token exception then logout
+                    checkTokenException(res.exceptionOrNull())
+
+                    withContext(Dispatchers.Main) { error?.invoke(res.exceptionOrNull()) }
                 }
+            } else {
+                withContext(Dispatchers.Main) { error?.invoke(IllegalArgumentException("action must not be null or empty")) }
             }
         }
     }
@@ -100,23 +99,21 @@ class RBS(
         onSuccess: ((RBSCloudObject) -> Unit)? = null,
         onError: ((Throwable?) -> Unit)? = null
     ) {
-        GlobalScope.launch {
-            async(Dispatchers.IO) {
-                val res =
-                    runCatching { RBSCloudManager.exec(action = RBSActions.INSTANCE, options) }
+        scope.launch(exceptionHandler) {
+            val res =
+                runCatching { RBSCloudManager.exec(action = RBSActions.INSTANCE, options) }
 
-                if (res.isSuccess) {
-                    if (res.getOrNull() != null) {
-                        withContext(Dispatchers.Main) { onSuccess?.invoke(res.getOrNull()!!) }
-                    } else {
-                        withContext(Dispatchers.Main) { onError?.invoke(CloudNullException("Cloud object returned null")) }
-                    }
+            if (res.isSuccess) {
+                if (res.getOrNull() != null) {
+                    withContext(Dispatchers.Main) { onSuccess?.invoke(res.getOrNull()!!) }
                 } else {
-                    // check if token exception then logout
-                    checkTokenException(res.exceptionOrNull())
-
-                    withContext(Dispatchers.Main) { onError?.invoke(res.exceptionOrNull()) }
+                    withContext(Dispatchers.Main) { onError?.invoke(CloudNullException("Cloud object returned null")) }
                 }
+            } else {
+                // check if token exception then logout
+                checkTokenException(res.exceptionOrNull())
+
+                withContext(Dispatchers.Main) { onError?.invoke(res.exceptionOrNull()) }
             }
         }
     }
@@ -135,22 +132,20 @@ class RBS(
         success: ((String?) -> Unit)? = null,
         error: ((Throwable?) -> Unit)? = null
     ) {
-        GlobalScope.launch {
-            async(Dispatchers.IO) {
-                if (!TextUtils.isEmpty(action)) {
-                    val res = runCatching { RBSRequestManager.generateUrl(action, data) }
+        scope.launch(exceptionHandler) {
+            if (!TextUtils.isEmpty(action)) {
+                val res = runCatching { RBSRequestManager.generateUrl(action, data) }
 
-                    if (res.isSuccess) {
-                        withContext(Dispatchers.Main) { success?.invoke(res.getOrNull()) }
-                    } else {
-                        // check if token exception then logout
-                        checkTokenException(res.exceptionOrNull())
-
-                        withContext(Dispatchers.Main) { error?.invoke(res.exceptionOrNull()) }
-                    }
+                if (res.isSuccess) {
+                    withContext(Dispatchers.Main) { success?.invoke(res.getOrNull()) }
                 } else {
-                    withContext(Dispatchers.Main) { error?.invoke(IllegalArgumentException("action must not be null or empty")) }
+                    // check if token exception then logout
+                    checkTokenException(res.exceptionOrNull())
+
+                    withContext(Dispatchers.Main) { error?.invoke(res.exceptionOrNull()) }
                 }
+            } else {
+                withContext(Dispatchers.Main) { error?.invoke(IllegalArgumentException("action must not be null or empty")) }
             }
         }
     }
@@ -171,23 +166,21 @@ class RBS(
     }
 
     private fun sendAuthStatus() {
-        GlobalScope.launch {
-            async {
-                TokenManager.user?.let { user ->
-                    withContext(Dispatchers.Main) {
-                        listener?.invoke(
-                            user.isAnonymous then RBSClientAuthStatus.SIGNED_IN_ANONYMOUSLY
-                                ?: RBSClientAuthStatus.SIGNED_IN,
-                            user
-                        )
-                    }
-                } ?: run {
-                    withContext(Dispatchers.Main) {
-                        listener?.invoke(
-                            RBSClientAuthStatus.SIGNED_OUT,
-                            null
-                        )
-                    }
+        scope.launch(exceptionHandler) {
+            TokenManager.user?.let { user ->
+                withContext(Dispatchers.Main) {
+                    listener?.invoke(
+                        user.isAnonymous then RBSClientAuthStatus.SIGNED_IN_ANONYMOUSLY
+                            ?: RBSClientAuthStatus.SIGNED_IN,
+                        user
+                    )
+                }
+            } ?: run {
+                withContext(Dispatchers.Main) {
+                    listener?.invoke(
+                        RBSClientAuthStatus.SIGNED_OUT,
+                        null
+                    )
                 }
             }
         }
@@ -219,5 +212,9 @@ class RBS(
 
     fun logEnable(enable: Boolean) {
         RBSLogger.logEnable(enable)
+    }
+
+    private val exceptionHandler = CoroutineExceptionHandler { _, e ->
+        RBSLogger.log("ExceptionHandler: ${e.message} \nStackTrace: ${e.stackTraceToString()}")
     }
 }
