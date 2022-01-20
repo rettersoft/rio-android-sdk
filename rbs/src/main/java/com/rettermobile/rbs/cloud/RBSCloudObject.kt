@@ -1,6 +1,7 @@
 package com.rettermobile.rbs.cloud
 
 import com.rettermobile.rbs.RBSLogger
+import com.rettermobile.rbs.exception.NullBodyException
 import com.rettermobile.rbs.service.RBSCloudServiceImp
 import com.rettermobile.rbs.util.RBSActions
 import com.rettermobile.rbs.util.TokenManager
@@ -17,10 +18,10 @@ class RBSCloudObject constructor(val params: RBSCloudObjectParams) {
     var role = RBSCloudRoleObjectState(params)
     var public = RBSCloudPublicObjectState(params)
 
-    fun call(
+    inline fun <reified T> call(
         options: RBSCallMethodOptions,
-        onSuccess: ((RBSCloudSuccessResponse) -> Unit)? = null,
-        onError: ((Throwable?) -> Unit)? = null
+        noinline onSuccess: ((RBSCloudSuccessResponse<T>) -> Unit)? = null,
+        noinline onError: ((Throwable?) -> Unit)? = null
     ) {
         GlobalScope.launch {
             async(Dispatchers.IO) {
@@ -29,7 +30,22 @@ class RBSCloudObject constructor(val params: RBSCloudObjectParams) {
                 }
 
                 if (res.isSuccess) {
-                    withContext(Dispatchers.Main) { onSuccess?.invoke(RBSCloudSuccessResponse(res.getOrNull())) }
+                    val resObj = RBSCloudSuccessResponse(
+                        T::class.java,
+                        res.getOrNull()
+                    )
+
+                    try {
+                        val body = resObj.body()
+
+                        if (body == null) {
+                            withContext(Dispatchers.Main) { onError?.invoke(NullBodyException("null body returned")) }
+                        } else {
+                            withContext(Dispatchers.Main) { onSuccess?.invoke(resObj) }
+                        }
+                    } catch (e: Exception) {
+                        withContext(Dispatchers.Main) { onError?.invoke(e) }
+                    }
                 } else {
                     withContext(Dispatchers.Main) { onError?.invoke(res.exceptionOrNull()) }
                 }
@@ -37,7 +53,7 @@ class RBSCloudObject constructor(val params: RBSCloudObjectParams) {
         }
     }
 
-    private suspend fun exec(
+    suspend inline fun exec(
         objectParams: RBSCloudObjectParams,
         action: RBSActions,
         options: RBSCallMethodOptions

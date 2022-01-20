@@ -5,7 +5,6 @@ import android.text.TextUtils
 import android.util.Base64
 import com.auth0.android.jwt.JWT
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 
 /**
  * Created by semihozkoroglu on 15.02.2021.
@@ -28,13 +27,10 @@ fun isForegrounded(): Boolean {
 
 infix fun <T> Boolean.then(param: T): T? = if (this) param else null
 
-inline fun <reified T> parseResponse(json: String?): T? {
+fun <T> parseResponse(clazz: Class<T>, json: String?): T? {
     if (json.isNullOrEmpty()) return null
 
-    return Gson().fromJson(
-        json,
-        T::class.java
-    )
+    return Gson().fromJson(json, clazz)
 }
 
 fun String.jwtUserId(): String? {

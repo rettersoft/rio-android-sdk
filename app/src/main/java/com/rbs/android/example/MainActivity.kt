@@ -77,7 +77,7 @@ class MainActivity : AppCompatActivity() {
             if (cloudObj == null) {
                 createCloudObject()
             } else {
-                cloudObj?.call(
+                cloudObj?.call<TestResponse>(
                     options = RBSCallMethodOptions(method = "getToken"),
                     onSuccess = {
 //                    rbs.authenticateWithCustomToken(auth.customToken)
@@ -118,15 +118,15 @@ class MainActivity : AppCompatActivity() {
             if (cloudObj == null) {
                 createCloudObject()
             } else {
-                cloudObj?.call(
+                cloudObj?.call<TestResponse>(
                     options = RBSCallMethodOptions(
                         method = "sayHello",
                         body = TestRequest()
                     ),
                     onSuccess = {
-                        val headers = it?.headers()
-                        val code = it?.code()
-                        val body = it?.body<TestResponse>()
+                        val headers = it.headers()
+                        val code = it.code()
+                        val body = it.body()
 
                         RBSLogger.log("HEADERS ${Gson().toJson(headers)}")
                         RBSLogger.log("CODE ${Gson().toJson(code)}")

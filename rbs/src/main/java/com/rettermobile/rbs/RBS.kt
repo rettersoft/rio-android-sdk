@@ -20,15 +20,15 @@ import kotlinx.coroutines.*
 class RBS(
     val applicationContext: Context,
     val projectId: String,
-    val region: RBSRegion = RBSRegion.EU_WEST_1,
-    sslPinningEnabled: Boolean = true
+    val config: RBSNetworkConfig
 ) {
 
     init {
         RBSConfig.applicationContext = applicationContext
         RBSConfig.projectId = projectId
-        RBSConfig.region = region
-        RBSConfig.sslPinningEnabled = sslPinningEnabled
+        RBSConfig.region = config.region
+        RBSConfig.sslPinningEnabled = config.sslPinningEnabled
+        RBSConfig.interceptor = config.interceptor
 
         TokenManager.tokenUpdateListener = { sendAuthStatus() }
     }
@@ -167,7 +167,7 @@ class RBS(
         RBSLogger.log("generateUrl public body: $toJson")
         RBSLogger.log("generateUrl public bodyEncodeString: $requestJsonEncodedString")
 
-        return region.getUrl + "user/action/$projectId/$action?data=$requestJsonEncodedString"
+        return config.region.getUrl + "user/action/$projectId/$action?data=$requestJsonEncodedString"
     }
 
     private fun sendAuthStatus() {

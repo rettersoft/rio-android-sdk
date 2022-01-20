@@ -65,6 +65,9 @@ class RBSNetwork {
         val sessionTimeout = 120L
 
         builder.addInterceptor(interceptor)
+
+        RBSConfig.interceptor?.let { builder.addInterceptor(it) }
+
         builder.connectTimeout(sessionTimeout, TimeUnit.SECONDS)
         builder.readTimeout(sessionTimeout, TimeUnit.SECONDS)
         builder.writeTimeout(sessionTimeout, TimeUnit.SECONDS)
