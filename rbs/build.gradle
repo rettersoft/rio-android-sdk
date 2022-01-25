@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
-group = 'com.github.rettersoft'
+group = 'com.github.retter'
 
 android {
     compileSdkVersion 31
