@@ -18,7 +18,6 @@ import com.rettermobile.rbs.cloud.RBSCallMethodOptions
 import com.rettermobile.rbs.cloud.RBSCloudObject
 import com.rettermobile.rbs.cloud.RBSGetCloudObjectOptions
 import com.rettermobile.rbs.util.Logger
-import retrofit2.HttpException
 
 class MainActivity : AppCompatActivity() {
 
@@ -107,11 +106,6 @@ class MainActivity : AppCompatActivity() {
                     Log.e("RBSService", jsonData!!) // Convert to data model with Gson()
                 },
                 error = {
-                    if (it is HttpException) {
-                        if (it.code() == 302) {
-                            // redirect to login
-                        }
-                    }
                     val builder = AlertDialog.Builder(this)
                     builder.setTitle("Status")
                     builder.setMessage(it?.message)
