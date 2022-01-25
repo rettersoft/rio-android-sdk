@@ -1,9 +1,12 @@
-package com.rettermobile.rbs.cloud
+package com.rettermobile.rbs.service.cloud
 
 import com.google.gson.Gson
 import com.rettermobile.rbs.RBSLogger
+import com.rettermobile.rbs.cloud.RBSCloudObject
+import com.rettermobile.rbs.cloud.RBSCloudObjectParams
+import com.rettermobile.rbs.cloud.RBSGetCloudObjectOptions
+import com.rettermobile.rbs.cloud.RBSServiceParam
 import com.rettermobile.rbs.model.RBSError
-import com.rettermobile.rbs.service.RBSCloudServiceImp
 import com.rettermobile.rbs.service.model.RBSInstanceResponse
 import com.rettermobile.rbs.util.RBSActions
 import com.rettermobile.rbs.util.TokenManager
@@ -11,7 +14,7 @@ import com.rettermobile.rbs.util.TokenManager
 /**
  * Created by semihozkoroglu on 10.12.2021.
  */
-object RBSCloudManager {
+object RBSCloudRequestManager {
 
     private val cloudObjects = arrayListOf<RBSCloudObject>()
 

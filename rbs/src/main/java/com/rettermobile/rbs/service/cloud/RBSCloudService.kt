@@ -1,5 +1,6 @@
-package com.rettermobile.rbs.service
+package com.rettermobile.rbs.service.cloud
 
+import com.rettermobile.rbs.service.model.RBSTokenResponse
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Response

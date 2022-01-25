@@ -1,9 +1,10 @@
 package com.rettermobile.rbs.service
 
 import com.google.gson.GsonBuilder
-import com.rettermobile.rbs.BuildConfig
 import com.rettermobile.rbs.RBSConfig
 import com.rettermobile.rbs.RBSLogger
+import com.rettermobile.rbs.service.auth.RBSAuthService
+import com.rettermobile.rbs.service.cloud.RBSCloudService
 import okhttp3.CacheControl
 import okhttp3.CertificatePinner
 import okhttp3.OkHttpClient
@@ -17,7 +18,7 @@ import java.util.concurrent.TimeUnit
  */
 class RBSNetwork {
 
-    private var service: RBSService? = null
+    private var authService: RBSAuthService? = null
     private var cloudService: RBSCloudService? = null
 
     private fun provideCertificate(): CertificatePinner {
@@ -45,7 +46,7 @@ class RBSNetwork {
             level = HttpLoggingInterceptor.Level.BODY
         }
 
-        if (RBSConfig.sslPinningEnabled) {
+        if (RBSConfig.config.sslPinningEnabled) {
             builder.certificatePinner(provideCertificate())
         }
 
@@ -66,7 +67,7 @@ class RBSNetwork {
 
         builder.addInterceptor(interceptor)
 
-        RBSConfig.interceptor?.let { builder.addInterceptor(it) }
+        RBSConfig.config.interceptor?.let { builder.addInterceptor(it) }
 
         builder.connectTimeout(sessionTimeout, TimeUnit.SECONDS)
         builder.readTimeout(sessionTimeout, TimeUnit.SECONDS)
@@ -77,24 +78,24 @@ class RBSNetwork {
         return builder.build()
     }
 
-    fun getConnection(serviceUrl: String): RBSService {
-        if (service == null) {
+    fun getAuthConnection(): RBSAuthService {
+        if (authService == null) {
             val retrofit = Retrofit.Builder()
-                .baseUrl(serviceUrl)
+                .baseUrl("https://root.${RBSConfig.config.region.url}")
                 .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
                 .client(provideOkHttp())
                 .build()
 
-            service = retrofit.create(RBSService::class.java)
+            authService = retrofit.create(RBSAuthService::class.java)
         }
 
-        return service!!
+        return authService!!
     }
 
     fun getCloudConnection(): RBSCloudService {
         if (cloudService == null) {
             val retrofit = Retrofit.Builder()
-                .baseUrl("https://${RBSConfig.projectId}.${RBSConfig.region.cloudApiUrl}")
+                .baseUrl("https://${RBSConfig.projectId}.${RBSConfig.config.region.url}")
                 .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
                 .client(provideOkHttp())
                 .build()

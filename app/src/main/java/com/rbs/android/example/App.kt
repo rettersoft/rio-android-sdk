@@ -3,7 +3,7 @@ package com.rbs.android.example
 import android.app.Application
 import com.readystatesoftware.chuck.ChuckInterceptor
 import com.rettermobile.rbs.RBS
-import com.rettermobile.rbs.RBSNetworkConfig
+import com.rettermobile.rbs.service.RBSNetworkConfig
 import com.rettermobile.rbs.util.RBSRegion
 
 /**
@@ -18,11 +18,10 @@ class App : Application() {
 
         rbs = RBS(
             applicationContext = applicationContext,
-            projectId = "69ec1ef0039b4332b3e102f082a98ec2",
+            projectId = "11c5e84qtq",
             config = RBSNetworkConfig.build {
-                region = RBSRegion.EU_WEST_1_BETA
+                region = RBSRegion.EU_WEST_1
                 sslPinningEnabled = true
-                interceptor = ChuckInterceptor(applicationContext)
             }
         )
     }

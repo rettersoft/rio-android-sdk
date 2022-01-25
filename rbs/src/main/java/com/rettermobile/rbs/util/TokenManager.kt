@@ -4,14 +4,13 @@ import android.text.TextUtils
 import com.auth0.android.jwt.JWT
 import com.google.gson.Gson
 import com.rettermobile.rbs.Preferences
-import com.rettermobile.rbs.RBSConfig
 import com.rettermobile.rbs.RBSFirebaseManager
 import com.rettermobile.rbs.RBSLogger
-import com.rettermobile.rbs.cloud.RBSCloudManager
-import com.rettermobile.rbs.exception.TokenFailException
 import com.rettermobile.rbs.model.RBSUser
-import com.rettermobile.rbs.service.RBSServiceImp
-import com.rettermobile.rbs.service.model.RBSTokenResponse
+import com.rettermobile.rbs.service.auth.RBSAuthServiceImp
+import com.rettermobile.rbs.service.cloud.RBSCloudRequestManager
+import com.rettermobile.rbs.service.model.RBSTokenModel
+import com.rettermobile.rbs.service.model.exception.TokenFailException
 import retrofit2.HttpException
 import java.util.concurrent.Semaphore
 
@@ -52,7 +51,7 @@ object TokenManager {
     private val refreshToken: String?
         get() = tokenInfo?.refreshToken
 
-    private var tokenInfo: RBSTokenResponse? = null
+    private var tokenInfo: RBSTokenModel? = null
         set(value) {
             val isStatusChanged = value?.accessToken?.jwtUserId() != userId
 
@@ -60,14 +59,19 @@ object TokenManager {
 
             if (value != null) {
                 // Save to device
+                RBSLogger.log("TokenManager.setValue save device")
                 Preferences.setString(Preferences.Keys.TOKEN_INFO, gson.toJson(value))
             } else {
                 // Logout
+                RBSLogger.log("TokenManager.setValue LOGOUT")
                 Preferences.deleteKey(Preferences.Keys.TOKEN_INFO)
             }
 
             if (isStatusChanged) {
+                RBSLogger.log("TokenManager.setValue isStatusChanged: true user:${Gson().toJson(user)}")
                 tokenUpdateListener?.invoke()
+            } else {
+                RBSLogger.log("TokenManager.setValue isStatusChanged: false")
             }
         }
 
@@ -75,7 +79,7 @@ object TokenManager {
         val infoJson = Preferences.getString(Preferences.Keys.TOKEN_INFO)
 
         if (!TextUtils.isEmpty(infoJson)) {
-            val token = gson.fromJson(infoJson, RBSTokenResponse::class.java)
+            val token = gson.fromJson(infoJson, RBSTokenModel::class.java)
 
             tokenInfo = if (isRefreshTokenExpired(token)) {
                 // signOut
@@ -109,7 +113,7 @@ object TokenManager {
         return isExpired
     }
 
-    private fun isRefreshTokenExpired(token: RBSTokenResponse): Boolean {
+    private fun isRefreshTokenExpired(token: RBSTokenModel): Boolean {
         val jwtAccess = JWT(token.refreshToken)
         val refreshTokenExpiresAt = jwtAccess.getClaim("exp").asLong()!!
 
@@ -127,14 +131,14 @@ object TokenManager {
     }
 
     suspend fun authenticate(customToken: String) {
-        val res = RBSServiceImp.authWithCustomToken(customToken)
+        val res = RBSAuthServiceImp.authWithCustomToken(customToken)
 
         return if (res.isSuccess) {
             RBSLogger.log("authWithCustomToken success")
 
             tokenInfo = res.getOrNull()
 
-            RBSCloudManager.clear()
+            RBSCloudRequestManager.clear()
             RBSFirebaseManager.authenticate(tokenInfo?.firebase)
         } else {
             RBSLogger.log("authWithCustomToken fail ${res.exceptionOrNull()?.stackTraceToString()}")
@@ -159,12 +163,12 @@ object TokenManager {
         RBSLogger.log("TokenManager.checkToken started")
 
         if (TextUtils.isEmpty(accessToken)) {
-            val res = RBSServiceImp.getAnonymousToken(RBSConfig.projectId)
+            val res = RBSAuthServiceImp.getAnonymousToken()
 
             if (res.isSuccess) {
                 RBSLogger.log("TokenManager.checkToken getAnonymousToken success")
 
-                tokenInfo = res.getOrNull()
+                tokenInfo = res.getOrNull()?.response
 
                 RBSFirebaseManager.authenticate(tokenInfo?.firebase)
             } else {
@@ -184,7 +188,7 @@ object TokenManager {
             }
         } else {
             if (isAccessTokenExpired()) {
-                val res = RBSServiceImp.refreshToken(refreshToken!!)
+                val res = RBSAuthServiceImp.refreshToken(refreshToken!!)
 
                 if (res.isSuccess) {
                     RBSLogger.log("TokenManager.checkToken refreshToken success")

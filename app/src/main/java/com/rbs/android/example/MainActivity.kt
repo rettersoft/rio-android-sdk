@@ -29,7 +29,6 @@ class MainActivity : AppCompatActivity() {
     lateinit var btnGetCloudCreate: Button
     lateinit var btnGetCloudCall: Button
     lateinit var btnSignIn: Button
-    lateinit var btnGenerate: Button
     lateinit var btnSignOut: Button
     lateinit var loading: ProgressBar
 
@@ -60,7 +59,6 @@ class MainActivity : AppCompatActivity() {
         btnClearLog = findViewById(R.id.btnClearLog)
         signInAnonymously = findViewById(R.id.signInAnonymously)
         btnSignIn = findViewById(R.id.btnSignIn)
-        btnGenerate = findViewById(R.id.btnGenerate)
         btnSignOut = findViewById(R.id.btnSignOut)
         loading = findViewById(R.id.loading)
         loading.isVisible = false
@@ -92,40 +90,13 @@ class MainActivity : AppCompatActivity() {
                 createCloudObject()
             } else {
                 cloudObj?.call<TestResponse>(
-                    options = RBSCallMethodOptions(method = "getToken"),
+                    options = RBSCallMethodOptions(method = "test"),
                     onSuccess = {
-//                    rbs.authenticateWithCustomToken(auth.customToken)
-//                    RBSLogger.log("AUTHENTICATE YES")
+                        RBSLogger.log("CustomToken: ${it.body?.customToken}")
+                        rbs.authenticateWithCustomToken(it.body?.customToken!!)
+                        RBSLogger.log("AUTHENTICATE YES")
                     })
             }
-        }
-
-        btnGenerate.setOnClickListener {
-            rbs.generateGetActionUrl(
-                action = "rbs.address.get.COUNTRIES",
-                data = mapOf(Pair("cartId", "1de255c877")),
-                success = { jsonData ->
-                    Log.e("RBSService", jsonData!!) // Convert to data model with Gson()
-                },
-                error = {
-                    if (it is HttpException) {
-                        if (it.code() == 302) {
-                            // redirect to login
-                        }
-                    }
-                    val builder = AlertDialog.Builder(this)
-                    builder.setTitle("Status")
-                    builder.setMessage(it?.message)
-                    builder.setPositiveButton(android.R.string.yes) { dialog, which -> }
-                    builder.show()
-                })
-
-            val jsonData = rbs.generatePublicGetActionUrl(
-                action = "rbs.address.get.COUNTRIES",
-                data = mapOf(Pair("cartId", "1de255c877"))
-            )
-
-            Log.e("RBSService", jsonData) // Convert to data model with Gson()
         }
 
         btnGetCloudCall.setOnClickListener {
@@ -138,9 +109,9 @@ class MainActivity : AppCompatActivity() {
                         body = TestRequest()
                     ),
                     onSuccess = {
-                        val headers = it.headers()
-                        val code = it.code()
-                        val body = it.body()
+                        val headers = it.headers
+                        val code = it.code
+                        val body = it.body
 
                         RBSLogger.log("HEADERS ${Gson().toJson(headers)}")
                         RBSLogger.log("CODE ${Gson().toJson(code)}")
@@ -159,8 +130,7 @@ class MainActivity : AppCompatActivity() {
 
         rbs.getCloudObject(
             options = RBSGetCloudObjectOptions(
-                classId = "TestClass",
-                instanceId = "01FQXSX0S23GQA59ZS45H66YGC"
+                classId = "Semih"
             ),
             onSuccess = { cloudObj ->
                 this@MainActivity.cloudObj = cloudObj

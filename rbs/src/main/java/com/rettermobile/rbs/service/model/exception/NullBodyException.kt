@@ -1,4 +1,4 @@
-package com.rettermobile.rbs.exception
+package com.rettermobile.rbs.service.model.exception
 
 /**
  * Created by semihozkoroglu on 10.12.2021.

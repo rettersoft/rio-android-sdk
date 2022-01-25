@@ -1,9 +1,10 @@
-package com.rettermobile.rbs.service
+package com.rettermobile.rbs.service.cloud
 
 import com.google.gson.Gson
 import com.rettermobile.rbs.RBSConfig
 import com.rettermobile.rbs.RBSLogger
 import com.rettermobile.rbs.cloud.RBSServiceParam
+import com.rettermobile.rbs.service.RBSNetwork
 import com.rettermobile.rbs.util.RBSActions
 import com.rettermobile.rbs.util.RBSHttpMethod
 import okhttp3.MediaType.Companion.toMediaType
@@ -17,7 +18,7 @@ import retrofit2.Response
  */
 object RBSCloudServiceImp {
 
-    private var cloudApi: RBSCloudService = RBSNetwork().getCloudConnection()
+    private var api: RBSCloudService = RBSNetwork().getCloudConnection()
 
     suspend fun exec(
         accessToken: String? = null,
@@ -54,10 +55,10 @@ object RBSCloudServiceImp {
             }
 
             when (params.httpMethod) {
-                RBSHttpMethod.GET -> cloudApi.getAction(url = url, token = accessToken, headers = params.headers, queries = params.queries)
-                RBSHttpMethod.POST -> cloudApi.postAction(url = url, token = accessToken, headers = params.headers, queries = params.queries, payload = body)
-                RBSHttpMethod.DELETE -> cloudApi.deleteAction(url = url, token = accessToken, headers = params.headers, queries = params.queries, payload = body)
-                RBSHttpMethod.PUT -> cloudApi.putAction(url = url, token = accessToken, headers = params.headers, queries = params.queries, payload = body)
+                RBSHttpMethod.GET -> api.getAction(url = url, token = accessToken, headers = params.headers, queries = params.queries)
+                RBSHttpMethod.POST -> api.postAction(url = url, token = accessToken, headers = params.headers, queries = params.queries, payload = body)
+                RBSHttpMethod.DELETE -> api.deleteAction(url = url, token = accessToken, headers = params.headers, queries = params.queries, payload = body)
+                RBSHttpMethod.PUT -> api.putAction(url = url, token = accessToken, headers = params.headers, queries = params.queries, payload = body)
             }
         }
     }

@@ -6,6 +6,10 @@ import java.io.Serializable
  * Created by semihozkoroglu on 22.11.2020.
  */
 class RBSTokenResponse : RBSResponse() {
+    val response: RBSTokenModel? = null
+}
+
+class RBSTokenModel : RBSResponse() {
     val accessToken: String = ""
     val refreshToken: String = ""
     val firebase: RBSFirebase? = null

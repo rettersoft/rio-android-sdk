@@ -1,11 +1,13 @@
 package com.rettermobile.rbs.cloud
 
 import com.rettermobile.rbs.RBSLogger
-import com.rettermobile.rbs.exception.NullBodyException
-import com.rettermobile.rbs.service.RBSCloudServiceImp
+import com.rettermobile.rbs.service.model.exception.NullBodyException
+import com.rettermobile.rbs.service.cloud.RBSCloudServiceImp
 import com.rettermobile.rbs.util.RBSActions
 import com.rettermobile.rbs.util.TokenManager
+import com.rettermobile.rbs.util.parseResponse
 import kotlinx.coroutines.*
+import okhttp3.Headers
 import okhttp3.ResponseBody
 import retrofit2.Response
 
@@ -30,18 +32,19 @@ class RBSCloudObject constructor(val params: RBSCloudObjectParams) {
                 }
 
                 if (res.isSuccess) {
-                    val resObj = RBSCloudSuccessResponse(
-                        T::class.java,
-                        res.getOrNull()
-                    )
-
                     try {
-                        val body = resObj.body()
+                        val response = res.getOrNull()
 
-                        if (body == null) {
+                        if (response == null) {
                             withContext(Dispatchers.Main) { onError?.invoke(NullBodyException("null body returned")) }
                         } else {
-                            withContext(Dispatchers.Main) { onSuccess?.invoke(resObj) }
+                            withContext(Dispatchers.Main) {
+                                onSuccess?.invoke(
+                                    RBSCloudSuccessResponse(
+                                        response.headers(), response.code(), parseResponse(T::class.java, response.body()?.string())
+                                    )
+                                )
+                            }
                         }
                     } catch (e: Exception) {
                         withContext(Dispatchers.Main) { onError?.invoke(e) }

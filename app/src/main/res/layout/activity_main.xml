@@ -44,12 +44,6 @@
                 android:text="Sign out" />
 
             <Button
-                android:id="@+id/btnGenerate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Generate Url" />
-
-            <Button
                 android:id="@+id/btnGetCloudCreate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

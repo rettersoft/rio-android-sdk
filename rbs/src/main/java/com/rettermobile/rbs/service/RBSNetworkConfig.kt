@@ -1,4 +1,4 @@
-package com.rettermobile.rbs
+package com.rettermobile.rbs.service
 
 import com.rettermobile.rbs.util.RBSRegion
 import okhttp3.Interceptor
@@ -11,7 +11,6 @@ class RBSNetworkConfig(
     var sslPinningEnabled: Boolean = true,
     var interceptor: Interceptor? = null
 ) {
-
     private constructor(builder: Builder) : this(
         builder.region,
         builder.sslPinningEnabled,
