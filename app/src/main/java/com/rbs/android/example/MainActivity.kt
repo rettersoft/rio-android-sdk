@@ -1,13 +1,10 @@
 package com.rbs.android.example
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.ProgressBar
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
-import androidx.core.widget.ContentLoadingProgressBar
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
 import com.rbs.android.example.network.TestRequest
@@ -18,7 +15,6 @@ import com.rettermobile.rbs.cloud.RBSCallMethodOptions
 import com.rettermobile.rbs.cloud.RBSCloudObject
 import com.rettermobile.rbs.cloud.RBSGetCloudObjectOptions
 import com.rettermobile.rbs.util.Logger
-import retrofit2.HttpException
 
 
 class MainActivity : AppCompatActivity() {

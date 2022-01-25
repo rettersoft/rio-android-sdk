@@ -1,13 +1,7 @@
 package com.rettermobile.rbs.service.auth
 
-import com.google.gson.Gson
-import com.rettermobile.rbs.RBSConfig
-import com.rettermobile.rbs.RBSFirebaseManager
 import com.rettermobile.rbs.RBSLogger
-import com.rettermobile.rbs.service.model.exception.TokenFailException
-import com.rettermobile.rbs.util.RBSActions
 import com.rettermobile.rbs.util.TokenManager
-import retrofit2.HttpException
 
 /**
  * Created by semihozkoroglu on 10.12.2021.
