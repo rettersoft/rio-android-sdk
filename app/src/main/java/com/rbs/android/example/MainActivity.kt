@@ -20,7 +20,6 @@ import com.rettermobile.rbs.cloud.RBSGetCloudObjectOptions
 import com.rettermobile.rbs.util.Logger
 import retrofit2.HttpException
 
-
 class MainActivity : AppCompatActivity() {
 
     lateinit var rvLogs: RecyclerView
