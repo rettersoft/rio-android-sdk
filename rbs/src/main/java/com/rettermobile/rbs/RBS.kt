@@ -202,7 +202,6 @@ class RBS(
 
     private fun clearSession() {
         TokenManager.clear()
-        RBSFirebaseManager.signOut()
         RBSCloudManager.clear()
     }
 

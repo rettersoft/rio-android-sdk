@@ -84,8 +84,5 @@ class RBSCloudObject constructor(val params: RBSCloudObjectParams) {
     }
 
     fun unsubscribeStates() {
-        user.removeListener()
-        role.removeListener()
-        public.removeListener()
     }
 }

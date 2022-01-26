@@ -5,7 +5,6 @@ import com.auth0.android.jwt.JWT
 import com.google.gson.Gson
 import com.rettermobile.rbs.Preferences
 import com.rettermobile.rbs.RBSConfig
-import com.rettermobile.rbs.RBSFirebaseManager
 import com.rettermobile.rbs.RBSLogger
 import com.rettermobile.rbs.cloud.RBSCloudManager
 import com.rettermobile.rbs.exception.TokenFailException
@@ -135,7 +134,6 @@ object TokenManager {
             tokenInfo = res.getOrNull()
 
             RBSCloudManager.clear()
-            RBSFirebaseManager.authenticate(tokenInfo?.firebase)
         } else {
             RBSLogger.log("authWithCustomToken fail ${res.exceptionOrNull()?.stackTraceToString()}")
 
@@ -165,8 +163,6 @@ object TokenManager {
                 RBSLogger.log("TokenManager.checkToken getAnonymousToken success")
 
                 tokenInfo = res.getOrNull()
-
-                RBSFirebaseManager.authenticate(tokenInfo?.firebase)
             } else {
                 RBSLogger.log("TokenManager.checkToken getAnonymousToken fail")
 
@@ -208,10 +204,6 @@ object TokenManager {
                     } ?: run { throw TokenFailException("RefreshToken fail") }
                 }
             }
-        }
-
-        if (RBSFirebaseManager.isNotAuthenticated()) {
-            RBSFirebaseManager.authenticate(tokenInfo?.firebase)
         }
 
         RBSLogger.log("TokenManager.checkToken ended")
