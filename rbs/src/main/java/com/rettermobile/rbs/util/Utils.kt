@@ -33,6 +33,12 @@ fun <T> parseResponse(clazz: Class<T>, json: String?): T? {
     return Gson().fromJson(json, clazz)
 }
 
+fun String.jwtIat(): Long? {
+    val jwtAccess = JWT(this)
+
+    return jwtAccess.getClaim("iat").asLong()
+}
+
 fun String.jwtUserId(): String? {
     val jwtAccess = JWT(this)
 

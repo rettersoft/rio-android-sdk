@@ -7,11 +7,11 @@ object Preferences {
 
     object Keys {
         const val TOKEN_INFO = "token_info"
+        const val TOKEN_INFO_DELTA = "token_info_delta"
     }
 
-    // todo: mode private olacak
-    var pref: SharedPreferences =
-        PreferenceManager.getDefaultSharedPreferences(RBSConfig.applicationContext)
+    // default mode private
+    var pref: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(RBSConfig.applicationContext)
 
     fun getString(key: String, defValue: String): String? {
         return pref.getString(key, defValue)

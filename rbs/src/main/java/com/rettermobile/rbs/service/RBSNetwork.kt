@@ -55,6 +55,7 @@ class RBSNetwork {
             val newRequestBuilder = originalRequest.newBuilder()
 
             newRequestBuilder
+                .header("User-Agent", "rio-android-sdk-1.1.9.5")
                 .addHeader("Content-Type", "application/json;charset=UTF-8")
                 .addHeader("x-rbs-sdk-client", "android")
                 .cacheControl(CacheControl.FORCE_NETWORK)

@@ -32,6 +32,11 @@ object TokenManager {
             return tokenInfo?.accessToken
         }
 
+    private val deltaTime: Long
+        get() {
+            return Preferences.getLong(Preferences.Keys.TOKEN_INFO_DELTA, 0)
+        }
+
     val userId: String?
         get() = tokenInfo?.accessToken?.jwtUserId()
 
@@ -59,10 +64,15 @@ object TokenManager {
 
             if (value != null) {
                 // Save to device
+                RBSLogger.log("TokenManager.setValue save device")
+
                 Preferences.setString(Preferences.Keys.TOKEN_INFO, gson.toJson(value))
             } else {
                 // Logout
+                RBSLogger.log("TokenManager.setValue LOGOUT")
+
                 Preferences.deleteKey(Preferences.Keys.TOKEN_INFO)
+                Preferences.deleteKey(Preferences.Keys.TOKEN_INFO_DELTA)
             }
 
             if (isStatusChanged) {
@@ -87,6 +97,14 @@ object TokenManager {
         }
     }
 
+    fun calculateDelta() {
+        accessToken?.jwtIat()?.let { iat ->
+            val diff = (System.currentTimeMillis() / 1000) - iat
+            RBSLogger.log("TokenManager.tokenInfo set time difference $diff")
+            Preferences.setLong(Preferences.Keys.TOKEN_INFO_DELTA, diff)
+        }
+    }
+
     private fun isAccessTokenExpired(): Boolean {
         if (isRefreshTokenExpired(tokenInfo!!)) {
             return true
@@ -95,7 +113,7 @@ object TokenManager {
         val jwtAccess = JWT(tokenInfo!!.accessToken)
         val accessTokenExpiresAt = jwtAccess.getClaim("exp").asLong()!!
 
-        val now = (System.currentTimeMillis() / 1000) + 30
+        val now = (System.currentTimeMillis() / 1000) - deltaTime + 30
 
         val isExpired =
             now >= accessTokenExpiresAt  // now + 280 -> only wait 20 seconds for debugging
@@ -104,6 +122,7 @@ object TokenManager {
         RBSLogger.log("TokenManager.isAccessTokenExpired accessTokenExpiresAt: $accessTokenExpiresAt")
         RBSLogger.log("TokenManager.isAccessTokenExpired now: $now")
         RBSLogger.log("TokenManager.isAccessTokenExpired isExpired: $isExpired")
+        RBSLogger.log("TokenManager.isAccessTokenExpired diff: $deltaTime")
 
         return isExpired
     }
@@ -112,15 +131,15 @@ object TokenManager {
         val jwtAccess = JWT(token.refreshToken)
         val refreshTokenExpiresAt = jwtAccess.getClaim("exp").asLong()!!
 
-        val now = (System.currentTimeMillis() / 1000) + 24 * 60 * 60
+        val now = (System.currentTimeMillis() / 1000) - deltaTime + 24 * 60 * 60
 
-        val isExpired =
-            now >= refreshTokenExpiresAt  // now + 280 -> only wait 20 seconds for debugging
+        val isExpired = now >= refreshTokenExpiresAt  // now + 280 -> only wait 20 seconds for debugging
 
         RBSLogger.log("TokenManager.isRefreshTokenExpired refreshToken: ${token.refreshToken}")
         RBSLogger.log("TokenManager.isRefreshTokenExpired refreshTokenExpiresAt: $refreshTokenExpiresAt")
         RBSLogger.log("TokenManager.isRefreshTokenExpired now: $now")
         RBSLogger.log("TokenManager.isRefreshTokenExpired isExpired: $isExpired")
+        RBSLogger.log("TokenManager.isRefreshTokenExpired diff: $deltaTime")
 
         return isExpired
     }
@@ -132,6 +151,7 @@ object TokenManager {
             RBSLogger.log("authWithCustomToken success")
 
             tokenInfo = res.getOrNull()
+            calculateDelta()
 
             RBSCloudManager.clear()
         } else {
@@ -163,6 +183,7 @@ object TokenManager {
                 RBSLogger.log("TokenManager.checkToken getAnonymousToken success")
 
                 tokenInfo = res.getOrNull()
+                calculateDelta()
             } else {
                 RBSLogger.log("TokenManager.checkToken getAnonymousToken fail")
 
@@ -186,6 +207,7 @@ object TokenManager {
                     RBSLogger.log("TokenManager.checkToken refreshToken success")
 
                     tokenInfo = res.getOrNull()
+                    calculateDelta()
                 } else {
                     RBSLogger.log(" TokenManager.checkToken refreshToken fail signOut called")
 
