@@ -44,49 +44,11 @@
                 android:text="Sign out" />
 
             <Button
-                android:id="@+id/btnGetCloudCreate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Create Cloud" />
-
-            <Button
                 android:id="@+id/btnGetCloudCall"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Get Cloud Call" />
         </LinearLayout>
-
-
-        <RelativeLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:orientation="horizontal">
-
-            <androidx.appcompat.widget.AppCompatTextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:text="LOG"
-                android:textColor="#000"
-                android:textSize="16sp" />
-
-            <Button
-                android:id="@+id/btnClearLog"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:text="Clear" />
-        </RelativeLayout>
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvLogs"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:nestedScrollingEnabled="false"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
     </LinearLayout>
 
 </androidx.core.widget.NestedScrollView>

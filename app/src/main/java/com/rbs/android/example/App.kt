@@ -2,26 +2,28 @@ package com.rbs.android.example
 
 import android.app.Application
 import com.readystatesoftware.chuck.ChuckInterceptor
-import com.rettermobile.rbs.RBS
-import com.rettermobile.rbs.service.RBSNetworkConfig
-import com.rettermobile.rbs.util.RBSRegion
+import com.rettermobile.rio.Rio
+import com.rettermobile.rio.service.RioNetworkConfig
+import com.rettermobile.rio.util.RioRegion
 
 /**
  * Created by semihozkoroglu on 7.08.2021.
  */
 class App : Application() {
 
-    lateinit var rbs: RBS
+    lateinit var rio: Rio
 
     override fun onCreate() {
         super.onCreate()
 
-        rbs = RBS(
+        rio = Rio(
             applicationContext = applicationContext,
-            projectId = "11c5e84qtq",
-            config = RBSNetworkConfig.build {
-                region = RBSRegion.EU_WEST_1
+//            projectId = "69ec1ef0039b4332b3e102f082a98ec2",
+            projectId = "54cbs8vc5",
+            config = RioNetworkConfig.build {
+                region = RioRegion.EU_WEST_1_BETA
                 sslPinningEnabled = true
+                interceptor = ChuckInterceptor(applicationContext)
             }
         )
     }

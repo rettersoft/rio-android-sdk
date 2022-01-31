@@ -1,3 +1,3 @@
 rootProject.name='RetterSdk'
 include ':app'
-include ':rbs'
+include ':rio'
