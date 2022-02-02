@@ -97,7 +97,7 @@ object TokenManager {
         }
     }
 
-    fun calculateDelta() {
+    private fun calculateDelta() {
         accessToken?.jwtIat()?.let { iat ->
             val diff = (System.currentTimeMillis() / 1000) - iat
             RBSLogger.log("TokenManager.tokenInfo set time difference $diff")
