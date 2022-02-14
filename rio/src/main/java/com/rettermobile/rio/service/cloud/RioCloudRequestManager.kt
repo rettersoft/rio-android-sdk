@@ -2,11 +2,7 @@ package com.rettermobile.rio.service.cloud
 
 import com.google.gson.Gson
 import com.rettermobile.rio.RioLogger
-import com.rettermobile.rio.cloud.RioCloudObject
-import com.rettermobile.rio.cloud.RioCloudObjectParams
-import com.rettermobile.rio.cloud.RioGetCloudObjectOptions
-import com.rettermobile.rio.cloud.RioServiceParam
-import com.rettermobile.rio.model.RioError
+import com.rettermobile.rio.cloud.*
 import com.rettermobile.rio.service.model.RioInstanceResponse
 import com.rettermobile.rio.util.RioActions
 import com.rettermobile.rio.util.TokenManager
@@ -70,19 +66,15 @@ object RioCloudRequestManager {
                                     }
                                 }
                         } ?: it.errorBody()?.string()?.let { error ->
-                            val errorRes = Gson().fromJson(error, RioError::class.java)
+                            val exception = RioErrorResponse(it.headers(), it.code(), error)
 
                             RioLogger.log(
                                 "RBSCloudManager.exec fail ${
-                                    errorRes.error ?: res.exceptionOrNull()?.stackTraceToString()
+                                    exception.message ?: res.exceptionOrNull()?.stackTraceToString()
                                 }"
                             )
 
-                            throw res.exceptionOrNull() ?: IllegalAccessError(
-                                "RBSCloudManager.exec fail ${
-                                    errorRes.error ?: res.exceptionOrNull()?.stackTraceToString()
-                                }"
-                            )
+                            throw exception
                         } ?: kotlin.run {
                             RioLogger.log(
                                 "RBSCloudManager.exec fail ${

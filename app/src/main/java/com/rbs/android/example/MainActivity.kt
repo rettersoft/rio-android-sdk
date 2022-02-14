@@ -1,5 +1,7 @@
 package com.rbs.android.example
 
+import GetHomepageInput
+import RioClasses
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ProgressBar
@@ -8,6 +10,8 @@ import androidx.core.view.isVisible
 import com.google.gson.Gson
 import com.rettermobile.rio.Rio
 import com.rettermobile.rio.RioLogger
+import com.rettermobile.rio.cloud.RioErrorResponse
+import java.net.SocketTimeoutException
 
 class MainActivity : AppCompatActivity() {
 
@@ -18,6 +22,12 @@ class MainActivity : AppCompatActivity() {
     lateinit var loading: ProgressBar
 
     private lateinit var rio: Rio
+
+    private val errorListener: (Throwable?) -> Unit = {
+        if (it is RioErrorResponse) {
+            it.body<BaseResponse>()?.code
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,10 +58,8 @@ class MainActivity : AppCompatActivity() {
             User.getInstance(rio, onSuccess = {
                 it.updateEmail(UserUpdateEmailRequest(), onSuccess = {
 
-                }, onError = {
-
-                })
-            })
+                }, onError = errorListener)
+            }, onError = errorListener)
         }
 
         btnSignOut.setOnClickListener { rio.signOut() }

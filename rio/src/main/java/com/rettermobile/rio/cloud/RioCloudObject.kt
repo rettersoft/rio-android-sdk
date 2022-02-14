@@ -1,14 +1,11 @@
 package com.rettermobile.rio.cloud
 
-import com.rettermobile.rio.RioLogger
 import com.rettermobile.rio.service.model.exception.NullBodyException
 import com.rettermobile.rio.service.cloud.RioCloudServiceImp
 import com.rettermobile.rio.util.RioActions
 import com.rettermobile.rio.util.TokenManager
 import com.rettermobile.rio.util.parseResponse
 import kotlinx.coroutines.*
-import okhttp3.ResponseBody
-import retrofit2.Response
 
 /**
  * Created by semihozkoroglu on 13.12.2021.
@@ -27,22 +24,28 @@ class RioCloudObject constructor(val params: RioCloudObjectParams) {
         GlobalScope.launch {
             async(Dispatchers.IO) {
                 val res = runCatching {
-                    exec(params, RioActions.CALL, options)
+                    TokenManager.checkToken()
+
+                    val accessToken = TokenManager.accessToken
+
+                    RioCloudServiceImp.exec(
+                        accessToken,
+                        RioActions.CALL,
+                        RioServiceParam(params, options)
+                    )
                 }
 
                 if (res.isSuccess) {
                     try {
-                        val response = res.getOrNull()
+                        val response = res.getOrNull()?.getOrNull()
 
                         if (response == null) {
                             withContext(Dispatchers.Main) { onError?.invoke(NullBodyException("null body returned")) }
                         } else {
-                            withContext(Dispatchers.Main) {
-                                onSuccess?.invoke(
-                                    RioCloudSuccessResponse(
-                                        response.headers(), response.code(), parseResponse(T::class.java, response.body()?.string())
-                                    )
-                                )
+                            if (response.isSuccessful) {
+                                withContext(Dispatchers.Main) { onSuccess?.invoke(RioCloudSuccessResponse(response.headers(), response.code(), parseResponse(T::class.java, response.body()?.string()))) }
+                            } else {
+                                withContext(Dispatchers.Main) { onError?.invoke(RioErrorResponse(response.headers(), response.code(), response.errorBody()?.string())) }
                             }
                         }
                     } catch (e: Exception) {
@@ -52,36 +55,6 @@ class RioCloudObject constructor(val params: RioCloudObjectParams) {
                     withContext(Dispatchers.Main) { onError?.invoke(res.exceptionOrNull()) }
                 }
             }
-        }
-    }
-
-    suspend inline fun exec(
-        objectParams: RioCloudObjectParams,
-        action: RioActions,
-        options: RioCallMethodOptions
-    ): Response<ResponseBody> {
-        TokenManager.checkToken()
-
-        val accessToken = TokenManager.accessToken
-
-        val res = RioCloudServiceImp.exec(
-            accessToken,
-            action,
-            RioServiceParam(objectParams, options)
-        )
-
-        return if (res.isSuccess) {
-            RioLogger.log("RBSCloudManager.exec success")
-
-            res.getOrNull()!!
-        } else {
-            RioLogger.log(
-                "RBSCloudManager.exec fail ${
-                    res.exceptionOrNull()?.stackTraceToString()
-                }"
-            )
-
-            throw res.exceptionOrNull() ?: IllegalAccessError("RBSCloudManager.exec fail")
         }
     }
 
