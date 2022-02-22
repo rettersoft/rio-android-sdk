@@ -35,9 +35,9 @@ class RioCloudObject constructor(val params: RioCloudObjectParams) {
                     )
                 }
 
-                if (!res.isFailure) {
+                if (res.isSuccess) {
                     try {
-                        val response = res.getOrNull()?.getOrNull()
+                        val response = res.getOrNull()
 
                         if (response == null) {
                             withContext(Dispatchers.Main) { onError?.invoke(NullBodyException("null body returned")) }

@@ -25,11 +25,11 @@ object RioAuthRequestManager {
     }
 
     suspend fun signOut(): String {
-        val res = RioAuthServiceImp.signOut()
+        val res = runCatching { RioAuthServiceImp.signOut() }
 
         RioLogger.log("RBSAuthRequestManager.signOut OK")
 
-        return if (!res.isFailure) {
+        return if (res.isSuccess) {
             "OK"
         } else {
             "OK"

@@ -39,13 +39,15 @@ object RioCloudRequestManager {
 
                 RioLogger.log("RBSCloudManager.exec create cloud object service call executed")
 
-                val res = RioCloudServiceImp.exec(
-                    accessToken,
-                    action,
-                    RioServiceParam(options)
-                )
+                val res = runCatching {
+                    RioCloudServiceImp.exec(
+                        accessToken,
+                        action,
+                        RioServiceParam(options)
+                    )
+                }
 
-                if (!res.isFailure) {
+                if (res.isSuccess) {
                     res.getOrNull()?.let {
                         it.body()?.string()?.let { result ->
                             RioLogger.log("RBSCloudManager.exec success")

@@ -1,6 +1,7 @@
 package com.rbs.android.example
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
@@ -49,7 +50,11 @@ class MainActivity : AppCompatActivity() {
         loading = findViewById(R.id.loading)
         loading.isVisible = false
 
-        signInAnonymously.setOnClickListener { rio.signInAnonymously() }
+        signInAnonymously.setOnClickListener {
+            rio.signInAnonymously(callback = { isSuccess, th ->
+                Log.e("", "")
+            })
+        }
 
         btnGetCloudCall.setOnClickListener {
             User.getInstance(rio, onSuccess = {

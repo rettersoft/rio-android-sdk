@@ -24,42 +24,40 @@ object RioCloudServiceImp {
         accessToken: String? = null,
         action: RioActions,
         params: RioServiceParam
-    ): Result<Response<ResponseBody>> {
-        return runCatching {
-            RioLogger.log("getCloud $action started")
+    ): Response<ResponseBody> {
+        RioLogger.log("getCloud $action started")
 
-            RioLogger.log("RBSCloudManager.exec projectId: ${RioConfig.projectId}")
-            RioLogger.log("RBSCloudManager.exec accessToken: $accessToken")
-            RioLogger.log("RBSCloudManager.exec action: $action")
-            RioLogger.log("RBSCloudManager.exec classId: ${params.classId}")
-            RioLogger.log("RBSCloudManager.exec methodId: ${params.method}")
-            RioLogger.log("RBSCloudManager.exec instanceId: ${params.instanceId}")
-            RioLogger.log("RBSCloudManager.exec headers: ${Gson().toJson(params.headers)}")
-            RioLogger.log("RBSCloudManager.exec queries: ${Gson().toJson(params.queries)}")
-            RioLogger.log("RBSCloudManager.exec body: ${Gson().toJson(params.body)}")
+        RioLogger.log("RBSCloudManager.exec projectId: ${RioConfig.projectId}")
+        RioLogger.log("RBSCloudManager.exec accessToken: $accessToken")
+        RioLogger.log("RBSCloudManager.exec action: $action")
+        RioLogger.log("RBSCloudManager.exec classId: ${params.classId}")
+        RioLogger.log("RBSCloudManager.exec methodId: ${params.method}")
+        RioLogger.log("RBSCloudManager.exec instanceId: ${params.instanceId}")
+        RioLogger.log("RBSCloudManager.exec headers: ${Gson().toJson(params.headers)}")
+        RioLogger.log("RBSCloudManager.exec queries: ${Gson().toJson(params.queries)}")
+        RioLogger.log("RBSCloudManager.exec body: ${Gson().toJson(params.body)}")
 
-            val body: RequestBody = if (params.body == null) {
-                "".toRequestBody("application/json; charset=utf-8".toMediaType())
-            } else {
-                Gson().toJson(params.body)
-                    .toRequestBody("application/json; charset=utf-8".toMediaType())
-            }
+        val body: RequestBody = if (params.body == null) {
+            "".toRequestBody("application/json; charset=utf-8".toMediaType())
+        } else {
+            Gson().toJson(params.body)
+                .toRequestBody("application/json; charset=utf-8".toMediaType())
+        }
 
-            /**
-             * { method}/{classId}/{path1}/{path2}
-             */
-            val url = if (params.path.isEmpty()) {
-                "${action.name}/${params.classId}"
-            } else {
-                "${action.name}/${params.classId}/${params.path}"
-            }
+        /**
+         * { method}/{classId}/{path1}/{path2}
+         */
+        val url = if (params.path.isEmpty()) {
+            "${action.name}/${params.classId}"
+        } else {
+            "${action.name}/${params.classId}/${params.path}"
+        }
 
-            when (params.httpMethod) {
-                RioHttpMethod.GET -> api.getAction(url = url, token = accessToken, culture = params.culture, headers = params.headers, queries = params.queries)
-                RioHttpMethod.POST -> api.postAction(url = url, token = accessToken, culture = params.culture, headers = params.headers, queries = params.queries, payload = body)
-                RioHttpMethod.DELETE -> api.deleteAction(url = url, token = accessToken, culture = params.culture, headers = params.headers, queries = params.queries, payload = body)
-                RioHttpMethod.PUT -> api.putAction(url = url, token = accessToken, culture = params.culture, headers = params.headers, queries = params.queries, payload = body)
-            }
+        return when (params.httpMethod) {
+            RioHttpMethod.GET -> api.getAction(url = url, token = accessToken, culture = params.culture, headers = params.headers, queries = params.queries)
+            RioHttpMethod.POST -> api.postAction(url = url, token = accessToken, culture = params.culture, headers = params.headers, queries = params.queries, payload = body)
+            RioHttpMethod.DELETE -> api.deleteAction(url = url, token = accessToken, culture = params.culture, headers = params.headers, queries = params.queries, payload = body)
+            RioHttpMethod.PUT -> api.putAction(url = url, token = accessToken, culture = params.culture, headers = params.headers, queries = params.queries, payload = body)
         }
     }
 }
