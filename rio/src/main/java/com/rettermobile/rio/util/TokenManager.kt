@@ -21,6 +21,7 @@ object TokenManager {
     private val availableRest = Semaphore(1, true)
 
     var tokenUpdateListener: (() -> Unit)? = null
+    var clearListener: (() -> Unit)? = null
 
     private val gson = Gson()
 
@@ -159,17 +160,9 @@ object TokenManager {
         } else {
             RioLogger.log("authWithCustomToken fail ${res.exceptionOrNull()?.stackTraceToString()}")
 
-            res.exceptionOrNull()?.let {
-                if (it is HttpException) {
-                    if (it.code() >= 500) {
-                        throw it
-                    } else {
-                        throw TokenFailException("AuthWithCustomToken fail")
-                    }
-                } else {
-                    throw TokenFailException("AuthWithCustomToken fail")
-                }
-            } ?: run { throw TokenFailException("AuthWithCustomToken fail") }
+            clearListener?.invoke()
+
+            throw res.exceptionOrNull() ?: TokenFailException("AuthWithCustomToken fail")
         }
     }
 
@@ -191,17 +184,9 @@ object TokenManager {
             } else {
                 RioLogger.log("TokenManager.checkToken getAnonymousToken fail")
 
-                res.exceptionOrNull()?.let {
-                    if (it is HttpException) {
-                        if (it.code() >= 500) {
-                            throw it
-                        } else {
-                            throw TokenFailException("AnonymousToken fail")
-                        }
-                    } else {
-                        throw TokenFailException("AnonymousToken fail")
-                    }
-                } ?: run { throw TokenFailException("AnonymousToken fail") }
+                clearListener?.invoke()
+
+                throw res.exceptionOrNull() ?: TokenFailException("AuthWithCustomToken fail")
             }
         } else {
             if (isAccessTokenExpired()) {
@@ -217,17 +202,9 @@ object TokenManager {
 
                     RioLogger.log("TokenManager.checkToken refreshToken fail")
 
-                    res.exceptionOrNull()?.let {
-                        if (it is HttpException) {
-                            if (it.code() >= 500) {
-                                throw it
-                            } else {
-                                throw TokenFailException("RefreshToken fail")
-                            }
-                        } else {
-                            throw TokenFailException("RefreshToken fail")
-                        }
-                    } ?: run { throw TokenFailException("RefreshToken fail") }
+                    clearListener?.invoke()
+
+                    throw res.exceptionOrNull() ?: TokenFailException("AuthWithCustomToken fail")
                 }
             }
         }

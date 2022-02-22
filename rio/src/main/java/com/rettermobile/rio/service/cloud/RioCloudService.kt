@@ -15,6 +15,7 @@ interface RioCloudService {
         @Url url: String,
         @HeaderMap headers: Map<String, String>,
         @Query("_token") token: String?,
+        @Query("__culture") culture: String,
         @QueryMap queries: Map<String, String>
     ): Response<ResponseBody>
 
@@ -23,6 +24,7 @@ interface RioCloudService {
         @Url url: String,
         @HeaderMap headers: Map<String, String>,
         @Query("_token") token: String?,
+        @Query("__culture") culture: String,
         @QueryMap queries: Map<String, String>,
         @Body payload: RequestBody
     ): Response<ResponseBody>
@@ -32,6 +34,7 @@ interface RioCloudService {
         @Url url: String,
         @HeaderMap headers: Map<String, String>,
         @Query("_token") token: String?,
+        @Query("__culture") culture: String,
         @QueryMap queries: Map<String, String>,
         @Body payload: RequestBody
     ): Response<ResponseBody>
@@ -41,6 +44,7 @@ interface RioCloudService {
         @Url url: String,
         @HeaderMap headers: Map<String, String>,
         @Query("_token") token: String?,
+        @Query("__culture") culture: String,
         @QueryMap queries: Map<String, String>,
         @Body payload: RequestBody
     ): Response<ResponseBody>

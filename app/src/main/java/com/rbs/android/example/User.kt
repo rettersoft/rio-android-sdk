@@ -15,8 +15,7 @@ class User private constructor(obj: RioCloudObject) {
             onError: ((Throwable?) -> Unit)? = null
         ) {
             val newOptions = options ?: RioGetCloudObjectOptions(
-                classId = "MsisdnAuthenticator",
-                body = mapOf(Pair("msisdn", "5333996030"))
+                classId= "MsisdnAuthenticator"
             )
 
             rio.getCloudObject(newOptions, onSuccess = {
@@ -33,8 +32,9 @@ class User private constructor(obj: RioCloudObject) {
         onError: ((Throwable?) -> Unit)? = null
     ) {
         val newOptions = options ?: RioCallMethodOptions(
-            method = "sendOtp12312",
-            body = input
+            method = "getToken",
+            body = input,
+            queries = mapOf(Pair("userId", "905304914597"), Pair("msisdn", "905304914597"))
         )
 
         _obj.call<UserUpdateEmailResponse>(newOptions, onSuccess = {

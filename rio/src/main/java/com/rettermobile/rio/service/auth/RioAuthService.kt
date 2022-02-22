@@ -15,20 +15,20 @@ interface RioAuthService {
     // Anonym token:
     // https://root.api.rtbs.io/INSTANCE/ProjectUser?projectId={projectId}
     @GET
-    suspend fun anonymous(@Url url: String, @Query("projectId") projectId: String): RioTokenResponse
+    suspend fun anonymous(@Url url: String, @Query("projectId") projectId: String, @Query("__culture") culture: String,): RioTokenResponse
 
     // Refresh token:
     // https://root.api.rtbs.io/CALL/ProjectUser/refreshToken/{projectId}_{userId}?refreshToken={refreshToken}
     @GET
-    suspend fun refresh(@Url url: String, @Query("refreshToken") refreshToken: String): RioTokenModel
+    suspend fun refresh(@Url url: String, @Query("refreshToken") refreshToken: String, @Query("__culture") culture: String,): RioTokenModel
 
     // Sign in with custom token:
     // https://root.api.rtbs.io/CALL/ProjectUser/authWithCustomToken/{projectId}_{userId}?customToken={customToken}
     @GET
-    suspend fun auth(@Url url: String, @Query("customToken") customToken: String): RioTokenModel
+    suspend fun auth(@Url url: String, @Query("customToken") customToken: String, @Query("__culture") culture: String,): RioTokenModel
 
     // Sign out:
     // https://root.api.rtbs.io/CALL/ProjectUser/signOut/{projectId}_{userId}
     @GET
-    suspend fun signOut(@Url url: String, @Query("accessToken") token: String?): ResponseBody
+    suspend fun signOut(@Url url: String, @Query("accessToken") token: String?, @Query("__culture") culture: String,): ResponseBody
 }

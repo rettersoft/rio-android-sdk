@@ -1,5 +1,6 @@
 package com.rettermobile.rio.cloud
 
+import com.rettermobile.rio.RioConfig
 import com.rettermobile.rio.util.RioHttpMethod
 
 /**
@@ -19,6 +20,7 @@ class RioServiceParam {
     var queries: Map<String, String> = mapOf()
 
     var path = ""
+    var culture: String
 
     constructor(objectOptions: RioGetCloudObjectOptions) {
         // GET INSTANCE
@@ -30,6 +32,7 @@ class RioServiceParam {
         body = objectOptions.body
         headers = objectOptions.headers
         queries = objectOptions.queries
+        culture = objectOptions.culture ?: RioConfig.culture
 
         path += if (!objectOptions.instanceId.isNullOrEmpty()) {
             objectOptions.instanceId
@@ -49,6 +52,7 @@ class RioServiceParam {
         body = options.body
         headers = options.headers
         queries = options.queries
+        culture = options.culture ?: RioConfig.culture
 
         path += if (!objectParams.instanceId.isNullOrEmpty()) {
             "${options.method}/${objectParams.instanceId}"

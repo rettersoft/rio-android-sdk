@@ -9,7 +9,7 @@ import com.rettermobile.rio.service.RioNetworkConfig
 object RioConfig {
     lateinit var applicationContext: Context
     lateinit var projectId: String
-    var culture: String? = null
+    lateinit var culture: String
 
     var config = RioNetworkConfig()
 }

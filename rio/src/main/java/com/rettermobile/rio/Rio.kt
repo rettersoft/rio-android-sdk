@@ -6,9 +6,7 @@ import com.rettermobile.rio.service.cloud.RioCloudRequestManager
 import com.rettermobile.rio.cloud.RioCloudObject
 import com.rettermobile.rio.cloud.RioGetCloudObjectOptions
 import com.rettermobile.rio.service.model.exception.CloudNullException
-import com.rettermobile.rio.service.model.exception.TokenFailException
 import com.rettermobile.rio.model.RioClientAuthStatus
-import com.rettermobile.rio.model.RioCulture
 import com.rettermobile.rio.model.RioUser
 import com.rettermobile.rio.service.RioNetworkConfig
 import com.rettermobile.rio.service.auth.RioAuthRequestManager
@@ -18,12 +16,7 @@ import kotlinx.coroutines.*
 /**
  * Created by semihozkoroglu on 22.11.2020.
  */
-class Rio(
-    val applicationContext: Context,
-    val projectId: String,
-    val culture: RioCulture? = null,
-    val config: RioNetworkConfig
-) {
+class Rio(applicationContext: Context, projectId: String, culture: String? = null, config: RioNetworkConfig) {
 
     private val job: Job = Job()
     private val scope = CoroutineScope(Dispatchers.Default + job)
@@ -31,10 +24,11 @@ class Rio(
     init {
         RioConfig.applicationContext = applicationContext
         RioConfig.projectId = projectId
-        RioConfig.culture = culture?.lang
+        RioConfig.culture = culture ?: "en-us"
         RioConfig.config = config
 
         TokenManager.tokenUpdateListener = { sendAuthStatus() }
+        TokenManager.clearListener = { signOut() }
     }
 
     private var listener: ((RioClientAuthStatus, RioUser?) -> Unit)? = null
@@ -45,7 +39,7 @@ class Rio(
         sendAuthStatus()
     }
 
-    fun authenticateWithCustomToken(customToken: String, error: ((Throwable?) -> Unit)? = null) {
+    fun authenticateWithCustomToken(customToken: String, callback: ((Boolean, Throwable?) -> Unit)? = null) {
         scope.launch(exceptionHandler) {
             withContext(Dispatchers.Main) {
                 listener?.invoke(RioClientAuthStatus.AUTHENTICATING, null)
@@ -55,24 +49,24 @@ class Rio(
                 val res = runCatching { RioAuthRequestManager.authenticate(customToken) }
 
                 if (res.isSuccess) {
-                    withContext(Dispatchers.Main) { res }
+                    withContext(Dispatchers.Main) { callback?.invoke(true, null) }
                 } else {
-                    withContext(Dispatchers.Main) { error?.invoke(res.exceptionOrNull()) }
+                    withContext(Dispatchers.Main) { callback?.invoke(false, res.exceptionOrNull()) }
                 }
             } else {
-                withContext(Dispatchers.Main) { error?.invoke(IllegalArgumentException("customToken must not be null or empty")) }
+                withContext(Dispatchers.Main) { callback?.invoke(false, IllegalArgumentException("customToken must not be null or empty")) }
             }
         }
     }
 
-    fun signInAnonymously(onSuccess: (() -> Unit)? = null, onError: ((Throwable?) -> Unit)? = null) {
+    fun signInAnonymously(callback: ((Boolean, Throwable?) -> Unit)? = null) {
         scope.launch(exceptionHandler) {
             val res = runCatching { RioAuthRequestManager.signInAnonymously() }
 
             if (res.isSuccess) {
-                withContext(Dispatchers.Main) { onSuccess?.invoke() }
+                withContext(Dispatchers.Main) { callback?.invoke(true, null) }
             } else {
-                withContext(Dispatchers.Main) { onError?.invoke(res.exceptionOrNull()) }
+                withContext(Dispatchers.Main) { callback?.invoke(false, res.exceptionOrNull()) }
             }
         }
     }
@@ -93,18 +87,7 @@ class Rio(
                     withContext(Dispatchers.Main) { onError?.invoke(CloudNullException("Cloud object returned null")) }
                 }
             } else {
-                // check if token exception then logout
-                checkTokenException(res.exceptionOrNull())
-
                 withContext(Dispatchers.Main) { onError?.invoke(res.exceptionOrNull()) }
-            }
-        }
-    }
-
-    private fun checkTokenException(exception: Throwable?) {
-        exception?.let {
-            if (it is TokenFailException) {
-                signOut()
             }
         }
     }
@@ -130,11 +113,17 @@ class Rio(
         }
     }
 
-    fun signOut() {
-        scope.launch(signOutExceptionHandler) {
+    fun signOut(callback: ((Boolean, Throwable?) -> Unit)? = null) {
+        scope.launch(CoroutineExceptionHandler { _, e ->
+            RioLogger.log("SignOutExceptionHandler: ${e.message} \nStackTrace: ${e.stackTraceToString()}")
+
+            clear()
+        }) {
             RioAuthRequestManager.signOut()
 
             clear()
+
+            callback?.invoke(true, null)
         }
     }
 
@@ -154,11 +143,5 @@ class Rio(
 
     private val exceptionHandler = CoroutineExceptionHandler { _, e ->
         RioLogger.log("ExceptionHandler: ${e.message} \nStackTrace: ${e.stackTraceToString()}")
-    }
-
-    private val signOutExceptionHandler = CoroutineExceptionHandler { _, e ->
-        RioLogger.log("SignOutExceptionHandler: ${e.message} \nStackTrace: ${e.stackTraceToString()}")
-
-        clear()
     }
 }

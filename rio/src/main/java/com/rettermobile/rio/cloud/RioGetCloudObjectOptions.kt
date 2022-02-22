@@ -15,5 +15,6 @@ class RioGetCloudObjectOptions constructor(
     var body: Any? = null,
     var headers: Map<String, String> = mapOf(),
     var queries: Map<String, String> = mapOf(),
-    var useLocal: Boolean = false
+    var useLocal: Boolean = false,
+    var culture: String? = null
 )

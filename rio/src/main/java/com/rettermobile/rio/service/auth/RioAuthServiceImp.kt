@@ -19,13 +19,13 @@ object RioAuthServiceImp {
     suspend fun getAnonymousToken(): Result<RioTokenResponse> {
         RioLogger.log("getAnonymous started")
 
-        return runCatching { api.anonymous("INSTANCE/ProjectUser", RioConfig.projectId) }
+        return runCatching { api.anonymous("INSTANCE/ProjectUser", RioConfig.projectId, RioConfig.culture) }
     }
 
     suspend fun refreshToken(refreshToken: String): Result<RioTokenModel> {
         RioLogger.log("refreshToken started")
 
-        return runCatching { api.refresh("CALL/ProjectUser/refreshToken/${RioConfig.projectId}_${TokenManager.userId}", refreshToken) }
+        return runCatching { api.refresh("CALL/ProjectUser/refreshToken/${RioConfig.projectId}_${TokenManager.userId}", refreshToken, RioConfig.culture) }
     }
 
     suspend fun authWithCustomToken(customToken: String): Result<RioTokenModel> {
@@ -33,12 +33,12 @@ object RioAuthServiceImp {
 
         val userId = customToken.jwtUserId()
 
-        return runCatching { api.auth("CALL/ProjectUser/authWithCustomToken/${RioConfig.projectId}_${userId}", customToken) }
+        return runCatching { api.auth("CALL/ProjectUser/authWithCustomToken/${RioConfig.projectId}_${userId}", customToken, RioConfig.culture) }
     }
 
     suspend fun signOut(): Result<ResponseBody> {
         RioLogger.log("authWithCustomToken started")
 
-        return runCatching { api.signOut("CALL/ProjectUser/signOut/${RioConfig.projectId}_${TokenManager.userId}", TokenManager.accessToken) }
+        return runCatching { api.signOut("CALL/ProjectUser/signOut/${RioConfig.projectId}_${TokenManager.userId}", TokenManager.accessToken, RioConfig.culture) }
     }
 }
