@@ -149,7 +149,7 @@ object TokenManager {
     suspend fun authenticate(customToken: String) {
         val res = RioAuthServiceImp.authWithCustomToken(customToken)
 
-        return if (res.isSuccess) {
+        return if (!res.isFailure) {
             RioLogger.log("authWithCustomToken success")
 
             tokenInfo = res.getOrNull()
@@ -174,7 +174,7 @@ object TokenManager {
         if (TextUtils.isEmpty(accessToken)) {
             val res = RioAuthServiceImp.getAnonymousToken()
 
-            if (res.isSuccess) {
+            if (!res.isFailure) {
                 RioLogger.log("TokenManager.checkToken getAnonymousToken success")
 
                 tokenInfo = res.getOrNull()?.response
@@ -192,7 +192,7 @@ object TokenManager {
             if (isAccessTokenExpired()) {
                 val res = RioAuthServiceImp.refreshToken(refreshToken!!)
 
-                if (res.isSuccess) {
+                if (!res.isFailure) {
                     RioLogger.log("TokenManager.checkToken refreshToken success")
 
                     tokenInfo = res.getOrNull()

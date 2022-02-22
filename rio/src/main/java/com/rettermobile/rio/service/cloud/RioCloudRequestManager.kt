@@ -45,7 +45,7 @@ object RioCloudRequestManager {
                     RioServiceParam(options)
                 )
 
-                if (res.isSuccess) {
+                if (!res.isFailure) {
                     res.getOrNull()?.let {
                         it.body()?.string()?.let { result ->
                             RioLogger.log("RBSCloudManager.exec success")

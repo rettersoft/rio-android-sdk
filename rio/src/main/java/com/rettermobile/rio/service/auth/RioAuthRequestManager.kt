@@ -29,7 +29,7 @@ object RioAuthRequestManager {
 
         RioLogger.log("RBSAuthRequestManager.signOut OK")
 
-        return if (res.isSuccess) {
+        return if (!res.isFailure) {
             "OK"
         } else {
             "OK"

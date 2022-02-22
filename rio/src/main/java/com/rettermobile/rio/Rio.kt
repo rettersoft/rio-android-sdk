@@ -48,7 +48,7 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
             if (!TextUtils.isEmpty(customToken)) {
                 val res = runCatching { RioAuthRequestManager.authenticate(customToken) }
 
-                if (res.isSuccess) {
+                if (!res.isFailure) {
                     withContext(Dispatchers.Main) { callback?.invoke(true, null) }
                 } else {
                     withContext(Dispatchers.Main) { callback?.invoke(false, res.exceptionOrNull()) }
@@ -63,7 +63,7 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
         scope.launch(exceptionHandler) {
             val res = runCatching { RioAuthRequestManager.signInAnonymously() }
 
-            if (res.isSuccess) {
+            if (!res.isFailure) {
                 withContext(Dispatchers.Main) { callback?.invoke(true, null) }
             } else {
                 withContext(Dispatchers.Main) { callback?.invoke(false, res.exceptionOrNull()) }
@@ -80,7 +80,7 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
             val res =
                 runCatching { RioCloudRequestManager.exec(action = RioActions.INSTANCE, options) }
 
-            if (res.isSuccess) {
+            if (!res.isFailure) {
                 if (res.getOrNull() != null) {
                     withContext(Dispatchers.Main) { onSuccess?.invoke(res.getOrNull()!!) }
                 } else {

@@ -35,7 +35,7 @@ class RioCloudObject constructor(val params: RioCloudObjectParams) {
                     )
                 }
 
-                if (res.isSuccess) {
+                if (!res.isFailure) {
                     try {
                         val response = res.getOrNull()?.getOrNull()
 
