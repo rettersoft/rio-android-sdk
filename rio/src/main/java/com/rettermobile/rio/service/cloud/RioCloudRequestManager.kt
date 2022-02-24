@@ -30,8 +30,7 @@ object RioCloudRequestManager {
                 RioCloudObject(
                     RioCloudObjectParams(
                         options.classId!!,
-                        options.instanceId!!,
-                        useLocal = true
+                        options.instanceId!!
                     )
                 )
             } else {

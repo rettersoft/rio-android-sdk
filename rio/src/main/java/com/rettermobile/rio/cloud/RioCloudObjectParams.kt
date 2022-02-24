@@ -5,6 +5,5 @@ package com.rettermobile.rio.cloud
  */
 class RioCloudObjectParams constructor(
     val classId: String,
-    val instanceId: String?,
-    val useLocal: Boolean = false
+    val instanceId: String?
 )

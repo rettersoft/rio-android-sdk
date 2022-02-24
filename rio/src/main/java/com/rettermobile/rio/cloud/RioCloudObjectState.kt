@@ -19,22 +19,22 @@ sealed class RioCloudObjectState constructor(params: RioCloudObjectParams) {
     private var errorEvent: ((Throwable?) -> Unit)? = null
 
     init {
-        if (!params.useLocal) {
-            var path = "/projects/${RioConfig.projectId}/classes/$classId/instances/$instanceId/"
+        var path = "/projects/${RioConfig.projectId}/classes/$classId/instances/$instanceId/"
 
-            if (this is RioCloudUserObjectState) {
-                path += "userState/${TokenManager.userId}"
-            } else if (this is RioCloudRoleObjectState) {
-                path += "roleState/${TokenManager.userIdentity}"
-            }
+        if (this is RioCloudUserObjectState) {
+            path += "userState/${TokenManager.userId}"
+        } else if (this is RioCloudRoleObjectState) {
+            path += "roleState/${TokenManager.userIdentity}"
+        }
 
-            val document = RioFirebaseManager.getDocument(path)
-            listener = document.addSnapshotListener { value, error ->
-                if (error != null) {
-                    errorEvent?.invoke(error)
-                } else {
-                    successEvent?.invoke(value?.data?.toString())
-                }
+        listener?.remove()
+
+        val document = RioFirebaseManager.getDocument(path)
+        listener = document.addSnapshotListener { value, error ->
+            if (error != null) {
+                errorEvent?.invoke(error)
+            } else {
+                successEvent?.invoke(value?.data?.toString())
             }
         }
     }
