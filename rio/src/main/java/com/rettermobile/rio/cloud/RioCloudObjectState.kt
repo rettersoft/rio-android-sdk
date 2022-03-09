@@ -2,6 +2,7 @@ package com.rettermobile.rio.cloud
 
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.ListenerRegistration
+import com.google.gson.Gson
 import com.rettermobile.rio.RioConfig
 import com.rettermobile.rio.RioFirebaseManager
 import com.rettermobile.rio.util.TokenManager
@@ -48,7 +49,7 @@ sealed class RioCloudObjectState constructor(params: RioCloudObjectParams) {
             if (error != null) {
                 errorEvent?.invoke(error)
             } else {
-                successEvent?.invoke(value?.data?.toString())
+                successEvent?.invoke(Gson().toJson(value?.data))
             }
         }
     }
