@@ -40,7 +40,11 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
     }
 
     fun authenticateWithCustomToken(customToken: String, callback: ((Boolean, Throwable?) -> Unit)? = null) {
-        scope.launch(exceptionHandler) {
+        scope.launch(CoroutineExceptionHandler { _, e ->
+            RioLogger.log("ExceptionHandler#getCloudObject: ${e.message} \nStackTrace: ${e.stackTraceToString()}")
+
+            callback?.invoke(false, e)
+        }) {
             withContext(Dispatchers.Main) {
                 listener?.invoke(RioClientAuthStatus.AUTHENTICATING, null)
             }
@@ -60,7 +64,11 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
     }
 
     fun signInAnonymously(callback: ((Boolean, Throwable?) -> Unit)? = null) {
-        scope.launch(exceptionHandler) {
+        scope.launch(CoroutineExceptionHandler { _, e ->
+            RioLogger.log("ExceptionHandler#signInAnonymously: ${e.message} \nStackTrace: ${e.stackTraceToString()}")
+
+            callback?.invoke(false, e)
+        }) {
             val res = runCatching { RioAuthRequestManager.signInAnonymously() }
 
             if (res.isSuccess) {
@@ -76,7 +84,11 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
         onSuccess: ((RioCloudObject) -> Unit)? = null,
         onError: ((Throwable?) -> Unit)? = null
     ) {
-        scope.launch(exceptionHandler) {
+        scope.launch(CoroutineExceptionHandler { _, e ->
+            RioLogger.log("ExceptionHandler#getCloudObject: ${e.message} \nStackTrace: ${e.stackTraceToString()}")
+
+            onError?.invoke(e)
+        }) {
             val res =
                 runCatching { RioCloudRequestManager.exec(action = RioActions.INSTANCE, options) }
 
@@ -93,7 +105,9 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
     }
 
     private fun sendAuthStatus() {
-        scope.launch(exceptionHandler) {
+        scope.launch(CoroutineExceptionHandler { _, e ->
+            RioLogger.log("ExceptionHandler#sendAuthStatus: ${e.message} \nStackTrace: ${e.stackTraceToString()}")
+        }) {
             TokenManager.user?.let { user ->
                 withContext(Dispatchers.Main) {
                     listener?.invoke(
@@ -115,9 +129,11 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
 
     fun signOut(callback: ((Boolean, Throwable?) -> Unit)? = null) {
         scope.launch(CoroutineExceptionHandler { _, e ->
-            RioLogger.log("SignOutExceptionHandler: ${e.message} \nStackTrace: ${e.stackTraceToString()}")
+            RioLogger.log("ExceptionHandler#signOut: ${e.message} \nStackTrace: ${e.stackTraceToString()}")
 
             clear()
+
+            callback?.invoke(false, e)
         }) {
             RioAuthRequestManager.signOut()
 
@@ -139,9 +155,5 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
 
     fun logEnable(enable: Boolean) {
         RioLogger.logEnable(enable)
-    }
-
-    private val exceptionHandler = CoroutineExceptionHandler { _, e ->
-        RioLogger.log("ExceptionHandler: ${e.message} \nStackTrace: ${e.stackTraceToString()}")
     }
 }
