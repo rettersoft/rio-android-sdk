@@ -89,8 +89,7 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
 
             onError?.invoke(e)
         }) {
-            val res =
-                runCatching { RioCloudRequestManager.exec(action = RioActions.INSTANCE, options) }
+            val res = runCatching { RioCloudRequestManager.exec(action = RioActions.INSTANCE, options) }
 
             if (res.isSuccess) {
                 if (res.getOrNull() != null) {
@@ -135,11 +134,15 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
 
             callback?.invoke(false, e)
         }) {
-            RioAuthRequestManager.signOut()
+            val res = runCatching { RioAuthRequestManager.signOut() }
 
             clear()
 
-            callback?.invoke(true, null)
+            if (res.isSuccess) {
+                withContext(Dispatchers.Main) { callback?.invoke(true, null) }
+            } else {
+                withContext(Dispatchers.Main) { callback?.invoke(false, res.exceptionOrNull()) }
+            }
         }
     }
 
