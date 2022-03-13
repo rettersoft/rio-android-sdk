@@ -47,10 +47,10 @@ object RioCloudServiceImp {
         /**
          * { method}/{classId}/{path1}/{path2}
          */
-        val url = if (params.path.isEmpty()) {
-            "${action.name}/${params.classId}"
+        val url = RioConfig.projectId + if (params.path.isEmpty()) {
+            "/${action.name}/${params.classId}"
         } else {
-            "${action.name}/${params.classId}/${params.path}"
+            "/${action.name}/${params.classId}/${params.path}"
         }
 
         return when (params.httpMethod) {
