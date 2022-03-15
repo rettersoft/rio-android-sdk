@@ -5,7 +5,7 @@ import com.rettermobile.rio.util.RioHttpMethod
 /**
  * Created by semihozkoroglu on 13.12.2021.
  */
-class RioGetCloudObjectOptions constructor(
+class RioCloudObjectOptions constructor(
     var classId: String? = null,
     // Key ve instanceId birlikte olamaz!
     var instanceId: String? = null,

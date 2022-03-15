@@ -4,7 +4,7 @@ import android.content.Context
 import android.text.TextUtils
 import com.rettermobile.rio.service.cloud.RioCloudRequestManager
 import com.rettermobile.rio.cloud.RioCloudObject
-import com.rettermobile.rio.cloud.RioGetCloudObjectOptions
+import com.rettermobile.rio.cloud.RioCloudObjectOptions
 import com.rettermobile.rio.service.model.exception.CloudNullException
 import com.rettermobile.rio.model.RioClientAuthStatus
 import com.rettermobile.rio.model.RioUser
@@ -80,7 +80,7 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
     }
 
     fun getCloudObject(
-        options: RioGetCloudObjectOptions,
+        options: RioCloudObjectOptions,
         onSuccess: ((RioCloudObject) -> Unit)? = null,
         onError: ((Throwable?) -> Unit)? = null
     ) {

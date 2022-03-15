@@ -22,7 +22,7 @@ class RioServiceParam {
     var path = ""
     var culture: String
 
-    constructor(objectOptions: RioGetCloudObjectOptions) {
+    constructor(objectOptions: RioCloudObjectOptions) {
         // GET INSTANCE
         instanceId = objectOptions.instanceId
         classId = objectOptions.classId
@@ -43,21 +43,23 @@ class RioServiceParam {
         }
     }
 
-    constructor(objectParams: RioCloudObjectParams, options: RioCallMethodOptions) {
-        // CALL
-        instanceId = objectParams.instanceId
-        classId = objectParams.classId
-        method = options.method
-        httpMethod = options.httpMethod
-        body = options.body
-        headers = options.headers
-        queries = options.queries
-        culture = options.culture ?: RioConfig.culture
+    constructor(cloudOptions: RioCloudObjectOptions, callOptions: RioCallMethodOptions) {
+        // CALL & LIST
+        instanceId = cloudOptions.instanceId
+        classId = cloudOptions.classId
+        method = callOptions.method
+        httpMethod = callOptions.httpMethod
+        body = callOptions.body
+        headers = callOptions.headers
+        queries = callOptions.queries
+        culture = callOptions.culture ?: RioConfig.culture
 
-        path += if (!objectParams.instanceId.isNullOrEmpty()) {
-            "${options.method}/${objectParams.instanceId}"
+        path += if (!cloudOptions.instanceId.isNullOrEmpty()) {
+            "${callOptions.method}/${cloudOptions.instanceId}"
+        } else if (!callOptions.method.isNullOrEmpty()) {
+            "${callOptions.method}"
         } else {
-            "${options.method}"
+            ""
         }
     }
 }

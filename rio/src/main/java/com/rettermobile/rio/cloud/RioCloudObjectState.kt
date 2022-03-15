@@ -10,7 +10,7 @@ import com.rettermobile.rio.util.TokenManager
 /**
  * Created by semihozkoroglu on 13.12.2021.
  */
-sealed class RioCloudObjectState constructor(params: RioCloudObjectParams) {
+sealed class RioCloudObjectState constructor(params: RioCloudObjectOptions) {
 
     val classId = params.classId
     val instanceId = params.instanceId
@@ -59,8 +59,8 @@ sealed class RioCloudObjectState constructor(params: RioCloudObjectParams) {
     }
 }
 
-class RioCloudUserObjectState constructor(p: RioCloudObjectParams) : RioCloudObjectState(p)
+class RioCloudUserObjectState constructor(p: RioCloudObjectOptions) : RioCloudObjectState(p)
 
-class RioCloudRoleObjectState constructor(p: RioCloudObjectParams) : RioCloudObjectState(p)
+class RioCloudRoleObjectState constructor(p: RioCloudObjectOptions) : RioCloudObjectState(p)
 
-class RioCloudPublicObjectState constructor(p: RioCloudObjectParams) : RioCloudObjectState(p)
+class RioCloudPublicObjectState constructor(p: RioCloudObjectOptions) : RioCloudObjectState(p)

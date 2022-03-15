@@ -16,23 +16,18 @@ object RioCloudRequestManager {
 
     suspend fun exec(
         action: RioActions,
-        options: RioGetCloudObjectOptions
+        options: RioCloudObjectOptions
     ): RioCloudObject {
         TokenManager.checkToken()
 
-        val foundedObj = cloudObjects.find { it.params.instanceId == options.instanceId }
+        val foundedObj = cloudObjects.find { it.options.instanceId == options.instanceId }
         return foundedObj?.let {
             RioLogger.log("RBSCloudManager.exec cloudObjects returned from list")
             it
         } ?: kotlin.run {
             if (options.useLocal && !options.instanceId.isNullOrEmpty()) {
                 RioLogger.log("RBSCloudManager.exec create cloud object in-memory")
-                RioCloudObject(
-                    RioCloudObjectParams(
-                        options.classId!!,
-                        options.instanceId!!
-                    )
-                )
+                RioCloudObject(options)
             } else {
                 val accessToken = TokenManager.accessToken
 
@@ -55,12 +50,12 @@ object RioCloudRequestManager {
 
                             val instanceRes = Gson().fromJson(result, RioInstanceResponse::class.java)
 
-                            cloudObjects.find { it.params.instanceId == instanceRes.instanceId }
+                            cloudObjects.find { it.options.instanceId == instanceRes.instanceId }
                                 ?: kotlin.run {
                                     RioCloudObject(
-                                        RioCloudObjectParams(
-                                            options.classId!!,
-                                            instanceRes.instanceId
+                                        RioCloudObjectOptions(
+                                            classId = options.classId!!,
+                                            instanceId = instanceRes.instanceId
                                         )
                                     ).apply {
                                         cloudObjects.add(this)

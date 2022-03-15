@@ -19,8 +19,8 @@ class App : Application() {
         rio = Rio(
             applicationContext = applicationContext,
 //            projectId = "69ec1ef0039b4332b3e102f082a98ec2",
-            projectId = "skuf76m0o",
-            culture= "abc",
+            projectId = "11c5e84qtq",
+            culture= "tr",
             config = RioNetworkConfig.build {
 //                region = RioRegion.EU_WEST_1_BETA
                 sslPinningEnabled = false

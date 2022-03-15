@@ -4,17 +4,17 @@ import com.rbs.android.UserUpdateEmailResponse
 import com.rettermobile.rio.Rio
 import com.rettermobile.rio.cloud.RioCallMethodOptions
 import com.rettermobile.rio.cloud.RioCloudObject
-import com.rettermobile.rio.cloud.RioGetCloudObjectOptions
+import com.rettermobile.rio.cloud.RioCloudObjectOptions
 
 class User private constructor(obj: RioCloudObject) {
     var _obj: RioCloudObject = obj
 
     companion object {
         fun getInstance(
-            rio: Rio, options: RioGetCloudObjectOptions? = null, onSuccess: ((User) -> Unit)? = null,
+            rio: Rio, options: RioCloudObjectOptions? = null, onSuccess: ((User) -> Unit)? = null,
             onError: ((Throwable?) -> Unit)? = null
         ) {
-            val newOptions = options ?: RioGetCloudObjectOptions(
+            val newOptions = options ?: RioCloudObjectOptions(
                 classId= "MsisdnAuthenticator"
             )
 

@@ -1,7 +1,7 @@
 import com.rettermobile.rio.Rio
 import com.rettermobile.rio.cloud.RioCallMethodOptions
 import com.rettermobile.rio.cloud.RioCloudObject
-import com.rettermobile.rio.cloud.RioGetCloudObjectOptions
+import com.rettermobile.rio.cloud.RioCloudObjectOptions
 
 sealed class RioModels {
     class AnythingArrayValue(val value: List<Any?>) : RioModels()
@@ -619,10 +619,10 @@ class RioClasses {
 
         companion object {
             fun getInstance(
-                rio: Rio, options: RioGetCloudObjectOptions? = null, onSuccess: ((BackofficeUser) -> Unit)? = null,
+                rio: Rio, options: RioCloudObjectOptions? = null, onSuccess: ((BackofficeUser) -> Unit)? = null,
                 onError: ((Throwable?) -> Unit)? = null
             ) {
-                val newOptions = options ?: RioGetCloudObjectOptions(
+                val newOptions = options ?: RioCloudObjectOptions(
                     classId = "BackofficeUser"
                 )
 
@@ -691,10 +691,10 @@ class RioClasses {
 
         companion object {
             fun getInstance(
-                rio: Rio, options: RioGetCloudObjectOptions? = null, onSuccess: ((CDH) -> Unit)? = null,
+                rio: Rio, options: RioCloudObjectOptions? = null, onSuccess: ((CDH) -> Unit)? = null,
                 onError: ((Throwable?) -> Unit)? = null
             ) {
-                val newOptions = options ?: RioGetCloudObjectOptions(
+                val newOptions = options ?: RioCloudObjectOptions(
                     classId = "CDH"
                 )
 
@@ -729,10 +729,10 @@ class RioClasses {
 
         companion object {
             fun getInstance(
-                rio: Rio, options: RioGetCloudObjectOptions? = null, onSuccess: ((Homepage) -> Unit)? = null,
+                rio: Rio, options: RioCloudObjectOptions? = null, onSuccess: ((Homepage) -> Unit)? = null,
                 onError: ((Throwable?) -> Unit)? = null
             ) {
-                val newOptions = options ?: RioGetCloudObjectOptions(
+                val newOptions = options ?: RioCloudObjectOptions(
                     classId = "Homepage"
                 )
 
@@ -784,10 +784,10 @@ class RioClasses {
 
         companion object {
             fun getInstance(
-                rio: Rio, options: RioGetCloudObjectOptions? = null, onSuccess: ((MsisdnAuthenticator) -> Unit)? = null,
+                rio: Rio, options: RioCloudObjectOptions? = null, onSuccess: ((MsisdnAuthenticator) -> Unit)? = null,
                 onError: ((Throwable?) -> Unit)? = null
             ) {
-                val newOptions = options ?: RioGetCloudObjectOptions(
+                val newOptions = options ?: RioCloudObjectOptions(
                     classId = "MsisdnAuthenticator"
                 )
 
@@ -856,10 +856,10 @@ class RioClasses {
 
         companion object {
             fun getInstance(
-                rio: Rio, options: RioGetCloudObjectOptions? = null, onSuccess: ((Places) -> Unit)? = null,
+                rio: Rio, options: RioCloudObjectOptions? = null, onSuccess: ((Places) -> Unit)? = null,
                 onError: ((Throwable?) -> Unit)? = null
             ) {
-                val newOptions = options ?: RioGetCloudObjectOptions(
+                val newOptions = options ?: RioCloudObjectOptions(
                     classId = "Places"
                 )
 
@@ -894,10 +894,10 @@ class RioClasses {
 
         companion object {
             fun getInstance(
-                rio: Rio, options: RioGetCloudObjectOptions? = null, onSuccess: ((Product) -> Unit)? = null,
+                rio: Rio, options: RioCloudObjectOptions? = null, onSuccess: ((Product) -> Unit)? = null,
                 onError: ((Throwable?) -> Unit)? = null
             ) {
-                val newOptions = options ?: RioGetCloudObjectOptions(
+                val newOptions = options ?: RioCloudObjectOptions(
                     classId = "Product"
                 )
 
@@ -983,10 +983,10 @@ class RioClasses {
 
         companion object {
             fun getInstance(
-                rio: Rio, options: RioGetCloudObjectOptions? = null, onSuccess: ((ProductManager) -> Unit)? = null,
+                rio: Rio, options: RioCloudObjectOptions? = null, onSuccess: ((ProductManager) -> Unit)? = null,
                 onError: ((Throwable?) -> Unit)? = null
             ) {
-                val newOptions = options ?: RioGetCloudObjectOptions(
+                val newOptions = options ?: RioCloudObjectOptions(
                     classId = "ProductManager"
                 )
 
@@ -1327,10 +1327,10 @@ class RioClasses {
 
         companion object {
             fun getInstance(
-                rio: Rio, options: RioGetCloudObjectOptions? = null, onSuccess: ((User) -> Unit)? = null,
+                rio: Rio, options: RioCloudObjectOptions? = null, onSuccess: ((User) -> Unit)? = null,
                 onError: ((Throwable?) -> Unit)? = null
             ) {
-                val newOptions = options ?: RioGetCloudObjectOptions(
+                val newOptions = options ?: RioCloudObjectOptions(
                     classId = "User"
                 )
 
