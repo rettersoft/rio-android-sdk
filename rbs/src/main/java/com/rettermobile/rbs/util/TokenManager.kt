@@ -173,7 +173,7 @@ object TokenManager {
 
     suspend fun checkToken() {
         // Token info control
-        availableRest.tryAcquire()
+        availableRest.acquire()
         RBSLogger.log("TokenManager.checkToken started")
 
         if (TextUtils.isEmpty(accessToken)) {

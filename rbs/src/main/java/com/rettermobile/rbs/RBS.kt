@@ -65,6 +65,7 @@ class RBS(
     }
 
     fun signInAnonymously() {
+        RBSLogger.log("signInAnonymously called")
         sendAction(action = RBSActions.SIGN_IN_ANONYMOUS.action)
     }
 
@@ -121,6 +122,7 @@ class RBS(
     private fun checkTokenException(exception: Throwable?) {
         exception?.let {
             if (it is TokenFailException) {
+                RBSLogger.log("checkTokenException TokenFailException called")
                 signOut()
             }
         }
@@ -187,6 +189,7 @@ class RBS(
     }
 
     fun signOut() {
+        RBSLogger.log("signOut called")
 //        val request = TokenManager.userId?.let {
 //            mapOf(Pair("allTokens", true), Pair("userId", it))
 //        } ?: kotlin.run { mapOf(Pair("allTokens", true)) }
@@ -201,6 +204,7 @@ class RBS(
     }
 
     private fun clearSession() {
+        RBSLogger.log("clearSession called")
         TokenManager.clear()
         RBSCloudManager.clear()
     }
