@@ -11,7 +11,6 @@ import com.rettermobile.rio.service.auth.RioAuthServiceImp
 import com.rettermobile.rio.service.cloud.RioCloudRequestManager
 import com.rettermobile.rio.service.model.RioTokenModel
 import com.rettermobile.rio.service.model.exception.TokenFailException
-import retrofit2.HttpException
 import java.util.concurrent.Semaphore
 
 /**
@@ -168,7 +167,7 @@ object TokenManager {
 
     suspend fun checkToken() {
         // Token info control
-        availableRest.tryAcquire()
+        availableRest.acquire()
         RioLogger.log("TokenManager.checkToken started")
 
         if (TextUtils.isEmpty(accessToken)) {

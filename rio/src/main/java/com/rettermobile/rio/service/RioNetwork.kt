@@ -56,7 +56,7 @@ class RioNetwork {
             val newRequestBuilder = originalRequest.newBuilder()
 
             newRequestBuilder
-                .header("User-Agent", "rio-android-sdk-1.2.2")
+                .header("User-Agent", "rio-android-sdk-1.2.3")
                 .addHeader("Content-Type", "application/json;charset=UTF-8")
                 .addHeader("x-rio-sdk-client", "android")
                 .cacheControl(CacheControl.FORCE_NETWORK)
