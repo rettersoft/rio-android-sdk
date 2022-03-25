@@ -17,7 +17,7 @@ allprojects {
 
 ```
 dependencies {
-  implementation 'com.github.rettersoft:rbs-android-sdk:{latest-version}'
+  implementation 'com.github.rettersoft:rio-android-sdk:{latest-version}'
 }
 ```
 
