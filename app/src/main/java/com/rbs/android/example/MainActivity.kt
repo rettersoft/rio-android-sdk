@@ -58,7 +58,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnGetCloudCall.setOnClickListener {
-            rio.getCloudObject(RioCloudObjectOptions(classId = "Semih"), onSuccess = {
+            rio.getCloudObject(RioCloudObjectOptions(classId = "Ayhan"), onSuccess = {
+                Gson().toJson(it.response)
+
                 it.listInstances(onSuccess = {
                     RioLogger.log("RESPONSE CAME: ${Gson().toJson(it)}")
                 }, onError = {

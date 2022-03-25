@@ -127,6 +127,8 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
     }
 
     fun signOut(callback: ((Boolean, Throwable?) -> Unit)? = null) {
+        RioLogger.log("signOut called")
+
         scope.launch(CoroutineExceptionHandler { _, e ->
             RioLogger.log("ExceptionHandler#signOut: ${e.message} \nStackTrace: ${e.stackTraceToString()}")
 
@@ -147,6 +149,8 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
     }
 
     private fun clear() {
+        RioLogger.log("clearSession called")
+
         TokenManager.clear()
         RioFirebaseManager.signOut()
         RioCloudRequestManager.clear()

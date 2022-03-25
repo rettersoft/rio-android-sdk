@@ -9,6 +9,7 @@ open class RioInstanceResponse : Serializable {
     var instanceId: String = ""
     val newInstance: Boolean = false
     val methods: List<RioInstanceMethod>? = null
+    val response: Map<String, Any>? = null
 }
 
 open class RioInstanceMethod : Serializable {

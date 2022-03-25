@@ -27,7 +27,7 @@ object RioCloudRequestManager {
         } ?: kotlin.run {
             if (options.useLocal && !options.instanceId.isNullOrEmpty()) {
                 RioLogger.log("RBSCloudManager.exec create cloud object in-memory")
-                RioCloudObject(options)
+                RioCloudObject(options, null)
             } else {
                 val accessToken = TokenManager.accessToken
 
@@ -56,7 +56,8 @@ object RioCloudRequestManager {
                                         RioCloudObjectOptions(
                                             classId = options.classId!!,
                                             instanceId = instanceRes.instanceId
-                                        )
+                                        ),
+                                        instanceRes.response
                                     ).apply {
                                         cloudObjects.add(this)
                                     }

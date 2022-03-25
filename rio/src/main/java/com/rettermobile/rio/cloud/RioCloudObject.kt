@@ -11,7 +11,7 @@ import kotlinx.coroutines.*
 /**
  * Created by semihozkoroglu on 13.12.2021.
  */
-class RioCloudObject constructor(val options: RioCloudObjectOptions) {
+class RioCloudObject constructor(val options: RioCloudObjectOptions, var response: Map<String, Any>?) {
 
     var user = RioCloudUserObjectState(options)
     var role = RioCloudRoleObjectState(options)
