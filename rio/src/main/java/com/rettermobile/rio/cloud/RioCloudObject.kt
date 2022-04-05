@@ -1,7 +1,10 @@
 package com.rettermobile.rio.cloud
 
-import com.rettermobile.rio.service.model.exception.NullBodyException
+import com.google.gson.Gson
+import com.rettermobile.rio.RioConfig
+import com.rettermobile.rio.RioLogger
 import com.rettermobile.rio.service.cloud.RioCloudServiceImp
+import com.rettermobile.rio.service.model.exception.NullBodyException
 import com.rettermobile.rio.util.RioActions
 import com.rettermobile.rio.util.RioHttpMethod
 import com.rettermobile.rio.util.TokenManager
@@ -22,38 +25,62 @@ class RioCloudObject constructor(val options: RioCloudObjectOptions, var respons
         noinline onSuccess: ((RioCloudSuccessResponse<T>) -> Unit)? = null,
         noinline onError: ((Throwable?) -> Unit)? = null
     ) {
+        if (callOptions.retry == null) callOptions.retry = RioConfig.retryConfig
+
         GlobalScope.launch {
             async(Dispatchers.IO) {
-                val res = runCatching {
-                    TokenManager.checkToken()
+                var delayMillis = (callOptions.retry!!.delay * callOptions.retry!!.rate).toLong()
 
-                    val accessToken = TokenManager.accessToken
+                for (i in 0..callOptions.retry!!.count) {
+                    RioLogger.log("RioCloudObject.call current try count: $i")
+                    val res = runCatching {
+                        TokenManager.checkToken()
 
-                    RioCloudServiceImp.exec(
-                        accessToken,
-                        RioActions.CALL,
-                        RioServiceParam(options, callOptions)
-                    )
-                }
+                        val accessToken = TokenManager.accessToken
 
-                if (res.isSuccess) {
-                    try {
-                        val response = res.getOrNull()
-
-                        if (response == null) {
-                            withContext(Dispatchers.Main) { onError?.invoke(NullBodyException("null body returned")) }
-                        } else {
-                            if (response.isSuccessful) {
-                                withContext(Dispatchers.Main) { onSuccess?.invoke(RioCloudSuccessResponse(response.headers(), response.code(), parseResponse(T::class.java, response.body()?.string()))) }
-                            } else {
-                                withContext(Dispatchers.Main) { onError?.invoke(RioErrorResponse(response.headers(), response.code(), response.errorBody()?.string())) }
-                            }
-                        }
-                    } catch (e: Exception) {
-                        withContext(Dispatchers.Main) { onError?.invoke(e) }
+                        RioCloudServiceImp.exec(
+                            accessToken,
+                            RioActions.CALL,
+                            RioServiceParam(options, callOptions)
+                        )
                     }
-                } else {
-                    withContext(Dispatchers.Main) { onError?.invoke(res.exceptionOrNull()) }
+
+                    if (res.isSuccess) {
+                        try {
+                            val response = res.getOrNull()
+
+                            if (response == null) {
+                                withContext(Dispatchers.Main) { onError?.invoke(NullBodyException("null body returned")) }
+                                break
+                            } else {
+                                if (response.isSuccessful) {
+                                    withContext(Dispatchers.Main) { onSuccess?.invoke(RioCloudSuccessResponse(response.headers(), response.code(), parseResponse(T::class.java, response.body()?.string()))) }
+                                    break
+                                } else {
+                                    if (response.code() == 570) {
+                                        if (i == callOptions.retry!!.count) {
+                                            RioLogger.log("RioCloudObject.call reached max retry count = $i and return exception")
+                                            withContext(Dispatchers.Main) { onError?.invoke(RioErrorResponse(response.headers(), response.code(), response.errorBody()?.string())) }
+                                            break
+                                        } else {
+                                            RioLogger.log("RioCloudObject.call delay($delayMillis millisecond) for attempt new request")
+                                            delay(delayMillis)
+                                            delayMillis = (delayMillis * callOptions.retry!!.rate).toLong()
+                                        }
+                                    } else {
+                                        withContext(Dispatchers.Main) { onError?.invoke(RioErrorResponse(response.headers(), response.code(), response.errorBody()?.string())) }
+                                        break
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            withContext(Dispatchers.Main) { onError?.invoke(e) }
+                            break
+                        }
+                    } else {
+                        withContext(Dispatchers.Main) { onError?.invoke(res.exceptionOrNull()) }
+                        break
+                    }
                 }
             }
         }

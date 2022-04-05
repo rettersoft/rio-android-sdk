@@ -1,5 +1,6 @@
 package com.rettermobile.rio.cloud
 
+import com.rettermobile.rio.service.RioRetryConfig
 import com.rettermobile.rio.util.RioHttpMethod
 
 /**
@@ -11,5 +12,6 @@ class RioCallMethodOptions constructor(
     var body: Any? = null,
     var headers: Map<String, String> = mapOf(),
     var queries: Map<String, String> = mapOf(),
-    var culture: String? = null
+    var culture: String? = null,
+    var retry: RioRetryConfig? = null
 )

@@ -7,10 +7,13 @@ import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.google.gson.Gson
+import com.rbs.android.example.network.TestResponse
 import com.rettermobile.rio.Rio
 import com.rettermobile.rio.RioLogger
+import com.rettermobile.rio.cloud.RioCallMethodOptions
 import com.rettermobile.rio.cloud.RioCloudObjectOptions
 import com.rettermobile.rio.cloud.RioErrorResponse
+import com.rettermobile.rio.service.RioRetryConfig
 
 class MainActivity : AppCompatActivity() {
 
@@ -44,6 +47,8 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
+        rio.signOut { isSuc, throwable -> }
+
         btnGetCloudCall = findViewById(R.id.btnGetCloudCall)
         signInAnonymously = findViewById(R.id.signInAnonymously)
         btnSignIn = findViewById(R.id.btnSignIn)
@@ -58,15 +63,28 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnGetCloudCall.setOnClickListener {
-            rio.getCloudObject(RioCloudObjectOptions(classId = "Ayhan"), onSuccess = {
-                Gson().toJson(it.response)
+            rio.getCloudObject(RioCloudObjectOptions(classId = "Success"), onSuccess = { cloudObj ->
 
-                it.listInstances(onSuccess = {
-                    RioLogger.log("RESPONSE CAME: ${Gson().toJson(it)}")
+                cloudObj.call<TestResponse>(RioCallMethodOptions(method = "sayHello", retry = RioRetryConfig(delay = 1000, count = 3)), onSuccess = {
+                    Log.e("", "")
                 }, onError = {
-                    RioLogger.log("ERROR CAME: ${it?.message}")
+                    Log.e("", "")
                 })
-            }, onError = {
+
+//                Gson().toJson(it.response)
+//
+//                it.listInstances(onSuccess = {
+//                    RioLogger.log("RESPONSE CAME: ${Gson().toJson(it)}")
+//                }, onError = {
+//                    RioLogger.log("ERROR CAME: ${it?.message}")
+//                })
+//
+//                cloudObj.user.subscribe(eventFired = {
+//
+//                }, errorFired = { throwable ->
+//
+//                })
+            }, onError = { throwable ->
             })
 //            User.getInstance(rio, onSuccess = {
 //                it.updateEmail(UserUpdateEmailRequest(), onSuccess = {

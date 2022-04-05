@@ -2,21 +2,25 @@ package com.rettermobile.rio
 
 import android.content.Context
 import android.text.TextUtils
-import com.rettermobile.rio.service.cloud.RioCloudRequestManager
 import com.rettermobile.rio.cloud.RioCloudObject
 import com.rettermobile.rio.cloud.RioCloudObjectOptions
-import com.rettermobile.rio.service.model.exception.CloudNullException
 import com.rettermobile.rio.model.RioClientAuthStatus
 import com.rettermobile.rio.model.RioUser
 import com.rettermobile.rio.service.RioNetworkConfig
+import com.rettermobile.rio.service.RioRetryConfig
 import com.rettermobile.rio.service.auth.RioAuthRequestManager
-import com.rettermobile.rio.util.*
+import com.rettermobile.rio.service.cloud.RioCloudRequestManager
+import com.rettermobile.rio.service.model.exception.CloudNullException
+import com.rettermobile.rio.util.Logger
+import com.rettermobile.rio.util.RioActions
+import com.rettermobile.rio.util.TokenManager
+import com.rettermobile.rio.util.then
 import kotlinx.coroutines.*
 
 /**
  * Created by semihozkoroglu on 22.11.2020.
  */
-class Rio(applicationContext: Context, projectId: String, culture: String? = null, config: RioNetworkConfig) {
+class Rio(applicationContext: Context, projectId: String, culture: String? = null, config: RioNetworkConfig, retryConfig: RioRetryConfig? = null) {
 
     private val job: Job = Job()
     private val scope = CoroutineScope(Dispatchers.Default + job)
@@ -26,6 +30,7 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
         RioConfig.projectId = projectId
         RioConfig.culture = culture ?: "en-us"
         RioConfig.config = config
+        RioConfig.retryConfig = retryConfig ?: RioRetryConfig()
 
         TokenManager.tokenUpdateListener = { sendAuthStatus() }
         TokenManager.clearListener = { signOut() }
