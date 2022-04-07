@@ -19,10 +19,10 @@ class App : Application() {
 
         rio = Rio(
             applicationContext = applicationContext,
-            projectId = "11c5e84qtq",
+            projectId = "6qub7mnar",
             culture= "en",
             config = RioNetworkConfig.build {
-                region = RioRegion.EU_WEST_1
+                region = RioRegion.EU_WEST_1_BETA
                 sslPinningEnabled = true
             }
         )

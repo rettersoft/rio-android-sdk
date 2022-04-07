@@ -11,7 +11,7 @@ class RioCallMethodOptions constructor(
     var httpMethod: RioHttpMethod = RioHttpMethod.POST,
     var body: Any? = null,
     var headers: Map<String, String> = mapOf(),
-    var queries: Map<String, String> = mapOf(),
+    var queries: Map<String, Any> = mapOf(),
     var culture: String? = null,
     var retry: RioRetryConfig? = null
 )

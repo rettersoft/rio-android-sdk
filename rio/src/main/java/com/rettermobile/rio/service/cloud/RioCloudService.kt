@@ -16,8 +16,7 @@ interface RioCloudService {
         @HeaderMap headers: Map<String, String>,
         @Query("_token") token: String?,
         @Query("__culture") culture: String,
-        @Query("__platform") platform: String = "Android",
-        @QueryMap queries: Map<String, String>
+        @Query("__platform") platform: String = "Android"
     ): Response<ResponseBody>
 
     @DELETE
@@ -27,7 +26,6 @@ interface RioCloudService {
         @Query("_token") token: String?,
         @Query("__culture") culture: String,
         @Query("__platform") platform: String = "Android",
-        @QueryMap queries: Map<String, String>,
         @Body payload: RequestBody
     ): Response<ResponseBody>
 
@@ -38,7 +36,6 @@ interface RioCloudService {
         @Query("_token") token: String?,
         @Query("__culture") culture: String,
         @Query("__platform") platform: String = "Android",
-        @QueryMap queries: Map<String, String>,
         @Body payload: RequestBody
     ): Response<ResponseBody>
 
@@ -49,7 +46,6 @@ interface RioCloudService {
         @Query("_token") token: String?,
         @Query("__culture") culture: String,
         @Query("__platform") platform: String = "Android",
-        @QueryMap queries: Map<String, String>,
         @Body payload: RequestBody
     ): Response<ResponseBody>
 }

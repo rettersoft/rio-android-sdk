@@ -17,7 +17,7 @@ class RioServiceParam {
     var httpMethod: RioHttpMethod = RioHttpMethod.POST
     var body: Any? = null
     var headers: Map<String, String> = mapOf()
-    var queries: Map<String, String> = mapOf()
+    var query: String? = null
 
     var path = ""
     var culture: String
@@ -31,7 +31,27 @@ class RioServiceParam {
         httpMethod = objectOptions.httpMethod
         body = objectOptions.body
         headers = objectOptions.headers
-        queries = objectOptions.queries
+
+        if (objectOptions.queries.isNotEmpty()) {
+            query = "?"
+
+            objectOptions.queries.forEach { (key, value) ->
+                when (value) {
+                    is Array<*> -> {
+                        value.forEach { query += "$key=${it.toString()}&" }
+                    }
+                    is List<*> -> {
+                        value.forEach { query += "$key=${it.toString()}&" }
+                    }
+                    else -> {
+                        query += "$key=$value&"
+                    }
+                }
+            }
+
+            query = query?.substring(0, query!!.length - 1)
+        }
+
         culture = objectOptions.culture ?: RioConfig.culture
 
         path += if (!objectOptions.instanceId.isNullOrEmpty()) {
@@ -51,7 +71,27 @@ class RioServiceParam {
         httpMethod = callOptions.httpMethod
         body = callOptions.body
         headers = callOptions.headers
-        queries = callOptions.queries
+
+        if (callOptions.queries.isNotEmpty()) {
+            query = "?"
+
+            callOptions.queries.forEach { (key, value) ->
+                when (value) {
+                    is Array<*> -> {
+                        value.forEach { query += "$key=${it.toString()}&" }
+                    }
+                    is List<*> -> {
+                        value.forEach { query += "$key=${it.toString()}&" }
+                    }
+                    else -> {
+                        query += "$key=$value&"
+                    }
+                }
+            }
+
+            query = query?.substring(0, query!!.length - 1)
+        }
+
         culture = callOptions.culture ?: RioConfig.culture
 
         path += if (!cloudOptions.instanceId.isNullOrEmpty()) {

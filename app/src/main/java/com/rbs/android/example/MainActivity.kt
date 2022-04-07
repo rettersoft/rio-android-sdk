@@ -14,6 +14,8 @@ import com.rettermobile.rio.cloud.RioCallMethodOptions
 import com.rettermobile.rio.cloud.RioCloudObjectOptions
 import com.rettermobile.rio.cloud.RioErrorResponse
 import com.rettermobile.rio.service.RioRetryConfig
+import com.rettermobile.rio.util.RioHttpMethod
+import okhttp3.internal.http.HttpMethod
 
 class MainActivity : AppCompatActivity() {
 
@@ -63,9 +65,17 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnGetCloudCall.setOnClickListener {
-            rio.getCloudObject(RioCloudObjectOptions(classId = "Success"), onSuccess = { cloudObj ->
+            rio.getCloudObject(RioCloudObjectOptions(classId = "QSyncTest"), onSuccess = { cloudObj ->
 
-                cloudObj.call<TestResponse>(RioCallMethodOptions(method = "sayHello", retry = RioRetryConfig(delay = 1000, count = 3)), onSuccess = {
+                val query = HashMap<String, Any>()
+
+                query.put("title", "HELLO NABER")
+                query.put("BOOL", true)
+                query.put("LONG", 100000)
+                query.put("typeList", listOf("SLOT", "XXX", "YYYY"))
+                query.put("IntList", listOf(1, 2, 3))
+
+                cloudObj.call<TestResponse>(RioCallMethodOptions(method = "sayHelloSync", httpMethod = RioHttpMethod.GET, queries = query, retry = RioRetryConfig(delay = 1000, count = 5, rate = 1.5)), onSuccess = {
                     Log.e("", "")
                 }, onError = {
                     Log.e("", "")

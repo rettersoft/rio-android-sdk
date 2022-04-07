@@ -74,11 +74,14 @@ class RioCloudObject constructor(val options: RioCloudObjectOptions, var respons
                                 }
                             }
                         } catch (e: Exception) {
+                            RioLogger.log("RioCloudObject.call exception: ${e.message}")
                             withContext(Dispatchers.Main) { onError?.invoke(e) }
                             break
                         }
                     } else {
-                        withContext(Dispatchers.Main) { onError?.invoke(res.exceptionOrNull()) }
+                        val exception = res.exceptionOrNull()
+                        RioLogger.log("RioCloudObject.call exception: ${exception?.message}")
+                        withContext(Dispatchers.Main) { onError?.invoke(exception) }
                         break
                     }
                 }
