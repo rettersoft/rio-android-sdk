@@ -1,7 +1,9 @@
 package com.rettermobile.rio.cloud
 
+import com.google.gson.Gson
 import com.rettermobile.rio.RioConfig
 import com.rettermobile.rio.util.RioHttpMethod
+import com.rettermobile.rio.util.getBase64EncodeString
 
 /**
  * Created by semihozkoroglu on 19.12.2021.
@@ -90,6 +92,16 @@ class RioServiceParam {
             }
 
             query = query?.substring(0, query!!.length - 1)
+        }
+
+        if (httpMethod == RioHttpMethod.GET) {
+            query += if (body != null) {
+                val requestJsonString = Gson().toJson(body)
+                val requestJsonStringEncoded = requestJsonString.getBase64EncodeString()
+                "__isbase64=true&data=$requestJsonStringEncoded"
+            } else {
+                "__isbase64=false"
+            }
         }
 
         culture = callOptions.culture ?: RioConfig.culture

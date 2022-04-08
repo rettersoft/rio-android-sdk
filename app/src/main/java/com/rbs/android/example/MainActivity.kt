@@ -7,6 +7,7 @@ import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.google.gson.Gson
+import com.rbs.android.example.network.TestRequest
 import com.rbs.android.example.network.TestResponse
 import com.rettermobile.rio.Rio
 import com.rettermobile.rio.RioLogger
@@ -69,13 +70,18 @@ class MainActivity : AppCompatActivity() {
 
                 val query = HashMap<String, Any>()
 
-                query.put("title", "HELLO NABER")
-                query.put("BOOL", true)
-                query.put("LONG", 100000)
-                query.put("typeList", listOf("SLOT", "XXX", "YYYY"))
-                query.put("IntList", listOf(1, 2, 3))
+                query["title"] = "HELLO NABER"
+                query["BOOL"] = true
+                query["LONG"] = 100000
+                query["typeList"] = listOf("SLOT", "XXX", "YYYY")
+                query["IntList"] = listOf(1, 2, 3)
 
-                cloudObj.call<TestResponse>(RioCallMethodOptions(method = "sayHelloSync", httpMethod = RioHttpMethod.GET, queries = query, retry = RioRetryConfig(delay = 1000, count = 5, rate = 1.5)), onSuccess = {
+                val body = TestRequest().apply {
+                    param1 = "Lorem ipsum"
+                    param2 = "Lorem ipsum 2"
+                }
+
+                cloudObj.call<TestResponse>(RioCallMethodOptions(method = "sayHelloSync", httpMethod = RioHttpMethod.GET, queries = query, body = body), onSuccess = {
                     Log.e("", "")
                 }, onError = {
                     Log.e("", "")
