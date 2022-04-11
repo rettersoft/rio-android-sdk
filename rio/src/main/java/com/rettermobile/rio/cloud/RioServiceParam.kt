@@ -95,12 +95,16 @@ class RioServiceParam {
         }
 
         if (httpMethod == RioHttpMethod.GET) {
+            if (query.isNullOrEmpty()) {
+                query = "?"
+            }
+
             query += if (body != null) {
                 val requestJsonString = Gson().toJson(body)
                 val requestJsonStringEncoded = requestJsonString.getBase64EncodeString()
-                "__isbase64=true&data=$requestJsonStringEncoded"
+                "&__isbase64=true&data=$requestJsonStringEncoded"
             } else {
-                "__isbase64=false"
+                "&__isbase64=false"
             }
         }
 
