@@ -5,6 +5,9 @@ import android.text.TextUtils
 import android.util.Base64
 import com.auth0.android.jwt.JWT
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.rettermobile.rio.cloud.RioErrorResponse
+import java.lang.reflect.Type
 
 /**
  * Created by semihozkoroglu on 15.02.2021.
@@ -27,10 +30,10 @@ fun isForegrounded(): Boolean {
 
 infix fun <T> Boolean.then(param: T): T? = if (this) param else null
 
-fun <T> parseResponse(clazz: Class<T>, json: String?): T? {
+fun <T> parseResponse(type: Type, json: String?): T? {
     if (json.isNullOrEmpty()) return null
 
-    return Gson().fromJson(json, clazz)
+    return Gson().fromJson(json, type)
 }
 
 fun String.jwtIat(): Long? {

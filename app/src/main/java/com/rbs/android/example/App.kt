@@ -22,7 +22,7 @@ class App : Application() {
             projectId = "6qub7mnar",
             culture= "en",
             config = RioNetworkConfig.build {
-                region = RioRegion.EU_WEST_1_BETA
+                region = RioRegion.EU_WEST_1
                 sslPinningEnabled = true
             }
         )

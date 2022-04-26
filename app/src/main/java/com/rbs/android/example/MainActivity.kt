@@ -7,6 +7,7 @@ import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.rbs.android.example.network.TestRequest
 import com.rbs.android.example.network.TestResponse
 import com.rettermobile.rio.Rio
@@ -66,22 +67,27 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnGetCloudCall.setOnClickListener {
-            rio.getCloudObject(RioCloudObjectOptions(classId = "QSyncTest"), onSuccess = { cloudObj ->
+            rio.getCloudObject(RioCloudObjectOptions(classId = "CMS"), onSuccess = { cloudObj ->
 
-                val query = HashMap<String, Any>()
+//                val query = HashMap<String, Any>()
+//
+//                query["title"] = "HELLO NABER"
+//                query["BOOL"] = true
+//                query["LONG"] = 100000
+//                query["typeList"] = listOf("SLOT", "XXX", "YYYY")
+//                query["IntList"] = listOf(1, 2, 3)
+//
+//                val body = TestRequest().apply {
+//                    param1 = "Lorem ipsum"
+//                    param2 = "Lorem ipsum 2"
+//                }
 
-                query["title"] = "HELLO NABER"
-                query["BOOL"] = true
-                query["LONG"] = 100000
-                query["typeList"] = listOf("SLOT", "XXX", "YYYY")
-                query["IntList"] = listOf(1, 2, 3)
+                val type = object : TypeToken<List<TestResponse>?>() {}.type
 
-                val body = TestRequest().apply {
-                    param1 = "Lorem ipsum"
-                    param2 = "Lorem ipsum 2"
-                }
+                cloudObj.call<List<TestResponse?>>(RioCallMethodOptions(method = "getPromotions", type = type), onSuccess = {
+//                    val data = Gson().toJson(it.body)
+//                    Gson().fromJson<List<TestResponse>?>(data, type)
 
-                cloudObj.call<TestResponse>(RioCallMethodOptions(method = "sayHelloSync", httpMethod = RioHttpMethod.GET, queries = query, body = body), onSuccess = {
                     Log.e("", "")
                 }, onError = {
                     Log.e("", "")

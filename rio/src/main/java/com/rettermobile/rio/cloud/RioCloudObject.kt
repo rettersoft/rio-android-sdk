@@ -54,7 +54,13 @@ class RioCloudObject constructor(val options: RioCloudObjectOptions, var respons
                                 break
                             } else {
                                 if (response.isSuccessful) {
-                                    withContext(Dispatchers.Main) { onSuccess?.invoke(RioCloudSuccessResponse(response.headers(), response.code(), parseResponse(T::class.java, response.body()?.string()))) }
+                                    val clazz = if (callOptions.type != null) {
+                                        callOptions.type
+                                    } else {
+                                        T::class.java
+                                    }
+
+                                    withContext(Dispatchers.Main) { onSuccess?.invoke(RioCloudSuccessResponse(response.headers(), response.code(), parseResponse(clazz!!, response.body()?.string()))) }
                                     break
                                 } else {
                                     if (response.code() == 570) {
