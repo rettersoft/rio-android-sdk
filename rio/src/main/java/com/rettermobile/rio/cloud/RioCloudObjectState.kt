@@ -40,9 +40,7 @@ sealed class RioCloudObjectState constructor(params: RioCloudObjectOptions) {
         successEvent = eventFired
         errorEvent = errorFired
 
-        if (document == null) {
-            document = RioFirebaseManager.getDocument(path)
-        }
+        document = RioFirebaseManager.getDocument(path)
 
         listener?.remove()
         listener = document?.addSnapshotListener { value, error ->
