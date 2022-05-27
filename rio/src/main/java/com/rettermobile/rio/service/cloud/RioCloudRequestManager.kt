@@ -20,7 +20,7 @@ object RioCloudRequestManager {
     ): RioCloudObject {
         TokenManager.checkToken()
 
-        val foundedObj = cloudObjects.find { it.options.instanceId == options.instanceId }
+        val foundedObj = cloudObjects.find { it.options.instanceId == options.instanceId && it.options.classId == options.classId }
         return foundedObj?.let {
             RioLogger.log("RBSCloudManager.exec cloudObjects returned from list")
             it
@@ -50,7 +50,7 @@ object RioCloudRequestManager {
 
                             val instanceRes = Gson().fromJson(result, RioInstanceResponse::class.java)
 
-                            cloudObjects.find { it.options.instanceId == instanceRes.instanceId }
+                            cloudObjects.find { it.options.instanceId == instanceRes.instanceId  && it.options.classId == options.classId }
                                 ?: kotlin.run {
                                     RioCloudObject(
                                         RioCloudObjectOptions(
