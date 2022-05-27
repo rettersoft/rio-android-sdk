@@ -57,7 +57,7 @@ object RioCloudRequestManager {
                                             classId = options.classId!!,
                                             instanceId = instanceRes.instanceId
                                         ),
-                                        instanceRes.response
+                                        instanceRes
                                     ).apply {
                                         cloudObjects.add(this)
                                     }

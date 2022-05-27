@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.rettermobile.rio.RioConfig
 import com.rettermobile.rio.RioLogger
 import com.rettermobile.rio.service.cloud.RioCloudServiceImp
+import com.rettermobile.rio.service.model.RioInstanceResponse
 import com.rettermobile.rio.service.model.exception.NullBodyException
 import com.rettermobile.rio.util.RioActions
 import com.rettermobile.rio.util.RioHttpMethod
@@ -14,7 +15,7 @@ import kotlinx.coroutines.*
 /**
  * Created by semihozkoroglu on 13.12.2021.
  */
-class RioCloudObject constructor(val options: RioCloudObjectOptions, var response: Map<String, Any>?) {
+class RioCloudObject constructor(val options: RioCloudObjectOptions, var instance: RioInstanceResponse?) {
 
     var user = RioCloudUserObjectState(options)
     var role = RioCloudRoleObjectState(options)
