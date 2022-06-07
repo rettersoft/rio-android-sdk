@@ -1,5 +1,6 @@
 package com.rettermobile.rio
 
+import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
 
@@ -11,7 +12,7 @@ object Preferences {
     }
 
     // default mode private
-    var pref: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(RioConfig.applicationContext)
+    var pref: SharedPreferences = RioConfig.applicationContext.getSharedPreferences("rio-preferences", MODE_PRIVATE)
 
     fun getString(key: String, defValue: String): String? {
         return pref.getString(key, defValue)
