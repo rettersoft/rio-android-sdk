@@ -9,7 +9,8 @@ import okhttp3.Interceptor
 class RioNetworkConfig(
     var region: RioRegion = RioRegion.EU_WEST_1,
     var sslPinningEnabled: Boolean = true,
-    var interceptor: Interceptor? = null
+    var interceptor: Interceptor? = null,
+    var firebaseEnable: Boolean = true,
 ) {
     private constructor(builder: Builder) : this(
         builder.region,

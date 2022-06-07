@@ -18,6 +18,8 @@ object RioFirebaseManager {
     private var auth: FirebaseAuth? = null
 
     suspend fun authenticate(fireInfo: RioFirebase?) {
+        if (!RioConfig.config.firebaseEnable) return
+
         if (fireInfo == null) return
 
         RioLogger.log("RBSFirebaseManager.authenticate STARTED")

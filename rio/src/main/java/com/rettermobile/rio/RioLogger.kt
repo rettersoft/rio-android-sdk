@@ -14,7 +14,7 @@ object RioLogger {
     private val logger = object : Logger {
         override fun log(message: String) {
             if (showLog) {
-                Log.v("RBSService", message)
+                Log.v("RIOService", message)
                 logListener?.log(message)
             }
         }
