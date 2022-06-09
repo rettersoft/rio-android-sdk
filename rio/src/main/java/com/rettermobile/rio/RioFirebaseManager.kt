@@ -24,9 +24,6 @@ object RioFirebaseManager {
 
         RioLogger.log("RBSFirebaseManager.authenticate STARTED")
 
-        auth?.signOut()
-        app?.delete()
-
         app = FirebaseApp.initializeApp(
             RioConfig.applicationContext, FirebaseOptions.Builder()
                 .setProjectId(fireInfo.projectId!!)
