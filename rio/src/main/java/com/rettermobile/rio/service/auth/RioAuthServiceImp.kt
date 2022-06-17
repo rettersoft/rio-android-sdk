@@ -33,7 +33,15 @@ object RioAuthServiceImp {
 
         val userId = customToken.jwtUserId()
 
-        return api.auth("root/CALL/ProjectUser/authWithCustomToken/${RioConfig.projectId}_${userId}", customToken, RioConfig.culture)
+        return api.auth(
+            "root/CALL/ProjectUser/authWithCustomToken/${RioConfig.projectId}${
+                if (userId.isNullOrEmpty()) {
+                    ""
+                } else {
+                    "_$userId"
+                }
+            }", customToken, RioConfig.culture
+        )
     }
 
     suspend fun signOut(): ResponseBody {
