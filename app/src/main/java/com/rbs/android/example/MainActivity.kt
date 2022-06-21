@@ -67,7 +67,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnGetCloudCall.setOnClickListener {
-            rio.getCloudObject(RioCloudObjectOptions(classId = "CMS"), onSuccess = { cloudObj ->
+            rio.getCloudObject(RioCloudObjectOptions(classId = "StaticIpTest", instanceId = "01g62kddrakdb4ebt02bnqee1g"), onSuccess = { cloudObj ->
 
 //                val query = HashMap<String, Any>()
 //
@@ -84,7 +84,7 @@ class MainActivity : AppCompatActivity() {
 
                 val type = object : TypeToken<List<TestResponse>?>() {}.type
 
-                cloudObj.call<List<TestResponse?>>(RioCallMethodOptions(method = "getPromotions", type = type), onSuccess = {
+                cloudObj.call<TestResponse>(RioCallMethodOptions(method = "sayHello", type = type), onSuccess = {
 //                    val data = Gson().toJson(it.body)
 //                    Gson().fromJson<List<TestResponse>?>(data, type)
 
