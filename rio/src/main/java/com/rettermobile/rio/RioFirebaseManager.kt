@@ -1,11 +1,15 @@
 package com.rettermobile.rio
 
 import com.google.firebase.FirebaseApp
+import com.google.firebase.FirebaseAppLifecycleListener
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.rettermobile.rio.service.model.RioFirebase
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -25,8 +29,20 @@ object RioFirebaseManager {
         RioLogger.log("RBSFirebaseManager.authenticate STARTED")
 
         auth?.signOut()
-        app?.delete()
+//        app?.delete()
+//        initApp(fireInfo)
 
+        coroutineScope { }
+
+        app?.let {
+            app?.addLifecycleEventListener { firebaseAppName, options ->
+                GlobalScope.launch { initApp(fireInfo) }
+            }
+            app?.delete()
+        } ?: run { initApp(fireInfo) }
+    }
+
+    private suspend fun initApp(fireInfo: RioFirebase) {
         app = FirebaseApp.initializeApp(
             RioConfig.applicationContext, FirebaseOptions.Builder()
                 .setProjectId(fireInfo.projectId!!)
