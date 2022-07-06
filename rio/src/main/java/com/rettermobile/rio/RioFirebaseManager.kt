@@ -1,7 +1,6 @@
 package com.rettermobile.rio
 
 import com.google.firebase.FirebaseApp
-import com.google.firebase.FirebaseAppLifecycleListener
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
@@ -28,13 +27,15 @@ object RioFirebaseManager {
 
         RioLogger.log("RBSFirebaseManager.authenticate STARTED")
 
-        auth?.signOut()
-
         app?.let {
-            app?.addLifecycleEventListener { firebaseAppName, options ->
-                GlobalScope.launch { initApp(fireInfo) }
+            coroutineScope {
+                it.addLifecycleEventListener { appName, options ->
+                    if (appName.equals("rio-sdk")) {
+                        launch { initApp(fireInfo) }
+                    }
+                }
             }
-            app?.delete()
+            it.delete()
         } ?: run { initApp(fireInfo) }
     }
 
