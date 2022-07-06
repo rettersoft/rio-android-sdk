@@ -29,10 +29,6 @@ object RioFirebaseManager {
         RioLogger.log("RBSFirebaseManager.authenticate STARTED")
 
         auth?.signOut()
-//        app?.delete()
-//        initApp(fireInfo)
-
-        coroutineScope { }
 
         app?.let {
             app?.addLifecycleEventListener { firebaseAppName, options ->
