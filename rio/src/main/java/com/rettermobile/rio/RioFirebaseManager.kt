@@ -54,6 +54,8 @@ object RioFirebaseManager {
     }
 
     fun signOut() {
+        app?.delete()
+        app = null
         auth?.signOut()
         auth = null
     }
