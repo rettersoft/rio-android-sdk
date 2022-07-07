@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
 
         rio.setOnClientAuthStatusChangeListener { rbsClientAuthStatus, rbsUser ->
             RioLogger.log(
-                "rbsClientAuthStatus: $rbsClientAuthStatus rbsUser: ${
+                "RIOClientAuthStatus: $rbsClientAuthStatus rbsUser: ${
                     Gson().toJson(
                         rbsUser
                     )

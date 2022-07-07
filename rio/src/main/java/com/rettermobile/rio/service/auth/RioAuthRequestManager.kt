@@ -12,14 +12,14 @@ object RioAuthRequestManager {
     suspend fun authenticate(customToken: String) {
         TokenManager.authenticate(customToken)
 
-        RioLogger.log("RBSAuthRequestManager.authenticate OK")
+        RioLogger.log("RIOAuthRequestManager.authenticate OK")
     }
 
     // Call with runCatching
     suspend fun signInAnonymously(): String {
         TokenManager.checkToken()
 
-        RioLogger.log("RBSAuthRequestManager.signInAnonymously OK")
+        RioLogger.log("RIOAuthRequestManager.signInAnonymously OK")
 
         return "Success"
     }
@@ -27,7 +27,7 @@ object RioAuthRequestManager {
     suspend fun signOut(): String {
         val res = runCatching { RioAuthServiceImp.signOut() }
 
-        RioLogger.log("RBSAuthRequestManager.signOut OK")
+        RioLogger.log("RIOAuthRequestManager.signOut OK")
 
         return if (res.isSuccess) {
             "OK"

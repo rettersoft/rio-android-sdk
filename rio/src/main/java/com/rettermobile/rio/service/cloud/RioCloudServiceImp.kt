@@ -27,15 +27,15 @@ object RioCloudServiceImp {
     ): Response<ResponseBody> {
         RioLogger.log("getCloud $action started")
 
-        RioLogger.log("RBSCloudManager.exec projectId: ${RioConfig.projectId}")
-        RioLogger.log("RBSCloudManager.exec accessToken: $accessToken")
-        RioLogger.log("RBSCloudManager.exec action: $action")
-        RioLogger.log("RBSCloudManager.exec classId: ${params.classId}")
-        RioLogger.log("RBSCloudManager.exec methodId: ${params.method}")
-        RioLogger.log("RBSCloudManager.exec instanceId: ${params.instanceId}")
-        RioLogger.log("RBSCloudManager.exec headers: ${Gson().toJson(params.headers)}")
-        RioLogger.log("RBSCloudManager.exec queries: ${Gson().toJson(params.query)}")
-        RioLogger.log("RBSCloudManager.exec body: ${Gson().toJson(params.body)}")
+        RioLogger.log("RIOCloudManager.exec projectId: ${RioConfig.projectId}")
+        RioLogger.log("RIOCloudManager.exec accessToken: $accessToken")
+        RioLogger.log("RIOCloudManager.exec action: $action")
+        RioLogger.log("RIOCloudManager.exec classId: ${params.classId}")
+        RioLogger.log("RIOCloudManager.exec methodId: ${params.method}")
+        RioLogger.log("RIOCloudManager.exec instanceId: ${params.instanceId}")
+        RioLogger.log("RIOCloudManager.exec headers: ${Gson().toJson(params.headers)}")
+        RioLogger.log("RIOCloudManager.exec queries: ${Gson().toJson(params.query)}")
+        RioLogger.log("RIOCloudManager.exec body: ${Gson().toJson(params.body)}")
 
         val body: RequestBody = if (params.body == null) {
             "".toRequestBody("application/json; charset=utf-8".toMediaType())
