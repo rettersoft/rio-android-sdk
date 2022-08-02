@@ -1,7 +1,6 @@
 package com.rettermobile.rbs.service
 
 import android.text.TextUtils
-import android.util.Log
 import com.google.gson.Gson
 import com.rettermobile.rbs.model.RBSCulture
 import com.rettermobile.rbs.service.model.RBSTokenResponse
@@ -32,10 +31,14 @@ class RBSServiceImp constructor(
         accessToken: String? = null,
         action: String,
         requestJsonString: String,
-        headers: Map<String, String>,
+        headerItems: Map<String, String>,
         culture: RBSCulture? = null,
         requestType: RequestType
     ): Result<ResponseBody?> {
+        val headers = HashMap(headerItems).apply {
+            accessToken?.let { put("x-rbs-token", it) }
+        }
+
         logger.log("executeAction $action started")
         return runCatching {
             action.split(".").let {
