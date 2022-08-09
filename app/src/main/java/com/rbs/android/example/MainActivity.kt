@@ -7,10 +7,8 @@ import android.widget.ProgressBar
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
-import androidx.core.widget.ContentLoadingProgressBar
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
-import com.rbs.android.example.network.TestRequest
 import com.rbs.android.example.network.TestResponse
 import com.rettermobile.rbs.RBS
 import com.rettermobile.rbs.RBSLogger
@@ -122,26 +120,44 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnGetCloudCall.setOnClickListener {
-            if (cloudObj == null) {
-                createCloudObject()
-            } else {
-                cloudObj?.call<TestResponse>(
-                    options = RBSCallMethodOptions(
-                        method = "sayHello",
-                        body = TestRequest()
-                    ),
-                    onSuccess = {
-                        val headers = it.headers()
-                        val code = it.code()
-                        val body = it.body()
-
-                        RBSLogger.log("HEADERS ${Gson().toJson(headers)}")
-                        RBSLogger.log("CODE ${Gson().toJson(code)}")
-                        RBSLogger.log("BODY ${Gson().toJson(body)}")
-                    }, onError = {
-                        // ConnectionTimeOut
-                    })
-            }
+            rbs.sendAction(action = "rbs.get.get.abs", data = hashMapOf<String, Any>().apply {
+                this["c"] = "c"
+                this["ac"] = "ac"
+                this["aa"] = "aa"
+                this["df"] = "df"
+                this["ab"] = hashMapOf<String, Any>().apply {
+                    this["c"] = "c"
+                    this["ac"] = "ac"
+                    this["aa"] = "aa"
+                    this["df"] = "df"
+                    this["ab"] = hashMapOf<String, String>().apply {
+                        this["c"] = "c"
+                        this["ac"] = "ac"
+                        this["aa"] = "aa"
+                        this["df"] = "df"
+                    }
+                }
+            })
+//            if (cloudObj == null) {
+//                createCloudObject()
+//            } else {
+//                cloudObj?.call<TestResponse>(
+//                    options = RBSCallMethodOptions(
+//                        method = "sayHello",
+//                        body = TestRequest()
+//                    ),
+//                    onSuccess = {
+//                        val headers = it.headers()
+//                        val code = it.code()
+//                        val body = it.body()
+//
+//                        RBSLogger.log("HEADERS ${Gson().toJson(headers)}")
+//                        RBSLogger.log("CODE ${Gson().toJson(code)}")
+//                        RBSLogger.log("BODY ${Gson().toJson(body)}")
+//                    }, onError = {
+//                        // ConnectionTimeOut
+//                    })
+//            }
         }
 
         btnSignOut.setOnClickListener { rbs.signOut() }

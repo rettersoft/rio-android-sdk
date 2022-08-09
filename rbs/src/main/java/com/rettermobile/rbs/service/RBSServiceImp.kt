@@ -1,6 +1,10 @@
 package com.rettermobile.rbs.service
 
 import android.text.TextUtils
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.MapperFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.google.gson.Gson
 import com.rettermobile.rbs.RBSConfig
 import com.rettermobile.rbs.RBSLogger
@@ -11,6 +15,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
+
 
 /**
  * Created by semihozkoroglu on 22.11.2020.
@@ -24,21 +29,27 @@ object RBSServiceImp {
         accessToken: String? = null,
         action: String,
         requestJsonString: String,
-        headers: Map<String, String>,
+        headerItems: Map<String, String>,
         culture: RBSCulture? = null
     ): Result<ResponseBody?> {
+        val headers = HashMap(headerItems).apply {
+            accessToken?.let { put("x-rbs-token", it) }
+        }
+
         RBSLogger.log("executeAction $action started")
         return runCatching {
             action.split(".").let {
                 if (it.size > 3) {
                     if (TextUtils.equals(it[2], "get")) {
-                        val requestEncodedJsonString = requestJsonString.getBase64EncodeString()
+                        val sortedJson = toJSON(requestJsonString)
+
+                        val requestEncodedJsonString = sortedJson.getBase64EncodeString()
 
                         RBSLogger.log("getAction projectId: ${RBSConfig.projectId}")
                         RBSLogger.log("getAction action: $action")
                         RBSLogger.log("getAction accessToken: $accessToken")
                         RBSLogger.log("getAction headers: ${Gson().toJson(headers)}")
-                        RBSLogger.log("getAction body: $requestJsonString")
+                        RBSLogger.log("getAction body: $sortedJson")
                         RBSLogger.log("getAction bodyEncoded: $requestEncodedJsonString")
 
                         networkPost.getAction(
@@ -88,5 +99,21 @@ object RBSServiceImp {
     suspend fun authWithCustomToken(customToken: String): Result<RBSTokenResponse> {
         RBSLogger.log("authWithCustomToken started")
         return kotlin.runCatching { networkGet.auth(customToken) }
+    }
+}
+
+fun toJSON(obj: String): String {
+    return try {
+        val mapper = ObjectMapper().apply {
+            configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
+            configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true)
+        }
+
+        val type = object : TypeReference<Map<String, Any>>() {}
+        val res = mapper.readValue(obj, type)
+
+        mapper.writeValueAsString(res)
+    } catch (e: Exception) {
+        obj
     }
 }
