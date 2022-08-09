@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.rettermobile.rio.RioConfig
 import com.rettermobile.rio.util.RioHttpMethod
 import com.rettermobile.rio.util.getBase64EncodeString
+import com.rettermobile.rio.util.sortAlphabetically
 
 /**
  * Created by semihozkoroglu on 19.12.2021.
@@ -100,7 +101,7 @@ class RioServiceParam {
             }
 
             query += if (body != null) {
-                val requestJsonString = Gson().toJson(body)
+                val requestJsonString = Gson().toJson(body).sortAlphabetically()
                 val requestJsonStringEncoded = requestJsonString.getBase64EncodeString()
                 "&__isbase64=true&data=$requestJsonStringEncoded"
             } else {

@@ -4,9 +4,11 @@ import android.app.ActivityManager
 import android.text.TextUtils
 import android.util.Base64
 import com.auth0.android.jwt.JWT
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.MapperFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import com.rettermobile.rio.cloud.RioErrorResponse
 import java.lang.reflect.Type
 
 /**
@@ -58,4 +60,20 @@ fun String.jwtAnonymous(): Boolean? {
     val jwtAccess = JWT(this)
 
     return jwtAccess.getClaim("anonymous").asBoolean()
+}
+
+fun String.sortAlphabetically(): String {
+    return try {
+        val mapper = ObjectMapper().apply {
+            configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
+            configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true)
+        }
+
+        val type = object : TypeReference<Map<String, Any>>() {}
+        val res = mapper.readValue(this, type)
+
+        mapper.writeValueAsString(res)
+    } catch (e: Exception) {
+        this
+    }
 }

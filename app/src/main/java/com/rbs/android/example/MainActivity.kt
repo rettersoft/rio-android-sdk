@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.rbs.android.example.network.Images
 import com.rbs.android.example.network.TestRequest
 import com.rbs.android.example.network.TestResponse
 import com.rettermobile.rio.Rio
@@ -84,7 +85,9 @@ class MainActivity : AppCompatActivity() {
 
                 val type = object : TypeToken<List<TestResponse>?>() {}.type
 
-                cloudObj.call<TestResponse>(RioCallMethodOptions(method = "sayHello", type = type), onSuccess = {
+                cloudObj.call<TestResponse>(RioCallMethodOptions(method = "sayHello", type = type, httpMethod = RioHttpMethod.GET, body = TestResponse(arrayListOf<Images>().apply {
+                    add(Images("ids", "url"))
+                }, "CampaignName", "CampaignDescription")), onSuccess = {
 //                    val data = Gson().toJson(it.body)
 //                    Gson().fromJson<List<TestResponse>?>(data, type)
 
