@@ -70,6 +70,11 @@ class MainActivity : AppCompatActivity() {
         btnGetCloudCall.setOnClickListener {
             rio.getCloudObject(RioCloudObjectOptions(classId = "StaticIpTest", instanceId = "01g62kddrakdb4ebt02bnqee1g"), onSuccess = { cloudObj ->
 
+                cloudObj.user.subscribe(eventFired = {
+
+                }, errorFired = {
+
+                })
 //                val query = HashMap<String, Any>()
 //
 //                query["title"] = "HELLO NABER"

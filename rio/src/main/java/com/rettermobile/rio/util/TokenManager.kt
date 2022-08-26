@@ -197,7 +197,7 @@ object TokenManager {
                     tokenInfo = res.getOrNull()
                     calculateDelta()
                 } else {
-                    RioLogger.log(" TokenManager.checkToken refreshToken fail signOut called")
+                    RioLogger.log("TokenManager.checkToken refreshToken fail signOut called")
 
                     RioLogger.log("TokenManager.checkToken refreshToken fail")
 
