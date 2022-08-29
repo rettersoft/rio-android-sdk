@@ -112,7 +112,7 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
         scope.launch(CoroutineExceptionHandler { _, e ->
             RioLogger.log("ExceptionHandler#sendAuthStatus: ${e.message} \nStackTrace: ${e.stackTraceToString()}")
         }) {
-            TokenManager.user?.let { user ->
+            TokenManager.user()?.let { user ->
                 withContext(Dispatchers.Main) {
                     listener?.invoke(
                         user.isAnonymous then RioClientAuthStatus.SIGNED_IN_ANONYMOUSLY

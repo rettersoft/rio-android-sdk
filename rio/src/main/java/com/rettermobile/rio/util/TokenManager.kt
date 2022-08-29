@@ -24,41 +24,9 @@ object TokenManager {
 
     private val gson = Gson()
 
-    val isSignedIn: Boolean
-        get() = tokenInfo != null
-
-    val accessToken: String?
-        get() {
-            return tokenInfo?.accessToken
-        }
-
-    private val deltaTime: Long
-        get() {
-            return Preferences.getLong(Preferences.Keys.TOKEN_INFO_DELTA, 0)
-        }
-
-    val userId: String?
-        get() = tokenInfo?.accessToken?.jwtUserId()
-
-    val userIdentity: String?
-        get() = tokenInfo?.accessToken?.jwtIdentity()
-
-    val user: RioUser?
-        get() {
-            return tokenInfo?.let {
-                val userId = it.accessToken.jwtUserId()
-                val anonymous = it.accessToken.jwtAnonymous()
-
-                RioUser(userId, anonymous ?: true)
-            } ?: kotlin.run { null }
-        }
-
-    private val refreshToken: String?
-        get() = tokenInfo?.refreshToken
-
     private var tokenInfo: RioTokenModel? = null
         set(value) {
-            val isStatusChanged = value?.accessToken?.jwtUserId() != userId
+            val isStatusChanged = value?.accessToken?.jwtUserId() != userId()
 
             field = value
 
@@ -74,7 +42,7 @@ object TokenManager {
             }
 
             if (isStatusChanged) {
-                RioLogger.log("TokenManager.setValue isStatusChanged: true user:${Gson().toJson(user)}")
+                RioLogger.log("TokenManager.setValue isStatusChanged: true user:${Gson().toJson(user())}")
                 tokenUpdateListener?.invoke()
             } else {
                 RioLogger.log("TokenManager.setValue isStatusChanged: false")
@@ -99,7 +67,7 @@ object TokenManager {
     }
 
     fun calculateDelta() {
-        accessToken?.jwtIat()?.let { iat ->
+        accessToken()?.jwtIat()?.let { iat ->
             val diff = (System.currentTimeMillis() / 1000) - iat
             RioLogger.log("TokenManager.tokenInfo set time difference $diff")
             Preferences.setLong(Preferences.Keys.TOKEN_INFO_DELTA, diff)
@@ -114,7 +82,7 @@ object TokenManager {
         val jwtAccess = JWT(tokenInfo!!.accessToken)
         val accessTokenExpiresAt = jwtAccess.getClaim("exp").asLong()!!
 
-        val now = (System.currentTimeMillis() / 1000) - deltaTime + 30
+        val now = (System.currentTimeMillis() / 1000) - deltaTime() + 30
 
         val isExpired =
             now >= accessTokenExpiresAt  // now + 280 -> only wait 20 seconds for debugging
@@ -123,7 +91,7 @@ object TokenManager {
         RioLogger.log("TokenManager.isAccessTokenExpired accessTokenExpiresAt: $accessTokenExpiresAt")
         RioLogger.log("TokenManager.isAccessTokenExpired now: $now")
         RioLogger.log("TokenManager.isAccessTokenExpired isExpired: $isExpired")
-        RioLogger.log("TokenManager.isAccessTokenExpired diff: $deltaTime")
+        RioLogger.log("TokenManager.isAccessTokenExpired diff: ${deltaTime()}")
 
         return isExpired
     }
@@ -132,7 +100,7 @@ object TokenManager {
         val jwtAccess = JWT(token.refreshToken)
         val refreshTokenExpiresAt = jwtAccess.getClaim("exp").asLong()!!
 
-        val now = (System.currentTimeMillis() / 1000) - deltaTime + 24 * 60 * 60
+        val now = (System.currentTimeMillis() / 1000) - deltaTime() + 24 * 60 * 60
 
         val isExpired = now >= refreshTokenExpiresAt  // now + 280 -> only wait 20 seconds for debugging
 
@@ -140,7 +108,7 @@ object TokenManager {
         RioLogger.log("TokenManager.isRefreshTokenExpired refreshTokenExpiresAt: $refreshTokenExpiresAt")
         RioLogger.log("TokenManager.isRefreshTokenExpired now: $now")
         RioLogger.log("TokenManager.isRefreshTokenExpired isExpired: $isExpired")
-        RioLogger.log("TokenManager.isRefreshTokenExpired diff: $deltaTime")
+        RioLogger.log("TokenManager.isRefreshTokenExpired diff: ${deltaTime()}")
 
         return isExpired
     }
@@ -170,7 +138,7 @@ object TokenManager {
         availableRest.acquire()
         RioLogger.log("TokenManager.checkToken started")
 
-        if (TextUtils.isEmpty(accessToken)) {
+        if (TextUtils.isEmpty(accessToken())) {
             val res = runCatching { RioAuthServiceImp.getAnonymousToken() }
 
             if (res.isSuccess) {
@@ -189,7 +157,7 @@ object TokenManager {
             }
         } else {
             if (isAccessTokenExpired()) {
-                val res = runCatching { RioAuthServiceImp.refreshToken(refreshToken!!) }
+                val res = runCatching { RioAuthServiceImp.refreshToken(tokenInfo?.refreshToken!!) }
 
                 if (res.isSuccess) {
                     RioLogger.log("TokenManager.checkToken refreshToken success")
@@ -219,5 +187,22 @@ object TokenManager {
     fun clear() {
         RioLogger.log("token cleared")
         tokenInfo = null
+    }
+
+    fun accessToken() = tokenInfo?.accessToken
+
+    private fun deltaTime() = Preferences.getLong(Preferences.Keys.TOKEN_INFO_DELTA, 0)
+
+    fun userId() = tokenInfo?.accessToken?.jwtUserId()
+
+    fun userIdentity() = tokenInfo?.accessToken?.jwtIdentity()
+
+    fun user(): RioUser? {
+        return tokenInfo?.let {
+            val userId = it.accessToken.jwtUserId()
+            val anonymous = it.accessToken.jwtAnonymous()
+
+            RioUser(userId, anonymous ?: true)
+        } ?: kotlin.run { null }
     }
 }

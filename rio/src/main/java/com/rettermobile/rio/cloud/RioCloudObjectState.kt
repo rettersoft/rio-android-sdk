@@ -27,9 +27,9 @@ sealed class RioCloudObjectState constructor(params: RioCloudObjectOptions) {
         path = "/projects/${RioConfig.projectId}/classes/$classId/instances/$instanceId/"
 
         if (this is RioCloudUserObjectState) {
-            path += "userState/${TokenManager.userId}"
+            path += "userState/${TokenManager.userId()}"
         } else if (this is RioCloudRoleObjectState) {
-            path += "roleState/${TokenManager.userIdentity}"
+            path += "roleState/${TokenManager.userIdentity()}"
         }
     }
 

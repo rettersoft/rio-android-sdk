@@ -25,7 +25,7 @@ object RioAuthServiceImp {
     suspend fun refreshToken(refreshToken: String): RioTokenModel {
         RioLogger.log("refreshToken started")
 
-        return api.refresh("root/CALL/ProjectUser/refreshToken/${RioConfig.projectId}_${TokenManager.userId}", refreshToken, RioConfig.culture)
+        return api.refresh("root/CALL/ProjectUser/refreshToken/${RioConfig.projectId}_${TokenManager.userId()}", refreshToken, RioConfig.culture)
     }
 
     suspend fun authWithCustomToken(customToken: String): RioTokenModel {
@@ -47,6 +47,6 @@ object RioAuthServiceImp {
     suspend fun signOut(): ResponseBody {
         RioLogger.log("authWithCustomToken started")
 
-        return api.signOut("root/CALL/ProjectUser/signOut/${RioConfig.projectId}_${TokenManager.userId}", TokenManager.accessToken, RioConfig.culture)
+        return api.signOut("root/CALL/ProjectUser/signOut/${RioConfig.projectId}_${TokenManager.userId()}", TokenManager.accessToken(), RioConfig.culture)
     }
 }
