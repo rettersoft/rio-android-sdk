@@ -36,7 +36,7 @@ object RBSCloudManager {
                     )
                 )
             } else {
-                val accessToken = TokenManager.accessToken
+                val accessToken = TokenManager.accessToken()
 
                 RBSLogger.log("RBSCloudManager.exec create cloud object service call executed")
 

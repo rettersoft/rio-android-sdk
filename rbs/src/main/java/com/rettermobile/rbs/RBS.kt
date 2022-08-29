@@ -169,7 +169,7 @@ class RBS(
 
     private fun sendAuthStatus() {
         scope.launch(exceptionHandler) {
-            TokenManager.user?.let { user ->
+            TokenManager.user()?.let { user ->
                 withContext(Dispatchers.Main) {
                     listener?.invoke(
                         user.isAnonymous then RBSClientAuthStatus.SIGNED_IN_ANONYMOUSLY
@@ -190,7 +190,7 @@ class RBS(
 
     fun signOut() {
         RBSLogger.log("signOut called")
-        val request = TokenManager.userId?.let {
+        val request = TokenManager.userId()?.let {
             mapOf(Pair("allTokens", true), Pair("userId", it))
         } ?: kotlin.run { mapOf(Pair("allTokens", true)) }
 

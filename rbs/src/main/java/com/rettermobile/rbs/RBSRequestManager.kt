@@ -25,7 +25,7 @@ object RBSRequestManager {
 
         val requestJsonString = Gson().toJson(data)
         val requestEncodedJsonString = requestJsonString.getBase64EncodeString()
-        val accessToken = TokenManager.accessToken
+        val accessToken = TokenManager.accessToken()
 
         RBSLogger.log("RBSRequestManager.generateUrl projectId: ${RBSConfig.projectId}")
         RBSLogger.log("RBSRequestManager.generateUrl action: $action")
@@ -47,7 +47,7 @@ object RBSRequestManager {
 
         val requestJsonString = Gson().toJson(data)
 
-        val accessToken = TokenManager.accessToken
+        val accessToken = TokenManager.accessToken()
 
         RBSLogger.log("RBSRequestManager.exec projectId: ${RBSConfig.projectId}")
         RBSLogger.log("RBSRequestManager.exec action: $action")

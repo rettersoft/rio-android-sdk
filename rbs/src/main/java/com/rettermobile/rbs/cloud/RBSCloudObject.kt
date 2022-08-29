@@ -60,7 +60,7 @@ class RBSCloudObject constructor(val params: RBSCloudObjectParams) {
     ): Response<ResponseBody> {
         TokenManager.checkToken()
 
-        val accessToken = TokenManager.accessToken
+        val accessToken = TokenManager.accessToken()
 
         val res = RBSCloudServiceImp.exec(
             accessToken,
