@@ -4,6 +4,7 @@ import android.text.TextUtils
 import com.auth0.android.jwt.JWT
 import com.google.gson.Gson
 import com.rettermobile.rio.Preferences
+import com.rettermobile.rio.RioConfig
 import com.rettermobile.rio.RioFirebaseManager
 import com.rettermobile.rio.RioLogger
 import com.rettermobile.rio.model.RioUser
@@ -53,15 +54,24 @@ object TokenManager {
         val infoJson = Preferences.getString(Preferences.Keys.TOKEN_INFO)
 
         if (!TextUtils.isEmpty(infoJson)) {
-            val token = gson.fromJson(infoJson, RioTokenModel::class.java)
+            try {
+                val token = gson.fromJson(infoJson, RioTokenModel::class.java)
 
-            tokenInfo = if (isRefreshTokenExpired(token)) {
-                // signOut
-                RioLogger.log("TokenManager.init tokenInfo=null")
-                null
-            } else {
-                RioLogger.log("TokenManager.init tokenInfo OK")
-                token
+                tokenInfo = if (TextUtils.equals(token.accessToken.projectId(), RioConfig.projectId)) {
+                    if (isRefreshTokenExpired(token)) {
+                        // signOut
+                        RioLogger.log("TokenManager.init tokenInfo=null")
+                        null
+                    } else {
+                        RioLogger.log("TokenManager.init tokenInfo OK")
+                        token
+                    }
+                } else {
+                    RioLogger.log("TokenManager.init tokenInfo project id changed set as null")
+                    null
+                }
+            } catch (e: Exception) {
+                RioLogger.log("TokenManager.init tokenInfo exception ${e.message}")
             }
         }
     }

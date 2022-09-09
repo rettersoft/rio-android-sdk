@@ -44,6 +44,12 @@ fun String.jwtIat(): Long? {
     return jwtAccess.getClaim("iat").asLong()
 }
 
+fun String.projectId(): String? {
+    val jwtAccess = JWT(this)
+
+    return jwtAccess.getClaim("projectId").asString()
+}
+
 fun String.jwtUserId(): String? {
     val jwtAccess = JWT(this)
 
