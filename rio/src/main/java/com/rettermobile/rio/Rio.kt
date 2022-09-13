@@ -131,6 +131,15 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
         }
     }
 
+    fun getAuthStatus(): RioClientAuthStatus {
+        return TokenManager.user()?.let { user ->
+            user.isAnonymous then RioClientAuthStatus.SIGNED_IN_ANONYMOUSLY
+                ?: RioClientAuthStatus.SIGNED_IN
+        } ?: run {
+            RioClientAuthStatus.SIGNED_OUT
+        }
+    }
+
     fun signOut(callback: ((Boolean, Throwable?) -> Unit)? = null) {
         RioLogger.log("signOut called")
 
