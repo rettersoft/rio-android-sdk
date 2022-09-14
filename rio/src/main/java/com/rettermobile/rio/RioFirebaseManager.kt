@@ -33,42 +33,23 @@ object RioFirebaseManager {
         } ?: run { initApp(fireInfo) }
     }
 
-//    private suspend fun deleteApp() = suspendCoroutine<Unit> { continuation ->
-//        RioLogger.log("RIOFirebaseManager.deleteApp called")
-//        app?.let {
-//            RioLogger.log("RIOFirebaseManager.deleteApp addLifecycleEventListener added")
-//            it.addLifecycleEventListener { appName, options ->
-//                RioLogger.log("RIOFirebaseManager.deleteApp $appName triggered")
-//                if (appName.startsWith("rio-sdk")) {
-//                    RioLogger.log("RIOFirebaseManager.deleteApp continuation.resume")
-//                    continuation.resume(Unit)
-//                }
-//            }
-//            RioLogger.log("RIOFirebaseManager.deleteApp app.delete() OK $app")
-//            it.delete()
-//        }
-//    }
-
-    private fun deleteApp() {
+    private suspend fun deleteApp() = suspendCoroutine<Unit> { continuation ->
         RioLogger.log("RIOFirebaseManager.deleteApp called")
-
-        val apps = FirebaseApp.getApps(RioConfig.applicationContext)
-
-        RioLogger.log("RIOFirebaseManager.deleteApp FirebaseApp.getApps size ${apps.size} $apps")
-
-        apps.forEach {
-            if (it.name.startsWith("rio-sdk")) {
-                RioLogger.log("RIOFirebaseManager.deleteApp deleted for loop $it")
-                it.delete()
+        app?.let {
+            RioLogger.log("RIOFirebaseManager.deleteApp addLifecycleEventListener added")
+            it.addLifecycleEventListener { appName, options ->
+                RioLogger.log("RIOFirebaseManager.deleteApp $appName triggered")
+                if (appName.startsWith("rio-sdk")) {
+                    RioLogger.log("RIOFirebaseManager.deleteApp continuation.resume")
+                    continuation.resume(Unit)
+                }
             }
+            RioLogger.log("RIOFirebaseManager.deleteApp app.delete() OK $app")
+            it.delete()
         }
-
-        RioLogger.log("RIOFirebaseManager.deleteApp deleted instance $app")
-
-        app = null
     }
 
-    private suspend fun initApp(fireInfo: RioFirebase) {
+    private suspend fun initApp(fireInfo: RioFirebase) = suspendCoroutine<Unit> { continuation ->
         RioLogger.log("RIOFirebaseManager.initApp called")
 
         RioLogger.log("RIOFirebaseManager.initApp fireInfo: ${Gson().toJson(fireInfo)}")
@@ -86,22 +67,21 @@ object RioFirebaseManager {
 
         RioLogger.log("RIOFirebaseManager.initApp instance created $app")
 
-        suspendCoroutine<Unit> { continuation ->
-            RioLogger.log("RIOFirebaseManager.initApp currentUser is null")
-            auth?.signInWithCustomToken(fireInfo.customToken!!)
-                ?.addOnCompleteListener { task ->
-                    RioLogger.log("RIOFirebaseManager.initApp addOnCompleteListener isSuccessful: ${task.isSuccessful}")
-                    if (task.isSuccessful) {
-                        RioLogger.log("RIOFirebaseManager.authenticate signInWithCustomToken OK")
-                    } else {
-                        RioLogger.log("RIOFirebaseManager.authenticate addOnCompleteListener message: ${task.exception?.message}")
-                    }
+        RioLogger.log("RIOFirebaseManager.initApp currentUser is null")
 
-                    RioLogger.log("RIOFirebaseManager.authenticate waited 1000 ms")
-
-                    continuation.resume(Unit)
+        auth?.signInWithCustomToken(fireInfo.customToken!!)
+            ?.addOnCompleteListener { task ->
+                RioLogger.log("RIOFirebaseManager.initApp addOnCompleteListener isSuccessful: ${task.isSuccessful}")
+                if (task.isSuccessful) {
+                    RioLogger.log("RIOFirebaseManager.authenticate signInWithCustomToken OK")
+                } else {
+                    RioLogger.log("RIOFirebaseManager.authenticate addOnCompleteListener message: ${task.exception?.message}")
                 }
-        }
+
+                RioLogger.log("RIOFirebaseManager.authenticate waited 1000 ms")
+
+                continuation.resume(Unit)
+            }
     }
 
     fun signOut() {

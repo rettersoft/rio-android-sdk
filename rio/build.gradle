@@ -44,7 +44,7 @@ dependencies {
     implementation 'com.auth0.android:jwtdecode:2.0.1'
 
     // Coroutines
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.1'
 
     // Network
     implementation "com.squareup.okhttp3:okhttp:5.0.0-alpha.2"
@@ -57,8 +57,8 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.11.1'
 
     // Firebase
-    implementation 'com.google.firebase:firebase-auth:21.0.7'
-    implementation 'com.google.firebase:firebase-firestore:24.2.2'
+    implementation 'com.google.firebase:firebase-auth:21.0.8'
+    implementation 'com.google.firebase:firebase-firestore:24.3.0'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
