@@ -33,20 +33,39 @@ object RioFirebaseManager {
         } ?: run { initApp(fireInfo) }
     }
 
-    private suspend fun deleteApp() = suspendCoroutine<Unit> { continuation ->
+//    private suspend fun deleteApp() = suspendCoroutine<Unit> { continuation ->
+//        RioLogger.log("RIOFirebaseManager.deleteApp called")
+//        app?.let {
+//            RioLogger.log("RIOFirebaseManager.deleteApp addLifecycleEventListener added")
+//            it.addLifecycleEventListener { appName, options ->
+//                RioLogger.log("RIOFirebaseManager.deleteApp $appName triggered")
+//                if (appName.startsWith("rio-sdk")) {
+//                    RioLogger.log("RIOFirebaseManager.deleteApp continuation.resume")
+//                    continuation.resume(Unit)
+//                }
+//            }
+//            RioLogger.log("RIOFirebaseManager.deleteApp app.delete() OK $app")
+//            it.delete()
+//        }
+//    }
+
+    private fun deleteApp() {
         RioLogger.log("RIOFirebaseManager.deleteApp called")
-        app?.let {
-            RioLogger.log("RIOFirebaseManager.deleteApp addLifecycleEventListener added")
-            it.addLifecycleEventListener { appName, options ->
-                RioLogger.log("RIOFirebaseManager.deleteApp $appName triggered")
-                if (appName.equals("rio-sdk")) {
-                    RioLogger.log("RIOFirebaseManager.deleteApp continuation.resume")
-                    continuation.resume(Unit)
-                }
+
+        val apps = FirebaseApp.getApps(RioConfig.applicationContext)
+
+        RioLogger.log("RIOFirebaseManager.deleteApp FirebaseApp.getApps size ${apps.size} $apps")
+
+        apps.forEach {
+            if (it.name.startsWith("rio-sdk")) {
+                RioLogger.log("RIOFirebaseManager.deleteApp deleted for loop $it")
+                it.delete()
             }
-            RioLogger.log("RIOFirebaseManager.deleteApp app.delete() OK $app")
-            it.delete()
         }
+
+        RioLogger.log("RIOFirebaseManager.deleteApp deleted instance $app")
+
+        app = null
     }
 
     private suspend fun initApp(fireInfo: RioFirebase) {
@@ -60,7 +79,7 @@ object RioFirebaseManager {
                 .setApplicationId(fireInfo.envs!!.androidAppId!!)
                 .setGcmSenderId(fireInfo.envs.gcmSenderId!!)
                 .setApiKey(fireInfo.apiKey!!)
-                .build(), "rio-sdk"
+                .build(), "rio-sdk-${System.currentTimeMillis()}"
         )
 
         auth = FirebaseAuth.getInstance(app!!)
