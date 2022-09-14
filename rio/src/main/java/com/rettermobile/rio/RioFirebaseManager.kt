@@ -44,7 +44,7 @@ object RioFirebaseManager {
                     continuation.resume(Unit)
                 }
             }
-            RioLogger.log("RIOFirebaseManager.deleteApp app.delete() OK")
+            RioLogger.log("RIOFirebaseManager.deleteApp app.delete() OK $app")
             it.delete()
         }
     }
@@ -65,7 +65,7 @@ object RioFirebaseManager {
 
         auth = FirebaseAuth.getInstance(app!!)
 
-        RioLogger.log("RIOFirebaseManager.initApp instance created")
+        RioLogger.log("RIOFirebaseManager.initApp instance created $app")
 
         suspendCoroutine<Unit> { continuation ->
             RioLogger.log("RIOFirebaseManager.initApp currentUser is null")
@@ -77,8 +77,6 @@ object RioFirebaseManager {
                     } else {
                         RioLogger.log("RIOFirebaseManager.authenticate addOnCompleteListener message: ${task.exception?.message}")
                     }
-
-                    Thread.sleep(1000)
 
                     RioLogger.log("RIOFirebaseManager.authenticate waited 1000 ms")
 
@@ -92,10 +90,20 @@ object RioFirebaseManager {
         auth = null
     }
 
-    fun getDocument(path: String): DocumentReference {
-        val store = FirebaseFirestore.getInstance(app!!)
+    fun getDocument(path: String): DocumentReference? {
+        RioLogger.log("RIOFirebaseManager.getDocument called")
 
-        return store.document(path)
+        return if (app != null) {
+            RioLogger.log("RIOFirebaseManager.getDocument app not null $app")
+
+            val store = FirebaseFirestore.getInstance(app!!)
+
+            store.document(path)
+        } else {
+            RioLogger.log("RIOFirebaseManager.getDocument app null")
+
+            null
+        }
     }
 
     fun isNotAuthenticated(): Boolean {

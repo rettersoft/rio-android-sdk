@@ -5,6 +5,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.gson.Gson
 import com.rettermobile.rio.RioConfig
 import com.rettermobile.rio.RioFirebaseManager
+import com.rettermobile.rio.RioLogger
 import com.rettermobile.rio.util.TokenManager
 
 /**
@@ -42,7 +43,12 @@ sealed class RioCloudObjectState constructor(params: RioCloudObjectOptions) {
 
         document = RioFirebaseManager.getDocument(path)
 
+        RioLogger.log("RioCloudObjectState.subscribe document $document")
+
         listener = document?.addSnapshotListener { value, error ->
+            RioLogger.log("RioCloudObjectState.subscribe addSnapshotListener error: ${error?.message}")
+            RioLogger.log("RioCloudObjectState.subscribe addSnapshotListener value: ${Gson().toJson(value?.data)}")
+
             if (error != null) {
                 errorEvent?.invoke(error)
             } else {
