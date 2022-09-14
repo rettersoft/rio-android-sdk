@@ -67,23 +67,18 @@ object RioFirebaseManager {
         RioLogger.log("RIOFirebaseManager.initApp instance created")
 
         suspendCoroutine<Unit> { continuation ->
-            if (auth?.currentUser == null) {
-                RioLogger.log("RIOFirebaseManager.initApp currentUser is null")
-                auth?.signInWithCustomToken(fireInfo.customToken!!)
-                    ?.addOnCompleteListener { task ->
-                        RioLogger.log("RIOFirebaseManager.initApp addOnCompleteListener isSuccessful: ${task.isSuccessful}")
-                        if (task.isSuccessful) {
-                            RioLogger.log("RIOFirebaseManager.authenticate signInWithCustomToken OK")
-                        } else {
-                            RioLogger.log("RIOFirebaseManager.authenticate addOnCompleteListener message: ${task.exception?.message}")
-                        }
-
-                        continuation.resume(Unit)
+            RioLogger.log("RIOFirebaseManager.initApp currentUser is null")
+            auth?.signInWithCustomToken(fireInfo.customToken!!)
+                ?.addOnCompleteListener { task ->
+                    RioLogger.log("RIOFirebaseManager.initApp addOnCompleteListener isSuccessful: ${task.isSuccessful}")
+                    if (task.isSuccessful) {
+                        RioLogger.log("RIOFirebaseManager.authenticate signInWithCustomToken OK")
+                    } else {
+                        RioLogger.log("RIOFirebaseManager.authenticate addOnCompleteListener message: ${task.exception?.message}")
                     }
-            } else {
-                RioLogger.log("RIOFirebaseManager.initApp currentUser not null")
-                continuation.resume(Unit)
-            }
+
+                    continuation.resume(Unit)
+                }
         }
     }
 
