@@ -5,10 +5,8 @@ import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.gson.Gson
 import com.rettermobile.rio.service.model.RioFirebase
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -53,6 +51,9 @@ object RioFirebaseManager {
 
     private suspend fun initApp(fireInfo: RioFirebase) {
         RioLogger.log("RIOFirebaseManager.initApp called")
+
+        RioLogger.log("RIOFirebaseManager.initApp fireInfo: ${Gson().toJson(fireInfo)}")
+
         app = FirebaseApp.initializeApp(
             RioConfig.applicationContext, FirebaseOptions.Builder()
                 .setProjectId(fireInfo.projectId!!)
@@ -76,6 +77,10 @@ object RioFirebaseManager {
                     } else {
                         RioLogger.log("RIOFirebaseManager.authenticate addOnCompleteListener message: ${task.exception?.message}")
                     }
+
+                    Thread.sleep(1000)
+
+                    RioLogger.log("RIOFirebaseManager.authenticate waited 1000 ms")
 
                     continuation.resume(Unit)
                 }
