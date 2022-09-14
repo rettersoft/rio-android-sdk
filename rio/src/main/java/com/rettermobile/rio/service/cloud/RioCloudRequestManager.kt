@@ -10,7 +10,7 @@ import com.rettermobile.rio.util.TokenManager
 /**
  * Created by semihozkoroglu on 10.12.2021.
  */
-object RioCloudRequestManager {
+internal object RioCloudRequestManager {
 
     private val cloudObjects = arrayListOf<RioCloudObject>()
 

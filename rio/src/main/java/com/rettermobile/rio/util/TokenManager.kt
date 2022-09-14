@@ -129,11 +129,14 @@ object TokenManager {
         return if (res.isSuccess) {
             RioLogger.log("authWithCustomToken success")
 
-            tokenInfo = res.getOrNull()
             calculateDelta()
 
             RioCloudRequestManager.clear()
             RioFirebaseManager.authenticate(tokenInfo?.firebase)
+
+            tokenInfo = res.getOrNull()
+
+            RioLogger.log("authWithCustomToken token setted")
         } else {
             RioLogger.log("authWithCustomToken fail ${res.exceptionOrNull()?.stackTraceToString()}")
 
