@@ -7,6 +7,7 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import com.rettermobile.rio.service.model.RioFirebase
+import kotlinx.coroutines.delay
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -29,6 +30,7 @@ object RioFirebaseManager {
 
         app?.let {
             deleteApp()
+            delay(500)
             initApp(fireInfo)
         } ?: run { initApp(fireInfo) }
     }
