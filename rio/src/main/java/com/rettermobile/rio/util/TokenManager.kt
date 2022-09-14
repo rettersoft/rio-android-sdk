@@ -129,12 +129,13 @@ object TokenManager {
         return if (res.isSuccess) {
             RioLogger.log("authWithCustomToken success")
 
-            calculateDelta()
+            val token = res.getOrNull()
 
             RioCloudRequestManager.clear()
-            RioFirebaseManager.authenticate(tokenInfo?.firebase)
+            RioFirebaseManager.authenticate(token?.firebase)
 
-            tokenInfo = res.getOrNull()
+            tokenInfo = token
+            calculateDelta()
 
             RioLogger.log("authWithCustomToken token setted")
         } else {
@@ -157,10 +158,12 @@ object TokenManager {
             if (res.isSuccess) {
                 RioLogger.log("TokenManager.checkToken getAnonymousToken success")
 
-                tokenInfo = res.getOrNull()?.response
-                calculateDelta()
+                val token = res.getOrNull()?.response
 
-                RioFirebaseManager.authenticate(tokenInfo?.firebase)
+                RioFirebaseManager.authenticate(token?.firebase)
+
+                tokenInfo = token
+                calculateDelta()
             } else {
                 RioLogger.log("TokenManager.checkToken getAnonymousToken fail")
 
