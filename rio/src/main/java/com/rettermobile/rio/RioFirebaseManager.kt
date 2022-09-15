@@ -7,7 +7,6 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import com.rettermobile.rio.service.model.RioFirebase
-import kotlinx.coroutines.delay
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -26,30 +25,32 @@ object RioFirebaseManager {
 
         RioLogger.log("RIOFirebaseManager.authenticate STARTED")
 
-        auth?.signOut()
+//        auth?.signOut()
 
-        app?.let {
-            deleteApp()
-            delay(500)
-            initApp(fireInfo)
-        } ?: run { initApp(fireInfo) }
+//        app?.let {
+//            deleteApp()
+//            delay(500)
+//            initApp(fireInfo)
+//        } ?: run { initApp(fireInfo) }
+
+        initApp(fireInfo)
     }
 
-    private suspend fun deleteApp() = suspendCoroutine<Unit> { continuation ->
-        RioLogger.log("RIOFirebaseManager.deleteApp called")
-        app?.let {
-            RioLogger.log("RIOFirebaseManager.deleteApp addLifecycleEventListener added")
-            it.addLifecycleEventListener { appName, options ->
-                RioLogger.log("RIOFirebaseManager.deleteApp $appName triggered")
-                if (appName.startsWith("rio-sdk")) {
-                    RioLogger.log("RIOFirebaseManager.deleteApp continuation.resume")
-                    continuation.resume(Unit)
-                }
-            }
-            RioLogger.log("RIOFirebaseManager.deleteApp app.delete() OK $app")
-            it.delete()
-        }
-    }
+//    private suspend fun deleteApp() = suspendCoroutine<Unit> { continuation ->
+//        RioLogger.log("RIOFirebaseManager.deleteApp called")
+//        app?.let {
+//            RioLogger.log("RIOFirebaseManager.deleteApp addLifecycleEventListener added")
+//            it.addLifecycleEventListener { appName, options ->
+//                RioLogger.log("RIOFirebaseManager.deleteApp $appName triggered")
+//                if (appName.startsWith("rio-sdk")) {
+//                    RioLogger.log("RIOFirebaseManager.deleteApp continuation.resume")
+//                    continuation.resume(Unit)
+//                }
+//            }
+//            RioLogger.log("RIOFirebaseManager.deleteApp app.delete() OK $app")
+//            it.delete()
+//        }
+//    }
 
     private suspend fun initApp(fireInfo: RioFirebase) = suspendCoroutine<Unit> { continuation ->
         RioLogger.log("RIOFirebaseManager.initApp called")
