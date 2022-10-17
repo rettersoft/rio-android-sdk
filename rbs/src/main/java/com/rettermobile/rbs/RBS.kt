@@ -188,19 +188,21 @@ class RBS(
         }
     }
 
-    fun signOut() {
+    fun signOut(callback: ((Boolean, Throwable?) -> Unit)? = null) {
         RBSLogger.log("signOut called")
         val request = TokenManager.userId()?.let {
             mapOf(Pair("allTokens", true), Pair("userId", it))
         } ?: kotlin.run { mapOf(Pair("allTokens", true)) }
 
-
         sendAction(RBSActions.LOGOUT.action, request, success = {
             RBSLogger.log("signOut RBSActions.LOGOUT OK $it")
             clearSession()
+            callback?.invoke(true, null)
         }, error = {
             RBSLogger.log("signOut RBSActions.LOGOUT ERROR ${it?.message ?: it?.stackTraceToString()}")
             clearSession()
+
+            callback?.invoke(false, it)
         })
     }
 

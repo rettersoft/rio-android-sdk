@@ -22,7 +22,6 @@ class App : Application() {
             config = RBSNetworkConfig.build {
                 region = RBSRegion.EU_WEST_1_BETA
                 sslPinningEnabled = true
-                interceptor = ChuckInterceptor(applicationContext)
             }
         )
     }
