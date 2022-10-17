@@ -65,6 +65,9 @@ class MainActivity : AppCompatActivity() {
             rio.signInAnonymously(callback = { isSuccess, th ->
                 Log.e("", "")
             })
+            rio.signInAnonymously(callback = { isSuccess, th ->
+                Log.e("", "")
+            })
         }
 
         btnGetCloudCall.setOnClickListener {
