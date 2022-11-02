@@ -12,13 +12,14 @@ import com.rettermobile.rio.service.auth.RioAuthServiceImp
 import com.rettermobile.rio.service.cloud.RioCloudRequestManager
 import com.rettermobile.rio.service.model.RioTokenModel
 import com.rettermobile.rio.service.model.exception.TokenFailException
+import java.util.concurrent.Semaphore
 import java.util.concurrent.locks.ReentrantLock
 
 /**
  * Created by semihozkoroglu on 10.12.2021.
  */
 object TokenManager {
-    private val lock: ReentrantLock = ReentrantLock()
+    private val availableRest = Semaphore(1, true)
 
     var tokenUpdateListener: (() -> Unit)? = null
     var clearListener: (() -> Unit)? = null
@@ -150,7 +151,7 @@ object TokenManager {
     suspend fun checkToken() {
         // Token info control
         RioLogger.log("TokenManager.checkToken locked")
-        lock.lock()
+        availableRest.acquire()
         RioLogger.log("TokenManager.checkToken started")
 
         if (TextUtils.isEmpty(accessToken())) {
@@ -199,7 +200,7 @@ object TokenManager {
 
         RioLogger.log("TokenManager.checkToken ended")
         RioLogger.log("TokenManager.checkToken released")
-        lock.unlock()
+        availableRest.release()
     }
 
     fun clear() {
