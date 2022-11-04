@@ -167,7 +167,6 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
 
         TokenManager.clear()
         RioFirebaseManager.signOut()
-        RioCloudRequestManager.clear()
     }
 
     fun setLoggerListener(listener: Logger) {

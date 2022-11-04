@@ -132,7 +132,6 @@ object TokenManager {
 
             val token = res.getOrNull()
 
-            RioCloudRequestManager.clear()
             RioFirebaseManager.authenticate(token?.firebase)
 
             tokenInfo = token
