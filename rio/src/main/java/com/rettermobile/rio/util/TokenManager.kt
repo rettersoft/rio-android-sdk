@@ -9,11 +9,9 @@ import com.rettermobile.rio.RioFirebaseManager
 import com.rettermobile.rio.RioLogger
 import com.rettermobile.rio.model.RioUser
 import com.rettermobile.rio.service.auth.RioAuthServiceImp
-import com.rettermobile.rio.service.cloud.RioCloudRequestManager
 import com.rettermobile.rio.service.model.RioTokenModel
 import com.rettermobile.rio.service.model.exception.TokenFailException
 import java.util.concurrent.Semaphore
-import java.util.concurrent.locks.ReentrantLock
 
 /**
  * Created by semihozkoroglu on 10.12.2021.
@@ -99,10 +97,7 @@ object TokenManager {
             now >= accessTokenExpiresAt  // now + 280 -> only wait 20 seconds for debugging
 
         RioLogger.log("TokenManager.isAccessTokenExpired accessToken: ${tokenInfo!!.accessToken}")
-        RioLogger.log("TokenManager.isAccessTokenExpired accessTokenExpiresAt: $accessTokenExpiresAt")
-        RioLogger.log("TokenManager.isAccessTokenExpired now: $now")
         RioLogger.log("TokenManager.isAccessTokenExpired isExpired: $isExpired")
-        RioLogger.log("TokenManager.isAccessTokenExpired diff: ${deltaTime()}")
 
         return isExpired
     }
@@ -116,10 +111,7 @@ object TokenManager {
         val isExpired = now >= refreshTokenExpiresAt  // now + 280 -> only wait 20 seconds for debugging
 
         RioLogger.log("TokenManager.isRefreshTokenExpired refreshToken: ${token.refreshToken}")
-        RioLogger.log("TokenManager.isRefreshTokenExpired refreshTokenExpiresAt: $refreshTokenExpiresAt")
-        RioLogger.log("TokenManager.isRefreshTokenExpired now: $now")
         RioLogger.log("TokenManager.isRefreshTokenExpired isExpired: $isExpired")
-        RioLogger.log("TokenManager.isRefreshTokenExpired diff: ${deltaTime()}")
 
         return isExpired
     }
@@ -153,26 +145,7 @@ object TokenManager {
         availableRest.acquire()
         RioLogger.log("TokenManager.checkToken started")
 
-        if (TextUtils.isEmpty(accessToken())) {
-            val res = runCatching { RioAuthServiceImp.getAnonymousToken() }
-
-            if (res.isSuccess) {
-                RioLogger.log("TokenManager.checkToken getAnonymousToken success")
-
-                val token = res.getOrNull()?.response
-
-                RioFirebaseManager.authenticate(token?.firebase)
-
-                tokenInfo = token
-                calculateDelta()
-            } else {
-                RioLogger.log("TokenManager.checkToken getAnonymousToken fail")
-
-                clearListener?.invoke()
-
-                throw res.exceptionOrNull() ?: TokenFailException("AuthWithCustomToken fail")
-            }
-        } else {
+        if (!TextUtils.isEmpty(accessToken())) {
             if (isAccessTokenExpired()) {
                 val res = runCatching { RioAuthServiceImp.refreshToken(tokenInfo?.refreshToken!!) }
 
@@ -218,9 +191,8 @@ object TokenManager {
     fun user(): RioUser? {
         return tokenInfo?.let {
             val userId = it.accessToken.jwtUserId()
-            val anonymous = it.accessToken.jwtAnonymous()
 
-            RioUser(userId, anonymous ?: true)
+            RioUser(userId)
         } ?: kotlin.run { null }
     }
 }

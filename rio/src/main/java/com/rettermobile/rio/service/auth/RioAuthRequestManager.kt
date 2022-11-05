@@ -15,15 +15,6 @@ object RioAuthRequestManager {
         RioLogger.log("RIOAuthRequestManager.authenticate OK")
     }
 
-    // Call with runCatching
-    suspend fun signInAnonymously(): String {
-        TokenManager.checkToken()
-
-        RioLogger.log("RIOAuthRequestManager.signInAnonymously OK")
-
-        return "Success"
-    }
-
     suspend fun signOut(): String {
         val res = runCatching { RioAuthServiceImp.signOut() }
 

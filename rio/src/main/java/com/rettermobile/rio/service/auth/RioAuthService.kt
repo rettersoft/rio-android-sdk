@@ -1,7 +1,6 @@
 package com.rettermobile.rio.service.auth
 
 import com.rettermobile.rio.service.model.RioTokenModel
-import com.rettermobile.rio.service.model.RioTokenResponse
 import okhttp3.ResponseBody
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -12,23 +11,18 @@ import retrofit2.http.Url
  */
 interface RioAuthService {
 
-    // Anonym token:
-    // https://root.api.rtbs.io/INSTANCE/ProjectUser?projectId={projectId}
-    @GET
-    suspend fun anonymous(@Url url: String, @Query("projectId") projectId: String, @Query("__culture") culture: String, @Query("__platform") platform: String = "Android"): RioTokenResponse
-
     // Refresh token:
-    // https://root.api.rtbs.io/CALL/ProjectUser/refreshToken/{projectId}_{userId}?refreshToken={refreshToken}
+    // [DOMAIN]/{projectId}/AUTH/refreshToken?refreshToken={refreshToken}
     @GET
     suspend fun refresh(@Url url: String, @Query("refreshToken") refreshToken: String, @Query("__culture") culture: String, @Query("__platform") platform: String = "Android"): RioTokenModel
 
     // Sign in with custom token:
-    // https://root.api.rtbs.io/CALL/ProjectUser/authWithCustomToken/{projectId}_{userId}?customToken={customToken}
+    // [DOMAIN]/{projectId}/AUTH/authWithCustomToken?_token={accessToken}&customToken={customToken}
     @GET
     suspend fun auth(@Url url: String, @Query("customToken") customToken: String, @Query("__culture") culture: String, @Query("__platform") platform: String = "Android"): RioTokenModel
 
     // Sign out:
-    // https://root.api.rtbs.io/CALL/ProjectUser/signOut/{projectId}_{userId}
+    // [DOMAIN]/{projectId}/AUTH/signOut?_token={accessToken}
     @GET
-    suspend fun signOut(@Url url: String, @Query("accessToken") token: String?, @Query("__culture") culture: String, @Query("__platform") platform: String = "Android"): ResponseBody
+    suspend fun signOut(@Url url: String, @Query("_token") token: String?, @Query("__culture") culture: String, @Query("__platform") platform: String = "Android"): ResponseBody
 }

@@ -7,8 +7,6 @@ import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import com.rbs.android.example.network.Images
 import com.rbs.android.example.network.TestRequest
 import com.rbs.android.example.network.TestResponse
 import com.rettermobile.rio.Rio
@@ -16,13 +14,10 @@ import com.rettermobile.rio.RioLogger
 import com.rettermobile.rio.cloud.RioCallMethodOptions
 import com.rettermobile.rio.cloud.RioCloudObjectOptions
 import com.rettermobile.rio.cloud.RioErrorResponse
-import com.rettermobile.rio.service.RioRetryConfig
 import com.rettermobile.rio.util.RioHttpMethod
-import okhttp3.internal.http.HttpMethod
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var signInAnonymously: Button
     lateinit var btnGetCloudCall: Button
     lateinit var btnSignIn: Button
     lateinit var btnSignOut: Button
@@ -52,78 +47,27 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        rio.signOut { isSuc, throwable -> }
+//        rio.signOut { isSuc, throwable -> }
 
         btnGetCloudCall = findViewById(R.id.btnGetCloudCall)
-        signInAnonymously = findViewById(R.id.signInAnonymously)
         btnSignIn = findViewById(R.id.btnSignIn)
         btnSignOut = findViewById(R.id.btnSignOut)
         loading = findViewById(R.id.loading)
         loading.isVisible = false
 
-        signInAnonymously.setOnClickListener {
-            rio.signInAnonymously(callback = { isSuccess, th ->
-                Log.e("", "")
-            })
-            rio.signInAnonymously(callback = { isSuccess, th ->
-                Log.e("", "")
-            })
-        }
+        // 'https://6062mhn7s.test-api.retter.io/6062mhn7s/CALL/token/sayHello/01gfvgbnajkfwnn81ex2ft5sjy '{"userId":"ali","identity":"enduser"}'
 
         btnGetCloudCall.setOnClickListener {
-            rio.getCloudObject(RioCloudObjectOptions(classId = "StaticIpTest", instanceId = "01g62kddrakdb4ebt02bnqee1g"), onSuccess = { cloudObj ->
+            rio.getCloudObject(RioCloudObjectOptions(classId = "token", instanceId = "01gfvgbnajkfwnn81ex2ft5sjy"), onSuccess = { cloudObj ->
 
-                cloudObj.user.subscribe(eventFired = {
-
-                }, errorFired = {
-
-                })
-//                val query = HashMap<String, Any>()
-//
-//                query["title"] = "HELLO NABER"
-//                query["BOOL"] = true
-//                query["LONG"] = 100000
-//                query["typeList"] = listOf("SLOT", "XXX", "YYYY")
-//                query["IntList"] = listOf(1, 2, 3)
-//
-//                val body = TestRequest().apply {
-//                    param1 = "Lorem ipsum"
-//                    param2 = "Lorem ipsum 2"
-//                }
-
-                val type = object : TypeToken<List<TestResponse>?>() {}.type
-
-                cloudObj.call<TestResponse>(RioCallMethodOptions(method = "sayHello", type = type, httpMethod = RioHttpMethod.GET, body = TestResponse(arrayListOf<Images>().apply {
-                    add(Images("ids", "url"))
-                }, "CampaignName", "CampaignDescription")), onSuccess = {
-//                    val data = Gson().toJson(it.body)
-//                    Gson().fromJson<List<TestResponse>?>(data, type)
-
+                cloudObj.call<TestResponse>(RioCallMethodOptions("sayHello", httpMethod = RioHttpMethod.POST, body = TestRequest()), onSuccess = {
                     Log.e("", "")
+                    rio.authenticateWithCustomToken(it.body?.data?.customToken ?: "")
                 }, onError = {
                     Log.e("", "")
                 })
-
-//                Gson().toJson(it.response)
-//
-//                it.listInstances(onSuccess = {
-//                    RioLogger.log("RESPONSE CAME: ${Gson().toJson(it)}")
-//                }, onError = {
-//                    RioLogger.log("ERROR CAME: ${it?.message}")
-//                })
-//
-//                cloudObj.user.subscribe(eventFired = {
-//
-//                }, errorFired = { throwable ->
-//
-//                })
             }, onError = { throwable ->
             })
-//            User.getInstance(rio, onSuccess = {
-//                it.updateEmail(UserUpdateEmailRequest(), onSuccess = {
-//                }, onError = errorListener)
-//            }, onError = errorListener)
-//            rio.authenticateWithCustomToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiJza3VmNzZtMG8iLCJpZGVudGl0eSI6ImVuZHVzZXIiLCJhbm9ueW1vdXMiOmZhbHNlLCJ1c2VySWQiOiI5MDUzMDQ5MTQ1OTciLCJjbGFpbXMiOnsibXNpc2RuIjoiOTA1MzA0OTE0NTk3In0sImlhdCI6MTY0NTI2MjQxMCwiZXhwIjoxNjQ1MjYyNDQwfQ.o5LD193aiHLByvQTz7aozdYyqR9gc-a1vH8Bb_pPnaU")
         }
 
         btnSignOut.setOnClickListener { rio.signOut() }

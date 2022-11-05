@@ -68,22 +68,6 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
         }
     }
 
-    fun signInAnonymously(callback: ((Boolean, Throwable?) -> Unit)? = null) {
-        scope.launch(CoroutineExceptionHandler { _, e ->
-            RioLogger.log("ExceptionHandler#signInAnonymously: ${e.message} \nStackTrace: ${e.stackTraceToString()}")
-
-            callback?.invoke(false, e)
-        }) {
-            val res = runCatching { RioAuthRequestManager.signInAnonymously() }
-
-            if (res.isSuccess) {
-                withContext(Dispatchers.Main) { callback?.invoke(true, null) }
-            } else {
-                withContext(Dispatchers.Main) { callback?.invoke(false, res.exceptionOrNull()) }
-            }
-        }
-    }
-
     fun getCloudObject(
         options: RioCloudObjectOptions,
         onSuccess: ((RioCloudObject) -> Unit)? = null,
@@ -115,8 +99,7 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
             TokenManager.user()?.let { user ->
                 withContext(Dispatchers.Main) {
                     listener?.invoke(
-                        user.isAnonymous then RioClientAuthStatus.SIGNED_IN_ANONYMOUSLY
-                            ?: RioClientAuthStatus.SIGNED_IN,
+                        RioClientAuthStatus.SIGNED_IN,
                         user
                     )
                 }
@@ -133,8 +116,7 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
 
     fun getAuthStatus(): RioClientAuthStatus {
         return TokenManager.user()?.let { user ->
-            user.isAnonymous then RioClientAuthStatus.SIGNED_IN_ANONYMOUSLY
-                ?: RioClientAuthStatus.SIGNED_IN
+            RioClientAuthStatus.SIGNED_IN
         } ?: run {
             RioClientAuthStatus.SIGNED_OUT
         }

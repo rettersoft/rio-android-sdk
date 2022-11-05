@@ -102,7 +102,7 @@ class RioNetwork {
             val url = if (RioConfig.config.region == null) {
                 "https://${RioConfig.config.customDomain}"
             } else {
-                "https://root.${RioConfig.config.region!!.url}"
+                "https://api.${RioConfig.config.region!!.url}"
             }
 
             val retrofit = Retrofit.Builder()
@@ -119,10 +119,11 @@ class RioNetwork {
 
     fun getCloudConnection(): RioCloudService {
         if (cloudService == null) {
+
             val url = if (RioConfig.config.region == null) {
                 "https://${RioConfig.config.customDomain}"
             } else {
-                "https://${RioConfig.projectId}.${RioConfig.config.region!!.url}"
+                "https://api.${RioConfig.config.region!!.url}"
             }
 
             val retrofit = Retrofit.Builder()
@@ -136,4 +137,5 @@ class RioNetwork {
 
         return cloudService!!
     }
+
 }

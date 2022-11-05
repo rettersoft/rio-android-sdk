@@ -5,7 +5,6 @@ package com.rettermobile.rio.model
  */
 enum class RioClientAuthStatus {
     SIGNED_IN,
-    SIGNED_IN_ANONYMOUSLY,
     SIGNED_OUT,
     AUTHENTICATING
 }
