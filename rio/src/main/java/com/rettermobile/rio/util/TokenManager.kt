@@ -192,7 +192,7 @@ object TokenManager {
         return tokenInfo?.let {
             val userId = it.accessToken.jwtUserId()
 
-            RioUser(userId)
+            RioUser(userId, userId.isNullOrEmpty())
         } ?: kotlin.run { null }
     }
 }
