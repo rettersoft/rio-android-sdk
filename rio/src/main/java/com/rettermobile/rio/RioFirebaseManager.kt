@@ -13,7 +13,7 @@ import kotlin.coroutines.suspendCoroutine
 /**
  * Created by semihozkoroglu on 10.12.2021.
  */
-object RioFirebaseManager {
+internal object RioFirebaseManager {
 
     private var app: FirebaseApp? = null
     private var auth: FirebaseAuth? = null

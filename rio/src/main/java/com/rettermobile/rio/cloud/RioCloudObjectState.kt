@@ -7,6 +7,7 @@ import com.rettermobile.rio.RioConfig
 import com.rettermobile.rio.RioFirebaseManager
 import com.rettermobile.rio.RioLogger
 import com.rettermobile.rio.util.TokenManager
+import kotlinx.coroutines.delay
 
 /**
  * Created by semihozkoroglu on 13.12.2021.
@@ -41,6 +42,12 @@ sealed class RioCloudObjectState constructor(params: RioCloudObjectOptions) {
         successEvent = eventFired
         errorEvent = errorFired
 
+        retryWithSub()
+    }
+
+    private fun retryWithSub(retryCount: Int = 1) {
+        RioLogger.log("RioCloudObjectState.retryWithSub retryCount: $retryCount")
+
         document = RioFirebaseManager.getDocument(path)
 
         RioLogger.log("RioCloudObjectState.subscribe document $document")
@@ -50,7 +57,13 @@ sealed class RioCloudObjectState constructor(params: RioCloudObjectOptions) {
             RioLogger.log("RioCloudObjectState.subscribe addSnapshotListener value: ${Gson().toJson(value?.data)}")
 
             if (error != null) {
-                errorEvent?.invoke(error)
+                if (retryCount > 3) {
+                    errorEvent?.invoke(error)
+                } else {
+                    Thread.sleep((100 * retryCount).toLong())
+
+                    retryWithSub(retryCount + 1)
+                }
             } else {
                 successEvent?.invoke(Gson().toJson(value?.data))
             }

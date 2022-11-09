@@ -66,6 +66,13 @@ class MainActivity : AppCompatActivity() {
                 }, onError = {
                     Log.e("", "")
                 })
+
+                loading.isVisible = true
+                cloudObj.user.subscribe(eventFired = {
+                    loading.isVisible = false
+                }, errorFired = {
+                    loading.isVisible = false
+                })
             }, onError = { throwable ->
             })
         }
