@@ -4,7 +4,7 @@ import android.app.ActivityManager
 import android.text.TextUtils
 import android.util.Base64
 import com.auth0.android.jwt.JWT
-import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import java.lang.reflect.Type
 
 /**
@@ -28,10 +28,11 @@ fun isForegrounded(): Boolean {
 
 infix fun <T> Boolean.then(param: T): T? = if (this) param else null
 
-fun <T> parseResponse(type: Type, json: String?): T? {
+fun <T> parseResponse(type: Type, json: String?, useLenient: Boolean = false): T? {
     if (json.isNullOrEmpty()) return null
 
-    return Gson().fromJson(json, type)
+    val gson = if (useLenient) GsonBuilder().setLenient().create() else GsonBuilder().setLenient().create()
+    return gson.fromJson(json, type)
 }
 
 fun String.jwtIat(): Long? {

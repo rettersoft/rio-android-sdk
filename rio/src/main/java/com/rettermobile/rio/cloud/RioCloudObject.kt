@@ -1,6 +1,5 @@
 package com.rettermobile.rio.cloud
 
-import com.google.gson.Gson
 import com.rettermobile.rio.RioConfig
 import com.rettermobile.rio.RioLogger
 import com.rettermobile.rio.service.cloud.RioCloudServiceImp
@@ -15,7 +14,7 @@ import kotlinx.coroutines.*
 /**
  * Created by semihozkoroglu on 13.12.2021.
  */
-class RioCloudObject constructor(val options: RioCloudObjectOptions, var instance: RioInstanceResponse?) {
+class RioCloudObject constructor(val options: RioCloudObjectOptions, var instance: RioInstanceResponse? = null) {
 
     var user = RioCloudUserObjectState(options)
     var role = RioCloudRoleObjectState(options)
@@ -61,7 +60,7 @@ class RioCloudObject constructor(val options: RioCloudObjectOptions, var instanc
                                         T::class.java
                                     }
 
-                                    withContext(Dispatchers.Main) { onSuccess?.invoke(RioCloudSuccessResponse(response.headers(), response.code(), parseResponse(clazz!!, response.body()?.string()))) }
+                                    withContext(Dispatchers.Main) { onSuccess?.invoke(RioCloudSuccessResponse(response.headers(), response.code(), parseResponse(clazz!!, response.body()?.string(), callOptions.useLenient))) }
                                     break
                                 } else {
                                     if (response.code() == 570) {
