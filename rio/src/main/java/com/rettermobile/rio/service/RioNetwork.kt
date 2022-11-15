@@ -129,7 +129,6 @@ class RioNetwork {
 
             val retrofit = Retrofit.Builder()
                 .baseUrl(url)
-                .addConverterFactory(ScalarsConverterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
                 .client(provideOkHttp())
                 .build()
