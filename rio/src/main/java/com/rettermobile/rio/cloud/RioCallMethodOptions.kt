@@ -16,5 +16,4 @@ class RioCallMethodOptions constructor(
     var culture: String? = null,
     var retry: RioRetryConfig? = null,
     var type: Type? = null,
-    var useLenient: Boolean = false,
 )

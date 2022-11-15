@@ -28,11 +28,10 @@ fun isForegrounded(): Boolean {
 
 infix fun <T> Boolean.then(param: T): T? = if (this) param else null
 
-fun <T> parseResponse(type: Type, json: String?, useLenient: Boolean = false): T? {
+fun <T> parseResponse(type: Type, json: String?): T? {
     if (json.isNullOrEmpty()) return null
 
-    val gson = if (useLenient) GsonBuilder().setLenient().create() else GsonBuilder().create()
-    return gson.fromJson(json, type)
+    return GsonBuilder().create().fromJson(json, type)
 }
 
 fun String.jwtIat(): Long? {

@@ -60,7 +60,7 @@ class RioCloudObject constructor(val options: RioCloudObjectOptions, var instanc
                                         T::class.java
                                     }
 
-                                    withContext(Dispatchers.Main) { onSuccess?.invoke(RioCloudSuccessResponse(response.headers(), response.code(), parseResponse(clazz!!, response.body()?.string(), callOptions.useLenient))) }
+                                    withContext(Dispatchers.Main) { onSuccess?.invoke(RioCloudSuccessResponse(response.headers(), response.code(), parseResponse(clazz!!, response.body()?.string()))) }
                                     break
                                 } else {
                                     if (response.code() == 570) {
