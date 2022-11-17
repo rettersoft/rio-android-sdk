@@ -56,8 +56,13 @@ class MainActivity : AppCompatActivity() {
         loading.isVisible = false
 
         // 'https://6062mhn7s.test-api.retter.io/6062mhn7s/CALL/token/sayHello/01gfvgbnajkfwnn81ex2ft5sjy '{"userId":"ali","identity":"enduser"}'
-
+//        https://q3glt327r.api.retter.io/q3glt327r/CALL/StaticMethodTest/sayHello/param1/param2/param3/param4
         btnGetCloudCall.setOnClickListener {
+            rio.makeStaticCall<TestResponse>(options = RioCloudObjectOptions(classId = "StaticMethodTest", method = "sayHello", path = "param1/param2/param3/param4"), onSuccess = {
+
+            }, onError = {
+
+            })
             rio.getCloudObject(RioCloudObjectOptions(classId = "token", instanceId = "01gfvgbnajkfwnn81ex2ft5sjy"), onSuccess = { cloudObj ->
 
                 cloudObj.call<TestResponse>(RioCallMethodOptions("sayHello", httpMethod = RioHttpMethod.POST, body = TestRequest()), onSuccess = {

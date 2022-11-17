@@ -14,6 +14,7 @@ class RioCallMethodOptions constructor(
     var headers: Map<String, String> = mapOf(),
     var queries: Map<String, Any> = mapOf(),
     var culture: String? = null,
+    var path: String? = null,
     var retry: RioRetryConfig? = null,
     var type: Type? = null,
 )

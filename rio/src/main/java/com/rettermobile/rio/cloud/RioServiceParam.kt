@@ -63,6 +63,16 @@ class RioServiceParam {
         } else {
             ""
         }
+
+        path += if (!objectOptions.path.isNullOrEmpty()) {
+            if (objectOptions.path!!.startsWith("/")) {
+                objectOptions.path
+            } else {
+                "/${objectOptions.path}"
+            }
+        } else {
+            ""
+        }
     }
 
     constructor(cloudOptions: RioCloudObjectOptions, callOptions: RioCallMethodOptions) {
@@ -114,6 +124,16 @@ class RioServiceParam {
             "${callOptions.method}/${cloudOptions.instanceId}"
         } else if (!callOptions.method.isNullOrEmpty()) {
             "${callOptions.method}"
+        } else {
+            ""
+        }
+
+        path += if (!callOptions.path.isNullOrEmpty()) {
+            if (callOptions.path!!.startsWith("/")) {
+                callOptions.path
+            } else {
+                "/${callOptions.path}"
+            }
         } else {
             ""
         }

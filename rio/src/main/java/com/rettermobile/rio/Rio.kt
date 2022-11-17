@@ -2,8 +2,10 @@ package com.rettermobile.rio
 
 import android.content.Context
 import android.text.TextUtils
+import com.rettermobile.rio.cloud.RioCallMethodOptions
 import com.rettermobile.rio.cloud.RioCloudObject
 import com.rettermobile.rio.cloud.RioCloudObjectOptions
+import com.rettermobile.rio.cloud.RioCloudSuccessResponse
 import com.rettermobile.rio.model.RioClientAuthStatus
 import com.rettermobile.rio.model.RioUser
 import com.rettermobile.rio.service.RioNetworkConfig
@@ -14,7 +16,6 @@ import com.rettermobile.rio.service.model.exception.CloudNullException
 import com.rettermobile.rio.util.Logger
 import com.rettermobile.rio.util.RioActions
 import com.rettermobile.rio.util.TokenManager
-import com.rettermobile.rio.util.then
 import kotlinx.coroutines.*
 
 /**
@@ -66,6 +67,26 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
                 withContext(Dispatchers.Main) { callback?.invoke(false, IllegalArgumentException("customToken must not be null or empty")) }
             }
         }
+    }
+
+    inline fun <reified T> makeStaticCall(
+        options: RioCloudObjectOptions,
+        noinline onSuccess: ((RioCloudSuccessResponse<T>) -> Unit)? = null,
+        noinline onError: ((Throwable?) -> Unit)? = null
+    ) {
+        RioCloudObject(options)
+            .call(
+                RioCallMethodOptions(
+                    method = options.method,
+                    httpMethod = options.httpMethod,
+                    body = options.body,
+                    headers = options.headers,
+                    queries = options.queries,
+                    culture = options.culture,
+                    path = options.path,
+                    type = options.type
+                ), onSuccess, onError
+            )
     }
 
     fun getCloudObject(
