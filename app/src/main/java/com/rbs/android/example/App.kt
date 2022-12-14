@@ -20,11 +20,10 @@ class App : Application() {
         rio = Rio(
             applicationContext = applicationContext,
 //            projectId = "6qub7mnar",
-            projectId = "q3glt327r",
+            projectId = "1ktra3skh",
             culture= "en",
             config = RioNetworkConfig.build {
-                region = RioRegion.EU_WEST_1
-//                customDomain = "api.a101prod.retter.io"
+                customDomain = "api.kocailem.retter.io"
                 sslPinningEnabled = true
             }
         )

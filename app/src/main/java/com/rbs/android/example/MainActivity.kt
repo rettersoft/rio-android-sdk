@@ -14,6 +14,7 @@ import com.rettermobile.rio.RioLogger
 import com.rettermobile.rio.cloud.RioCallMethodOptions
 import com.rettermobile.rio.cloud.RioCloudObjectOptions
 import com.rettermobile.rio.cloud.RioErrorResponse
+import com.rettermobile.rio.model.RioClientAuthStatus
 import com.rettermobile.rio.util.RioHttpMethod
 
 class MainActivity : AppCompatActivity() {
@@ -45,6 +46,28 @@ class MainActivity : AppCompatActivity() {
                     )
                 }"
             )
+
+            rio.getCloudObject(RioCloudObjectOptions(classId = "User", instanceId = "231321", useLocal = true), onSuccess = { cloudObj ->
+
+                cloudObj.call<TestResponse>(RioCallMethodOptions("getProfile", httpMethod = RioHttpMethod.GET), onSuccess = {
+                    Log.e("", "")
+                }, onError = {
+                    Log.e("", "")
+
+                    if (it is RioErrorResponse) {
+                        it.rawBody
+                    }
+                })
+
+                loading.isVisible = true
+                cloudObj.user.subscribe(eventFired = {
+                    loading.isVisible = false
+                }, errorFired = {
+                    loading.isVisible = false
+                })
+            }, onError = { throwable ->
+                Log.e("", "")
+            })
         }
 
 //        rio.signOut { isSuc, throwable -> }
@@ -58,28 +81,18 @@ class MainActivity : AppCompatActivity() {
         // 'https://6062mhn7s.test-api.retter.io/6062mhn7s/CALL/token/sayHello/01gfvgbnajkfwnn81ex2ft5sjy '{"userId":"ali","identity":"enduser"}'
 //        https://q3glt327r.api.retter.io/q3glt327r/CALL/StaticMethodTest/sayHello/param1/param2/param3/param4
         btnGetCloudCall.setOnClickListener {
-            rio.makeStaticCall<TestResponse>(options = RioCloudObjectOptions(classId = "StaticMethodTest", method = "sayHello", path = "param1/param2/param3/param4"), onSuccess = {
-
-            }, onError = {
-
-            })
-            rio.getCloudObject(RioCloudObjectOptions(classId = "token", instanceId = "01gfvgbnajkfwnn81ex2ft5sjy"), onSuccess = { cloudObj ->
-
-                cloudObj.call<TestResponse>(RioCallMethodOptions("sayHello", httpMethod = RioHttpMethod.POST, body = TestRequest()), onSuccess = {
-                    Log.e("", "")
-                    rio.authenticateWithCustomToken(it.body?.data?.customToken ?: "")
-                }, onError = {
-                    Log.e("", "")
-                })
-
-                loading.isVisible = true
-                cloudObj.user.subscribe(eventFired = {
-                    loading.isVisible = false
-                }, errorFired = {
-                    loading.isVisible = false
-                })
-            }, onError = { throwable ->
-            })
+//            rio.makeStaticCall<TestResponse>(
+//                options = RioCloudObjectOptions(
+//                    classId = "TcknAuthenticator",
+//                    method = "mobileAuth",
+//                    body = TestRequest()
+//                ), onSuccess = {
+//                    if (rio.getAuthStatus() != RioClientAuthStatus.SIGNED_IN) {
+//                        rio.authenticateWithCustomToken(it.body?.customToken ?: "")
+//                    }
+//                }, onError = {
+//
+//                })
         }
 
         btnSignOut.setOnClickListener { rio.signOut() }
