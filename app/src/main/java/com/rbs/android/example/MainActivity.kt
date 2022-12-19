@@ -81,18 +81,18 @@ class MainActivity : AppCompatActivity() {
         // 'https://6062mhn7s.test-api.retter.io/6062mhn7s/CALL/token/sayHello/01gfvgbnajkfwnn81ex2ft5sjy '{"userId":"ali","identity":"enduser"}'
 //        https://q3glt327r.api.retter.io/q3glt327r/CALL/StaticMethodTest/sayHello/param1/param2/param3/param4
         btnGetCloudCall.setOnClickListener {
-//            rio.makeStaticCall<TestResponse>(
-//                options = RioCloudObjectOptions(
-//                    classId = "TcknAuthenticator",
-//                    method = "mobileAuth",
-//                    body = TestRequest()
-//                ), onSuccess = {
-//                    if (rio.getAuthStatus() != RioClientAuthStatus.SIGNED_IN) {
-//                        rio.authenticateWithCustomToken(it.body?.customToken ?: "")
-//                    }
-//                }, onError = {
-//
-//                })
+            rio.makeStaticCall<TestResponse>(
+                options = RioCloudObjectOptions(
+                    classId = "TcknAuthenticator",
+                    method = "mobileAuth",
+                    body = TestRequest()
+                ), onSuccess = {
+                    if (rio.getAuthStatus() != RioClientAuthStatus.SIGNED_IN) {
+                        rio.authenticateWithCustomToken(it.body?.customToken ?: "")
+                    }
+                }, onError = {
+
+                })
         }
 
         btnSignOut.setOnClickListener { rio.signOut() }

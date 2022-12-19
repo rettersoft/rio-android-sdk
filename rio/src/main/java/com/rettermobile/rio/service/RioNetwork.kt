@@ -11,7 +11,6 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.util.concurrent.TimeUnit
 
 /**
@@ -44,7 +43,8 @@ class RioNetwork {
             .add("*.retter.io", "sha256/FfFKxFycfaIz00eRZOgTf+Ne4POK6FgYPwhBDqgqxLQ=")
 
         if (!RioConfig.config.customDomain.isNullOrEmpty()) {
-            val customDomain = RioConfig.config.customDomain!!.replace("https://", "").replace("http://", "")
+            val customDomain =
+                RioConfig.config.customDomain!!.replace("https://", "").replace("http://", "")
 
             certificate.add(customDomain, "sha256/++MBgDH5WGvL9Bcn5Be30cRcL0f5O+NyoXuWtQdX1aI=")
             certificate.add(customDomain, "sha256/f0KW/FtqTjs108NpYj42SrGvOB2PpxIVM8nWxjPqJGE=")
@@ -75,7 +75,8 @@ class RioNetwork {
             val newRequestBuilder = originalRequest.newBuilder()
 
             newRequestBuilder
-                .header("User-Agent", "rio-android-sdk-1.2.4")
+                .header("sdk-user-agent", "android-1.5.1")
+                .header("User-Agent", httpAgent())
                 .addHeader("Content-Type", "application/json;charset=UTF-8")
                 .addHeader("x-rio-sdk-client", "android")
                 .cacheControl(CacheControl.FORCE_NETWORK)
@@ -137,6 +138,12 @@ class RioNetwork {
         }
 
         return cloudService!!
+    }
+
+    private fun httpAgent() = try {
+        System.getProperty("http.agent") ?: "Android"
+    } catch (e: Exception) {
+        "Android"
     }
 
 }
