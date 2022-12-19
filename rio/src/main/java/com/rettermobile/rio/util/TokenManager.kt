@@ -11,13 +11,14 @@ import com.rettermobile.rio.model.RioUser
 import com.rettermobile.rio.service.auth.RioAuthServiceImp
 import com.rettermobile.rio.service.model.RioTokenModel
 import com.rettermobile.rio.service.model.exception.TokenFailException
-import java.util.concurrent.Semaphore
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * Created by semihozkoroglu on 10.12.2021.
  */
 object TokenManager {
-    private val availableRest = Semaphore(1, true)
+    private val mutex = Mutex()
 
     var tokenUpdateListener: (() -> Unit)? = null
     var clearListener: (() -> Unit)? = null
@@ -25,6 +26,11 @@ object TokenManager {
     private val gson = Gson()
 
     private var tokenInfo: RioTokenModel? = null
+        get() {
+            val infoJson = Preferences.getString(Preferences.Keys.TOKEN_INFO)
+
+            return gson.fromJson(infoJson, RioTokenModel::class.java)
+        }
         set(value) {
             val isStatusChanged = value?.accessToken?.jwtUserId() != userId()
 
@@ -33,6 +39,13 @@ object TokenManager {
             if (value != null) {
                 // Save to device
                 RioLogger.log("TokenManager.setValue save device")
+
+                value.accessToken.jwtIat()?.let { iat ->
+                    val diff = (System.currentTimeMillis() / 1000) - iat
+                    RioLogger.log("TokenManager.setValue set time difference $diff")
+                    Preferences.setLong(Preferences.Keys.TOKEN_INFO_DELTA, diff)
+                }
+
                 Preferences.setString(Preferences.Keys.TOKEN_INFO, gson.toJson(value))
             } else {
                 // Logout
@@ -56,30 +69,23 @@ object TokenManager {
             try {
                 val token = gson.fromJson(infoJson, RioTokenModel::class.java)
 
-                tokenInfo = if (TextUtils.equals(token.accessToken.projectId(), RioConfig.projectId)) {
-                    if (isRefreshTokenExpired(token)) {
-                        // signOut
-                        RioLogger.log("TokenManager.init tokenInfo=null")
-                        null
+                tokenInfo =
+                    if (TextUtils.equals(token.accessToken.projectId(), RioConfig.projectId)) {
+                        if (isRefreshTokenExpired(token)) {
+                            // signOut
+                            RioLogger.log("TokenManager.init tokenInfo=null")
+                            null
+                        } else {
+                            RioLogger.log("TokenManager.init tokenInfo OK")
+                            token
+                        }
                     } else {
-                        RioLogger.log("TokenManager.init tokenInfo OK")
-                        token
+                        RioLogger.log("TokenManager.init tokenInfo project id changed set as null")
+                        null
                     }
-                } else {
-                    RioLogger.log("TokenManager.init tokenInfo project id changed set as null")
-                    null
-                }
             } catch (e: Exception) {
                 RioLogger.log("TokenManager.init tokenInfo exception ${e.message}")
             }
-        }
-    }
-
-    fun calculateDelta() {
-        accessToken()?.jwtIat()?.let { iat ->
-            val diff = (System.currentTimeMillis() / 1000) - iat
-            RioLogger.log("TokenManager.tokenInfo set time difference $diff")
-            Preferences.setLong(Preferences.Keys.TOKEN_INFO_DELTA, diff)
         }
     }
 
@@ -108,7 +114,8 @@ object TokenManager {
 
         val now = (System.currentTimeMillis() / 1000) - deltaTime() + 24 * 60 * 60
 
-        val isExpired = now >= refreshTokenExpiresAt  // now + 280 -> only wait 20 seconds for debugging
+        val isExpired =
+            now >= refreshTokenExpiresAt  // now + 280 -> only wait 20 seconds for debugging
 
         RioLogger.log("TokenManager.isRefreshTokenExpired refreshToken: ${token.refreshToken}")
         RioLogger.log("TokenManager.isRefreshTokenExpired isExpired: $isExpired")
@@ -127,7 +134,6 @@ object TokenManager {
             RioFirebaseManager.authenticate(token?.firebase)
 
             tokenInfo = token
-            calculateDelta()
 
             RioLogger.log("authWithCustomToken token setted")
         } else {
@@ -142,37 +148,44 @@ object TokenManager {
     suspend fun checkToken() {
         // Token info control
         RioLogger.log("TokenManager.checkToken locked")
-        availableRest.acquire()
-        RioLogger.log("TokenManager.checkToken started")
+        mutex.withLock {
+            RioLogger.log("TokenManager.checkToken started")
 
-        if (!TextUtils.isEmpty(accessToken())) {
-            if (isAccessTokenExpired()) {
-                val res = runCatching { RioAuthServiceImp.refreshToken(tokenInfo?.refreshToken!!) }
+            if (!TextUtils.isEmpty(accessToken())) {
+                if (isAccessTokenExpired()) {
+                    val refreshToken = tokenInfo?.refreshToken!!
 
-                if (res.isSuccess) {
-                    RioLogger.log("TokenManager.checkToken refreshToken success")
+                    // Delete from device
+                    RioLogger.log("TokenManager.checkToken delete token info from device")
+                    Preferences.deleteKey(Preferences.Keys.TOKEN_INFO)
+                    Preferences.deleteKey(Preferences.Keys.TOKEN_INFO_DELTA)
 
-                    tokenInfo = res.getOrNull()
-                    calculateDelta()
-                } else {
-                    RioLogger.log("TokenManager.checkToken refreshToken fail signOut called")
+                    val res = runCatching { RioAuthServiceImp.refreshToken(refreshToken) }
 
-                    RioLogger.log("TokenManager.checkToken refreshToken fail")
+                    if (res.isSuccess) {
+                        RioLogger.log("TokenManager.checkToken refreshToken success")
 
-                    clearListener?.invoke()
+                        tokenInfo = res.getOrNull()
+                    } else {
+                        RioLogger.log("TokenManager.checkToken refreshToken fail signOut called")
 
-                    throw res.exceptionOrNull() ?: TokenFailException("AuthWithCustomToken fail")
+                        RioLogger.log("TokenManager.checkToken refreshToken fail")
+
+                        clearListener?.invoke()
+
+                        throw res.exceptionOrNull()
+                            ?: TokenFailException("AuthWithCustomToken fail")
+                    }
                 }
             }
-        }
 
-        if (RioFirebaseManager.isNotAuthenticated()) {
-            RioFirebaseManager.authenticate(tokenInfo?.firebase)
-        }
+            if (RioFirebaseManager.isNotAuthenticated()) {
+                RioFirebaseManager.authenticate(tokenInfo?.firebase)
+            }
 
-        RioLogger.log("TokenManager.checkToken ended")
-        RioLogger.log("TokenManager.checkToken released")
-        availableRest.release()
+            RioLogger.log("TokenManager.checkToken ended")
+            RioLogger.log("TokenManager.checkToken released")
+        }
     }
 
     fun clear() {
