@@ -40,12 +40,6 @@ object TokenManager {
                 // Save to device
                 RioLogger.log("TokenManager.setValue save device")
 
-                value.accessToken.jwtIat()?.let { iat ->
-                    val diff = (System.currentTimeMillis() / 1000) - iat
-                    RioLogger.log("TokenManager.setValue set time difference $diff")
-                    Preferences.setLong(Preferences.Keys.TOKEN_INFO_DELTA, diff)
-                }
-
                 Preferences.setString(Preferences.Keys.TOKEN_INFO, gson.toJson(value))
             } else {
                 // Logout
@@ -69,20 +63,18 @@ object TokenManager {
             try {
                 val token = gson.fromJson(infoJson, RioTokenModel::class.java)
 
-                tokenInfo =
-                    if (TextUtils.equals(token.accessToken.projectId(), RioConfig.projectId)) {
-                        if (isRefreshTokenExpired(token)) {
-                            // signOut
-                            RioLogger.log("TokenManager.init tokenInfo=null")
-                            null
-                        } else {
-                            RioLogger.log("TokenManager.init tokenInfo OK")
-                            token
-                        }
+                if (TextUtils.equals(token.accessToken.projectId(), RioConfig.projectId)) {
+                    if (isRefreshTokenExpired(token)) {
+                        // signOut
+                        tokenInfo = null
+                        RioLogger.log("TokenManager.init tokenInfo=null")
                     } else {
-                        RioLogger.log("TokenManager.init tokenInfo project id changed set as null")
-                        null
+                        RioLogger.log("TokenManager.init tokenInfo OK")
                     }
+                } else {
+                    tokenInfo = null
+                    RioLogger.log("TokenManager.init DIFFERENT PROJECT ID!! token setted null!")
+                }
             } catch (e: Exception) {
                 RioLogger.log("TokenManager.init tokenInfo exception ${e.message}")
             }
@@ -99,8 +91,7 @@ object TokenManager {
 
         val now = (System.currentTimeMillis() / 1000) - deltaTime() + 30
 
-        val isExpired =
-            now >= accessTokenExpiresAt  // now + 280 -> only wait 20 seconds for debugging
+        val isExpired = now >= accessTokenExpiresAt
 
         RioLogger.log("TokenManager.isAccessTokenExpired accessToken: ${tokenInfo!!.accessToken}")
         RioLogger.log("TokenManager.isAccessTokenExpired isExpired: $isExpired")
@@ -114,8 +105,7 @@ object TokenManager {
 
         val now = (System.currentTimeMillis() / 1000) - deltaTime() + 24 * 60 * 60
 
-        val isExpired =
-            now >= refreshTokenExpiresAt  // now + 280 -> only wait 20 seconds for debugging
+        val isExpired = now >= refreshTokenExpiresAt
 
         RioLogger.log("TokenManager.isRefreshTokenExpired refreshToken: ${token.refreshToken}")
         RioLogger.log("TokenManager.isRefreshTokenExpired isExpired: $isExpired")
@@ -134,6 +124,7 @@ object TokenManager {
             RioFirebaseManager.authenticate(token?.firebase)
 
             tokenInfo = token
+            calculateDelta()
 
             RioLogger.log("authWithCustomToken token setted")
         } else {
@@ -166,6 +157,7 @@ object TokenManager {
                         RioLogger.log("TokenManager.checkToken refreshToken success")
 
                         tokenInfo = res.getOrNull()
+                        calculateDelta()
                     } else {
                         RioLogger.log("TokenManager.checkToken refreshToken fail signOut called")
 
@@ -185,6 +177,20 @@ object TokenManager {
 
             RioLogger.log("TokenManager.checkToken ended")
             RioLogger.log("TokenManager.checkToken released")
+        }
+    }
+
+    private fun calculateDelta() {
+        RioLogger.log("TokenManager.calculateDelta called")
+
+        accessToken()?.jwtIat()?.let { iat ->
+            val now = (System.currentTimeMillis() / 1000)
+
+            RioLogger.log("TokenManager.calculateDelta now: $now iat: $iat")
+
+            val diff = now - iat
+            RioLogger.log("TokenManager.calculateDelta set time difference $diff")
+            Preferences.setLong(Preferences.Keys.TOKEN_INFO_DELTA, diff)
         }
     }
 
