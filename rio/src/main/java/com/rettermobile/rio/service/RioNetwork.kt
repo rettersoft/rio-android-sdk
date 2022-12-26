@@ -5,6 +5,7 @@ import com.rettermobile.rio.RioConfig
 import com.rettermobile.rio.RioLogger
 import com.rettermobile.rio.service.auth.RioAuthService
 import com.rettermobile.rio.service.cloud.RioCloudService
+import com.rettermobile.rio.util.TokenManager
 import okhttp3.CacheControl
 import okhttp3.CertificatePinner
 import okhttp3.OkHttpClient
@@ -75,10 +76,11 @@ class RioNetwork {
             val newRequestBuilder = originalRequest.newBuilder()
 
             newRequestBuilder
-                .header("sdk-user-agent", "android-1.5.2")
+                .header("sdk-user-agent", "android-1.5.3")
                 .header("User-Agent", httpAgent())
                 .addHeader("Content-Type", "application/json;charset=UTF-8")
                 .addHeader("x-rio-sdk-client", "android")
+                .addHeader("installation-id", TokenManager.getDeviceId())
                 .cacheControl(CacheControl.FORCE_NETWORK)
 
             return@addInterceptor chain.proceed(newRequestBuilder.build())

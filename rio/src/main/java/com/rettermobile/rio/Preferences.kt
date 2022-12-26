@@ -8,6 +8,7 @@ object Preferences {
     object Keys {
         const val TOKEN_INFO = "token_info"
         const val TOKEN_INFO_DELTA = "token_info_delta"
+        const val DEVICE_ID = "device_id"
     }
 
     // default mode private

@@ -15,15 +15,11 @@ object RioAuthRequestManager {
         RioLogger.log("RIOAuthRequestManager.authenticate OK")
     }
 
-    suspend fun signOut(): String {
-        val res = runCatching { RioAuthServiceImp.signOut() }
+    suspend fun signOut(type: String): String {
+        val res = runCatching { RioAuthServiceImp.signOut(type) }
 
-        RioLogger.log("RIOAuthRequestManager.signOut OK")
+        RioLogger.log("RIOAuthRequestManager.signOut success: ${res.isSuccess}")
 
-        return if (res.isSuccess) {
-            "OK"
-        } else {
-            "OK"
-        }
+        return "OK"
     }
 }

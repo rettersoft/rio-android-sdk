@@ -34,7 +34,7 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
         RioConfig.retryConfig = retryConfig ?: RioRetryConfig()
 
         TokenManager.tokenUpdateListener = { sendAuthStatus() }
-        TokenManager.clearListener = { signOut() }
+        TokenManager.clearListener = { signOutMethod(type = "sdk") }
     }
 
     private var listener: ((RioClientAuthStatus, RioUser?) -> Unit)? = null
@@ -143,7 +143,7 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
         }
     }
 
-    fun signOut(callback: ((Boolean, Throwable?) -> Unit)? = null) {
+    private fun signOutMethod(type: String, callback: ((Boolean, Throwable?) -> Unit)? = null) {
         RioLogger.log("signOut called")
 
         scope.launch(CoroutineExceptionHandler { _, e ->
@@ -153,7 +153,7 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
 
             callback?.invoke(false, e)
         }) {
-            val res = runCatching { RioAuthRequestManager.signOut() }
+            val res = runCatching { RioAuthRequestManager.signOut(type) }
 
             clear()
 
@@ -163,6 +163,10 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
                 withContext(Dispatchers.Main) { callback?.invoke(false, res.exceptionOrNull()) }
             }
         }
+    }
+
+    fun signOut(callback: ((Boolean, Throwable?) -> Unit)? = null) {
+        signOutMethod(type = "user", callback)
     }
 
     private fun clear() {

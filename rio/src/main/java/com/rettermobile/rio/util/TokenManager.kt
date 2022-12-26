@@ -13,6 +13,7 @@ import com.rettermobile.rio.service.model.RioTokenModel
 import com.rettermobile.rio.service.model.exception.TokenFailException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.util.*
 
 /**
  * Created by semihozkoroglu on 10.12.2021.
@@ -213,5 +214,23 @@ object TokenManager {
 
             RioUser(userId, userId.isNullOrEmpty())
         } ?: kotlin.run { null }
+    }
+
+    fun getDeviceId(): String {
+        val deviceId = Preferences.getString(Preferences.Keys.DEVICE_ID)
+
+        if (!TextUtils.isEmpty(deviceId)) {
+            return deviceId!!
+        }
+
+        val uid: String = try {
+            UUID.randomUUID().toString()
+        } catch (e: Exception) {
+            System.currentTimeMillis().toString() + "-" + System.currentTimeMillis().toString()
+        }
+
+        Preferences.setString(Preferences.Keys.DEVICE_ID, uid)
+
+        return uid
     }
 }

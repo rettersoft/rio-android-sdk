@@ -49,7 +49,7 @@ class MainActivity : AppCompatActivity() {
 
             rio.getCloudObject(RioCloudObjectOptions(classId = "User", instanceId = "231321", useLocal = true), onSuccess = { cloudObj ->
 
-                cloudObj.call<TestResponse>(RioCallMethodOptions("getProfile", httpMethod = RioHttpMethod.GET), onSuccess = {
+                cloudObj.call<TestResponse>(RioCallMethodOptions("getProfile", httpMethod = RioHttpMethod.GET, queries = mapOf(Pair("key1", "value1"), Pair("key2", 2312))), onSuccess = {
                     Log.e("", "")
                 }, onError = {
                     Log.e("", "")
