@@ -90,7 +90,7 @@ object TokenManager {
         val jwtAccess = JWT(tokenInfo!!.accessToken)
         val accessTokenExpiresAt = jwtAccess.getClaim("exp").asLong()!!
 
-        val now = (System.currentTimeMillis() / 1000) - deltaTime() + 30
+        val now = (System.currentTimeMillis() / 1000) - deltaTime() + 60
 
         val isExpired = now >= accessTokenExpiresAt
 
