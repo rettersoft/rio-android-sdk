@@ -152,23 +152,7 @@ object TokenManager {
                     Preferences.deleteKey(Preferences.Keys.TOKEN_INFO)
                     Preferences.deleteKey(Preferences.Keys.TOKEN_INFO_DELTA)
 
-                    val res = runCatching { RioAuthServiceImp.refreshToken(refreshToken) }
-
-                    if (res.isSuccess) {
-                        RioLogger.log("TokenManager.checkToken refreshToken success")
-
-                        tokenInfo = res.getOrNull()
-                        calculateDelta()
-                    } else {
-                        RioLogger.log("TokenManager.checkToken refreshToken fail signOut called")
-
-                        RioLogger.log("TokenManager.checkToken refreshToken fail")
-
-                        clearListener?.invoke()
-
-                        throw res.exceptionOrNull()
-                            ?: TokenFailException("AuthWithCustomToken fail")
-                    }
+                    refreshWithRetry(refreshToken)
                 }
             }
 
@@ -178,6 +162,33 @@ object TokenManager {
 
             RioLogger.log("TokenManager.checkToken ended")
             RioLogger.log("TokenManager.checkToken released")
+        }
+    }
+
+    private suspend fun refreshWithRetry(refreshToken: String, retryCount: Int = 1) {
+        RioLogger.log("TokenManager.retryWithSub retryCount: $retryCount")
+
+        val res = runCatching { RioAuthServiceImp.refreshToken(refreshToken) }
+
+        if (res.isSuccess) {
+            RioLogger.log("TokenManager.refreshWithRetry refreshToken success")
+
+            tokenInfo = res.getOrNull()
+            calculateDelta()
+        } else {
+            if (retryCount > 3) {
+                RioLogger.log("TokenManager.refreshWithRetry refreshToken fail signOut called")
+
+                RioLogger.log("TokenManager.refreshWithRetry refreshToken fail")
+
+                clearListener?.invoke()
+
+                throw res.exceptionOrNull() ?: TokenFailException("AuthWithCustomToken fail")
+            } else {
+                Thread.sleep((100 * retryCount).toLong())
+
+                refreshWithRetry(refreshToken, retryCount = retryCount + 1)
+            }
         }
     }
 
