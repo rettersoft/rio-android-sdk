@@ -2,6 +2,8 @@ package com.rettermobile.rio
 
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 
 object Preferences {
 
@@ -11,8 +13,18 @@ object Preferences {
         const val DEVICE_ID = "device_id"
     }
 
-    // default mode private
-    var pref: SharedPreferences = RioConfig.applicationContext.getSharedPreferences("rio-preferences", MODE_PRIVATE)
+    val pref: SharedPreferences by lazy {
+        val masterKey = MasterKey.Builder(RioConfig.applicationContext)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+        EncryptedSharedPreferences.create(
+            RioConfig.applicationContext,
+            "rio-encrypted-prefrences",
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
 
     fun getString(key: String, defValue: String): String? {
         return pref.getString(key, defValue)
