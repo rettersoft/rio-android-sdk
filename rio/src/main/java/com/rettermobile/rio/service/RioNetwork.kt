@@ -91,6 +91,7 @@ class RioNetwork {
         builder.addInterceptor(interceptor)
 
         RioConfig.config.interceptor?.let { builder.addInterceptor(it) }
+        RioConfig.config.networkInterceptor?.let { builder.addNetworkInterceptor(it) }
 
         builder.connectTimeout(sessionTimeout, TimeUnit.SECONDS)
         builder.readTimeout(sessionTimeout, TimeUnit.SECONDS)

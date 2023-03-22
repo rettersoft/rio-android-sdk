@@ -11,6 +11,7 @@ class RioNetworkConfig(
     var customDomain: String? = null,
     var sslPinningEnabled: Boolean = true,
     var interceptor: Interceptor? = null,
+    var networkInterceptor: Interceptor? = null,
     var firebaseEnable: Boolean = true,
 ) {
     private fun init(builder: Builder): RioNetworkConfig {
