@@ -36,10 +36,7 @@ class RioCloudObject constructor(val options: RioCloudObjectOptions, var instanc
                     val res = runCatching {
                         TokenManager.checkToken()
 
-                        val accessToken = TokenManager.accessToken()
-
                         RioCloudServiceImp.exec(
-                            accessToken,
                             RioActions.CALL,
                             RioServiceParam(options, callOptions)
                         )
@@ -104,10 +101,7 @@ class RioCloudObject constructor(val options: RioCloudObjectOptions, var instanc
                 val res = runCatching {
                     TokenManager.checkToken()
 
-                    val accessToken = TokenManager.accessToken()
-
                     RioCloudServiceImp.exec(
-                        accessToken,
                         RioActions.LIST,
                         RioServiceParam(RioCloudObjectOptions().apply {
                             classId = options.classId

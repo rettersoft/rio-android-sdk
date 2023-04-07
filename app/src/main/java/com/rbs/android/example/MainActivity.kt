@@ -19,6 +19,7 @@ import com.rettermobile.rio.util.RioHttpMethod
 
 class MainActivity : AppCompatActivity() {
 
+    lateinit var btnGetCloud: Button
     lateinit var btnGetCloudCall: Button
     lateinit var btnSignIn: Button
     lateinit var btnSignOut: Button
@@ -46,50 +47,39 @@ class MainActivity : AppCompatActivity() {
                     )
                 }"
             )
-
-            rio.getCloudObject(RioCloudObjectOptions(classId = "User", instanceId = "231321", useLocal = true), onSuccess = { cloudObj ->
-
-                cloudObj.call<TestResponse>(RioCallMethodOptions("getProfile", httpMethod = RioHttpMethod.GET, queries = mapOf(Pair("key1", "value1"), Pair("key2", 2312))), onSuccess = {
-                    Log.e("", "")
-                }, onError = {
-                    Log.e("", "")
-
-                    if (it is RioErrorResponse) {
-                        it.rawBody
-                    }
-                })
-
-                loading.isVisible = true
-                cloudObj.user.subscribe(eventFired = {
-                    loading.isVisible = false
-                }, errorFired = {
-                    loading.isVisible = false
-                })
-            }, onError = { throwable ->
-                Log.e("", "")
-            })
         }
 
-//        rio.signOut { isSuc, throwable -> }
-
+        btnGetCloud = findViewById(R.id.btnGetCloud)
         btnGetCloudCall = findViewById(R.id.btnGetCloudCall)
         btnSignIn = findViewById(R.id.btnSignIn)
         btnSignOut = findViewById(R.id.btnSignOut)
         loading = findViewById(R.id.loading)
         loading.isVisible = false
 
-        // 'https://6062mhn7s.test-api.retter.io/6062mhn7s/CALL/token/sayHello/01gfvgbnajkfwnn81ex2ft5sjy '{"userId":"ali","identity":"enduser"}'
-//        https://q3glt327r.api.retter.io/q3glt327r/CALL/StaticMethodTest/sayHello/param1/param2/param3/param4
+        btnGetCloud.setOnClickListener {
+            rio.getCloudObject(
+                RioCloudObjectOptions(
+                    classId = "superFour",
+                    instanceId = "01gx697h6k7v56tsadzatga2pn",
+                    useLocal = true
+                ), onSuccess = {
+                    it.call<TestResponse>(RioCallMethodOptions(method = "generateToken"), onSuccess = {
+                        rio.authenticateWithCustomToken(it.body?.customToken ?: "")
+                    }, onError = {
+
+                    })
+                }, onError = {
+
+                })
+        }
+
         btnGetCloudCall.setOnClickListener {
             rio.makeStaticCall<TestResponse>(
                 options = RioCloudObjectOptions(
-                    classId = "TcknAuthenticator",
-                    method = "mobileAuth",
+                    classId = "ExampleProject",
+                    method = "ExampleMethod",
                     body = TestRequest()
                 ), onSuccess = {
-                    if (rio.getAuthStatus() != RioClientAuthStatus.SIGNED_IN) {
-                        rio.authenticateWithCustomToken(it.body?.customToken ?: "")
-                    }
                 }, onError = {
 
                 })

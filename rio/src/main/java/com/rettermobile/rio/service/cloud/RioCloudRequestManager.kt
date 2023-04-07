@@ -25,13 +25,10 @@ internal object RioCloudRequestManager {
             RioLogger.log("RIOCloudManager.exec create cloud object in-memory")
             RioCloudObject(options, null)
         } else {
-            val accessToken = TokenManager.accessToken()
-
             RioLogger.log("RIOCloudManager.exec create cloud object service call executed")
 
             val res = runCatching {
                 RioCloudServiceImp.exec(
-                    accessToken,
                     action,
                     RioServiceParam(options)
                 )

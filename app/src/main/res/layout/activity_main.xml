@@ -38,6 +38,12 @@
                 android:text="Sign out" />
 
             <Button
+                android:id="@+id/btnGetCloud"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Get Cloud" />
+
+            <Button
                 android:id="@+id/btnGetCloudCall"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

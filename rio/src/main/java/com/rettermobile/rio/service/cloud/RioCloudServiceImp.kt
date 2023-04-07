@@ -7,6 +7,7 @@ import com.rettermobile.rio.cloud.RioServiceParam
 import com.rettermobile.rio.service.RioNetwork
 import com.rettermobile.rio.util.RioActions
 import com.rettermobile.rio.util.RioHttpMethod
+import com.rettermobile.rio.util.TokenManager
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -21,14 +22,13 @@ object RioCloudServiceImp {
     private var api: RioCloudService = RioNetwork().getCloudConnection()
 
     suspend fun exec(
-        accessToken: String? = null,
         action: RioActions,
         params: RioServiceParam
     ): Response<ResponseBody> {
         RioLogger.log("getCloud $action started")
 
         RioLogger.log("RIOCloudManager.exec projectId: ${RioConfig.projectId}")
-        RioLogger.log("RIOCloudManager.exec accessToken: $accessToken")
+        RioLogger.log("RIOCloudManager.exec accessToken: ${TokenManager.accessToken()}")
         RioLogger.log("RIOCloudManager.exec action: $action")
         RioLogger.log("RIOCloudManager.exec classId: ${params.classId}")
         RioLogger.log("RIOCloudManager.exec methodId: ${params.method}")
@@ -62,10 +62,10 @@ object RioCloudServiceImp {
         }
 
         return when (params.httpMethod) {
-            RioHttpMethod.GET -> api.getAction(url = url, token = accessToken, culture = params.culture, headers = params.headers)
-            RioHttpMethod.POST -> api.postAction(url = url, token = accessToken, culture = params.culture, headers = params.headers, payload = body)
-            RioHttpMethod.DELETE -> api.deleteAction(url = url, token = accessToken, culture = params.culture, headers = params.headers, payload = body)
-            RioHttpMethod.PUT -> api.putAction(url = url, token = accessToken, culture = params.culture, headers = params.headers, payload = body)
+            RioHttpMethod.GET -> api.getAction(url = url, culture = params.culture, headers = params.headers)
+            RioHttpMethod.POST -> api.postAction(url = url, culture = params.culture, headers = params.headers, payload = body)
+            RioHttpMethod.DELETE -> api.deleteAction(url = url, culture = params.culture, headers = params.headers, payload = body)
+            RioHttpMethod.PUT -> api.putAction(url = url, culture = params.culture, headers = params.headers, payload = body)
         }
     }
 }

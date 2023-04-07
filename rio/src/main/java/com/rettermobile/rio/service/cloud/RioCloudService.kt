@@ -14,7 +14,6 @@ interface RioCloudService {
     suspend fun getAction(
         @Url url: String,
         @HeaderMap headers: Map<String, String>,
-        @Query("_token") token: String?,
         @Query("__culture") culture: String,
         @Query("__platform") platform: String = "Android"
     ): Response<ResponseBody>
@@ -23,7 +22,6 @@ interface RioCloudService {
     suspend fun deleteAction(
         @Url url: String,
         @HeaderMap headers: Map<String, String>,
-        @Query("_token") token: String?,
         @Query("__culture") culture: String,
         @Query("__platform") platform: String = "Android",
         @Body payload: RequestBody
@@ -33,7 +31,6 @@ interface RioCloudService {
     suspend fun putAction(
         @Url url: String,
         @HeaderMap headers: Map<String, String>,
-        @Query("_token") token: String?,
         @Query("__culture") culture: String,
         @Query("__platform") platform: String = "Android",
         @Body payload: RequestBody
@@ -43,7 +40,6 @@ interface RioCloudService {
     suspend fun postAction(
         @Url url: String,
         @HeaderMap headers: Map<String, String>,
-        @Query("_token") token: String?,
         @Query("__culture") culture: String,
         @Query("__platform") platform: String = "Android",
         @Body payload: RequestBody
