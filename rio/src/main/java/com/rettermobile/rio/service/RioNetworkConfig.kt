@@ -12,6 +12,7 @@ class RioNetworkConfig(
     var sslPinningEnabled: Boolean = true,
     var interceptor: Interceptor? = null,
     var networkInterceptor: Interceptor? = null,
+    var headerInterceptor: HeaderInterceptor? = null,
     var firebaseEnable: Boolean = true,
 ) {
     private fun init(builder: Builder): RioNetworkConfig {
@@ -43,5 +44,9 @@ class RioNetworkConfig(
         var interceptor: Interceptor? = null
 
         fun build() = RioNetworkConfig().init(this)
+    }
+
+    interface HeaderInterceptor {
+        fun headers(): List<Pair<String, String>>
     }
 }
