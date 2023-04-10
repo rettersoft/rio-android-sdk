@@ -83,6 +83,11 @@ object TokenManager {
     }
 
     fun isAccessTokenExpired(): Boolean {
+        if (tokenInfo == null) {
+            RioLogger.log("TokenManager.isAccessTokenExpired tokenInfo is null!!!")
+            return true
+        }
+
         if (isRefreshTokenExpired(tokenInfo!!)) {
             return true
         }
