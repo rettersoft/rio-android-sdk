@@ -204,6 +204,8 @@ class RBS(
 
             callback?.invoke(false, it)
         })
+
+        clearSession()
     }
 
     private fun clearSession() {
