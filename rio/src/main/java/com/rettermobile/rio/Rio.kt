@@ -59,32 +59,37 @@ class Rio(
 
             callback?.invoke(false, e)
         }) {
-            if (authStatus == RioClientAuthStatus.AUTHENTICATING) {
+            if (authStatus != RioClientAuthStatus.AUTHENTICATING) {
+                authStatus = RioClientAuthStatus.AUTHENTICATING
+                RioLogger.log("Rio.authenticateWithCustomToken authStatus setted as RioClientAuthStatus.AUTHENTICATING")
+
+                withContext(Dispatchers.Main) {
+                    listener?.invoke(RioClientAuthStatus.AUTHENTICATING, null)
+                }
+
+                if (!TextUtils.isEmpty(customToken)) {
+                    val res = runCatching { RioAuthRequestManager.authenticate(customToken) }
+
+                    if (res.isSuccess) {
+                        withContext(Dispatchers.Main) { callback?.invoke(true, null) }
+                    } else {
+                        withContext(Dispatchers.Main) { callback?.invoke(false, res.exceptionOrNull()) }
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        callback?.invoke(
+                            false,
+                            IllegalArgumentException("customToken must not be null or empty")
+                        )
+                    }
+                }
+
+                authStatus = null
+            } else {
                 RioLogger.log("Rio.authenticateWithCustomToken authStatus is RioClientAuthStatus.AUTHENTICATING")
                 delay(3000)
                 RioLogger.log("Rio.authenticateWithCustomToken authStatus setted as NULL")
                 authStatus = null
-
-                return@launch
-            }
-
-            authStatus = RioClientAuthStatus.AUTHENTICATING
-            RioLogger.log("Rio.authenticateWithCustomToken authStatus setted as RioClientAuthStatus.AUTHENTICATING")
-
-            withContext(Dispatchers.Main) {
-                listener?.invoke(RioClientAuthStatus.AUTHENTICATING, null)
-            }
-
-            if (!TextUtils.isEmpty(customToken)) {
-                val res = runCatching { RioAuthRequestManager.authenticate(customToken) }
-
-                if (res.isSuccess) {
-                    withContext(Dispatchers.Main) { callback?.invoke(true, null) }
-                } else {
-                    withContext(Dispatchers.Main) { callback?.invoke(false, res.exceptionOrNull()) }
-                }
-            } else {
-                withContext(Dispatchers.Main) { callback?.invoke(false, IllegalArgumentException("customToken must not be null or empty")) }
             }
         }
     }
