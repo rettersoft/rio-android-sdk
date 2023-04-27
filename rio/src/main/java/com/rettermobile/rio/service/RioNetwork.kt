@@ -76,13 +76,13 @@ class RioNetwork {
             val newRequestBuilder = originalRequest.newBuilder()
 
             newRequestBuilder
-                .header("sdk-user-agent", "android-1.5.6.3")
+                .header("sdk-user-agent", "android-1.5.6.4")
                 .header("User-Agent", httpAgent())
                 .addHeader("Content-Type", "application/json;charset=UTF-8")
                 .addHeader("x-rio-sdk-client", "android")
                 .addHeader("client-time", System.currentTimeMillis().toString())
                 .addHeader("client-token-delta", TokenManager.deltaTime().toString())
-                .addHeader("client-access-expired", TokenManager.isAccessTokenExpired().toString())
+                .addHeader("client-access-expired", "${TokenManager.isAccessTokenExpired()} - ${TokenManager.isTokenNull()}")
                 .addHeader("installation-id", TokenManager.getDeviceId())
                 .cacheControl(CacheControl.FORCE_NETWORK)
 

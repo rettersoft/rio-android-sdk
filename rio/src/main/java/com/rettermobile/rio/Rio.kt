@@ -21,10 +21,18 @@ import kotlinx.coroutines.*
 /**
  * Created by semihozkoroglu on 22.11.2020.
  */
-class Rio(applicationContext: Context, projectId: String, culture: String? = null, config: RioNetworkConfig, retryConfig: RioRetryConfig? = null) {
+class Rio(
+    applicationContext: Context,
+    projectId: String,
+    culture: String? = null,
+    config: RioNetworkConfig,
+    retryConfig: RioRetryConfig? = null
+) {
 
     private val job: Job = Job()
     private val scope = CoroutineScope(Dispatchers.Default + job)
+
+    private var authStatus: RioClientAuthStatus? = null
 
     init {
         RioConfig.applicationContext = applicationContext
@@ -51,6 +59,18 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
 
             callback?.invoke(false, e)
         }) {
+            if (authStatus == RioClientAuthStatus.AUTHENTICATING) {
+                RioLogger.log("Rio.authenticateWithCustomToken authStatus is RioClientAuthStatus.AUTHENTICATING")
+                delay(3000)
+                RioLogger.log("Rio.authenticateWithCustomToken authStatus setted as NULL")
+                authStatus = null
+
+                return@launch
+            }
+
+            authStatus = RioClientAuthStatus.AUTHENTICATING
+            RioLogger.log("Rio.authenticateWithCustomToken authStatus setted as RioClientAuthStatus.AUTHENTICATING")
+
             withContext(Dispatchers.Main) {
                 listener?.invoke(RioClientAuthStatus.AUTHENTICATING, null)
             }
