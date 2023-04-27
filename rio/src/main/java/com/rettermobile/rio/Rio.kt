@@ -84,6 +84,8 @@ class Rio(
                     }
                 }
 
+                delay(3000)
+                RioLogger.log("Rio.authenticateWithCustomToken authStatus setted as NULL")
                 authStatus = null
             } else {
                 RioLogger.log("Rio.authenticateWithCustomToken authStatus is RioClientAuthStatus.AUTHENTICATING")
