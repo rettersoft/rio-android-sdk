@@ -5,6 +5,7 @@ import android.text.TextUtils
 import android.util.Base64
 import com.auth0.android.jwt.JWT
 import com.google.gson.GsonBuilder
+import com.rettermobile.rio.RioConfig
 import java.lang.reflect.Type
 
 /**
@@ -31,7 +32,7 @@ infix fun <T> Boolean.then(param: T): T? = if (this) param else null
 fun <T> parseResponse(type: Type, json: String?): T? {
     if (json.isNullOrEmpty()) return null
 
-    return GsonBuilder().create().fromJson(json, type)
+    return RioConfig.config.gson?.fromJson(json, type)
 }
 
 fun String.jwtIat(): Long? {

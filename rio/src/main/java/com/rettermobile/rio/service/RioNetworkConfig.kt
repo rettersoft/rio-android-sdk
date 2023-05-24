@@ -1,5 +1,7 @@
 package com.rettermobile.rio.service
 
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.rettermobile.rio.util.RioRegion
 import okhttp3.Interceptor
 
@@ -12,6 +14,7 @@ class RioNetworkConfig(
     var sslPinningEnabled: Boolean = true,
     var interceptor: Interceptor? = null,
     var networkInterceptor: Interceptor? = null,
+    var gson: Gson = GsonBuilder().create(),
     var firebaseEnable: Boolean = true,
 ) {
     private fun init(builder: Builder): RioNetworkConfig {
@@ -25,7 +28,10 @@ class RioNetworkConfig(
             builder.region,
             builder.customDomain,
             builder.sslPinningEnabled,
-            builder.interceptor
+            builder.interceptor,
+            builder.networkInterceptor,
+            builder.gson,
+            builder.firebaseEnable
         )
     }
 
@@ -33,7 +39,6 @@ class RioNetworkConfig(
         inline fun build(block: Builder.() -> Unit): RioNetworkConfig {
             return Builder().apply(block).build()
         }
-
     }
 
     class Builder {
@@ -41,6 +46,9 @@ class RioNetworkConfig(
         var customDomain: String? = null
         var sslPinningEnabled: Boolean = true
         var interceptor: Interceptor? = null
+        var networkInterceptor: Interceptor? = null
+        var gson: Gson = GsonBuilder().create()
+        var firebaseEnable: Boolean = true
 
         fun build() = RioNetworkConfig().init(this)
     }
