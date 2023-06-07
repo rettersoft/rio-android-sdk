@@ -82,7 +82,14 @@ object TokenManager {
         }
     }
 
-    private fun isAccessTokenExpired(): Boolean {
+    fun isTokenNull(): Boolean = tokenInfo == null
+
+    fun isAccessTokenExpired(): Boolean {
+        if (tokenInfo == null) {
+            RioLogger.log("TokenManager.isAccessTokenExpired tokenInfo is null!!!")
+            return true
+        }
+
         if (isRefreshTokenExpired(tokenInfo!!)) {
             return true
         }
@@ -213,7 +220,7 @@ object TokenManager {
 
     fun accessToken() = tokenInfo?.accessToken
 
-    private fun deltaTime() = Preferences.getLong(Preferences.Keys.TOKEN_INFO_DELTA, 0)
+    fun deltaTime() = Preferences.getLong(Preferences.Keys.TOKEN_INFO_DELTA, 0)
 
     fun userId() = tokenInfo?.accessToken?.jwtUserId()
 

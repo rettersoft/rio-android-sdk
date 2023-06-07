@@ -15,6 +15,7 @@ class RioNetworkConfig(
     var interceptor: Interceptor? = null,
     var networkInterceptor: Interceptor? = null,
     var gson: Gson = GsonBuilder().create(),
+    var headerInterceptor: HeaderInterceptor? = null,
     var firebaseEnable: Boolean = true,
 ) {
     private fun init(builder: Builder): RioNetworkConfig {
@@ -31,7 +32,8 @@ class RioNetworkConfig(
             builder.interceptor,
             builder.networkInterceptor,
             builder.gson,
-            builder.firebaseEnable
+            builder.headerInterceptor,
+            builder.firebaseEnable,
         )
     }
 
@@ -48,8 +50,13 @@ class RioNetworkConfig(
         var interceptor: Interceptor? = null
         var networkInterceptor: Interceptor? = null
         var gson: Gson = GsonBuilder().create()
+        var headerInterceptor: HeaderInterceptor? = null
         var firebaseEnable: Boolean = true
 
         fun build() = RioNetworkConfig().init(this)
+    }
+
+    interface HeaderInterceptor {
+        fun headers(): List<Pair<String, String>>
     }
 }

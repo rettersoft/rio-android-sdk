@@ -14,16 +14,20 @@ object Preferences {
     }
 
     val pref: SharedPreferences by lazy {
-        val masterKey = MasterKey.Builder(RioConfig.applicationContext)
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build()
-        EncryptedSharedPreferences.create(
-            RioConfig.applicationContext,
-            "rio-encrypted-prefrences",
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
+        try {
+            val masterKey = MasterKey.Builder(RioConfig.applicationContext)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build()
+            EncryptedSharedPreferences.create(
+                RioConfig.applicationContext,
+                "rio-encrypted-prefrences",
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+        } catch (e: Exception) {
+            RioConfig.applicationContext.getSharedPreferences("rio-preferences", MODE_PRIVATE)
+        }
     }
 
     fun getString(key: String, defValue: String): String? {

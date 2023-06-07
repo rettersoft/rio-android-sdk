@@ -21,10 +21,18 @@ import kotlinx.coroutines.*
 /**
  * Created by semihozkoroglu on 22.11.2020.
  */
-class Rio(applicationContext: Context, projectId: String, culture: String? = null, config: RioNetworkConfig, retryConfig: RioRetryConfig? = null) {
+class Rio(
+    applicationContext: Context,
+    projectId: String,
+    culture: String? = null,
+    config: RioNetworkConfig,
+    retryConfig: RioRetryConfig? = null
+) {
 
     private val job: Job = Job()
     private val scope = CoroutineScope(Dispatchers.Default + job)
+
+    private var authStatus: RioClientAuthStatus? = null
 
     init {
         RioConfig.applicationContext = applicationContext
@@ -51,20 +59,39 @@ class Rio(applicationContext: Context, projectId: String, culture: String? = nul
 
             callback?.invoke(false, e)
         }) {
-            withContext(Dispatchers.Main) {
-                listener?.invoke(RioClientAuthStatus.AUTHENTICATING, null)
-            }
+            if (authStatus != RioClientAuthStatus.AUTHENTICATING) {
+                authStatus = RioClientAuthStatus.AUTHENTICATING
+                RioLogger.log("Rio.authenticateWithCustomToken authStatus setted as RioClientAuthStatus.AUTHENTICATING")
 
-            if (!TextUtils.isEmpty(customToken)) {
-                val res = runCatching { RioAuthRequestManager.authenticate(customToken) }
-
-                if (res.isSuccess) {
-                    withContext(Dispatchers.Main) { callback?.invoke(true, null) }
-                } else {
-                    withContext(Dispatchers.Main) { callback?.invoke(false, res.exceptionOrNull()) }
+                withContext(Dispatchers.Main) {
+                    listener?.invoke(RioClientAuthStatus.AUTHENTICATING, null)
                 }
+
+                if (!TextUtils.isEmpty(customToken)) {
+                    val res = runCatching { RioAuthRequestManager.authenticate(customToken) }
+
+                    if (res.isSuccess) {
+                        withContext(Dispatchers.Main) { callback?.invoke(true, null) }
+                    } else {
+                        withContext(Dispatchers.Main) { callback?.invoke(false, res.exceptionOrNull()) }
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        callback?.invoke(
+                            false,
+                            IllegalArgumentException("customToken must not be null or empty")
+                        )
+                    }
+                }
+
+                delay(3000)
+                RioLogger.log("Rio.authenticateWithCustomToken authStatus setted as NULL")
+                authStatus = null
             } else {
-                withContext(Dispatchers.Main) { callback?.invoke(false, IllegalArgumentException("customToken must not be null or empty")) }
+                RioLogger.log("Rio.authenticateWithCustomToken authStatus is RioClientAuthStatus.AUTHENTICATING")
+                delay(3000)
+                RioLogger.log("Rio.authenticateWithCustomToken authStatus setted as NULL")
+                authStatus = null
             }
         }
     }

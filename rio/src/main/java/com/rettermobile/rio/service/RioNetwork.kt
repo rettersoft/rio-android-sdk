@@ -80,8 +80,15 @@ class RioNetwork {
                 .header("User-Agent", httpAgent())
                 .addHeader("Content-Type", "application/json;charset=UTF-8")
                 .addHeader("x-rio-sdk-client", "android")
+                .addHeader("client-time", System.currentTimeMillis().toString())
+                .addHeader("client-token-delta", TokenManager.deltaTime().toString())
+                .addHeader("client-access-expired", "${TokenManager.isAccessTokenExpired()} - ${TokenManager.isTokenNull()}")
                 .addHeader("installation-id", TokenManager.getDeviceId())
                 .cacheControl(CacheControl.FORCE_NETWORK)
+
+            RioConfig.config.headerInterceptor?.headers()?.forEach {
+                newRequestBuilder.addHeader(it.first, it.second)
+            }
 
             TokenManager.accessToken()?.let {
                 newRequestBuilder.addHeader("Authorization", "Bearer $it")
