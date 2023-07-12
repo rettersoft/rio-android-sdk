@@ -64,7 +64,7 @@ object RioCloudServiceImp {
         return when (params.httpMethod) {
             RioHttpMethod.GET -> api.getAction(url = url, token = accessToken, culture = params.culture, headers = params.headers)
             RioHttpMethod.POST -> api.postAction(url = url, token = accessToken, culture = params.culture, headers = params.headers, payload = body)
-            RioHttpMethod.DELETE -> api.deleteAction(url = url, token = accessToken, culture = params.culture, headers = params.headers, payload = body)
+            RioHttpMethod.DELETE -> api.deleteAction(url = url, token = accessToken, culture = params.culture, headers = params.headers)
             RioHttpMethod.PUT -> api.putAction(url = url, token = accessToken, culture = params.culture, headers = params.headers, payload = body)
         }
     }
