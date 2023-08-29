@@ -47,6 +47,7 @@ object TokenManager {
                 RioLogger.log("TokenManager.setValue LOGOUT")
                 Preferences.deleteKey(Preferences.Keys.TOKEN_INFO)
                 Preferences.deleteKey(Preferences.Keys.TOKEN_INFO_DELTA)
+                Preferences.clearAllData()
             }
 
             if (isStatusChanged) {
@@ -158,6 +159,7 @@ object TokenManager {
                     RioLogger.log("TokenManager.checkToken delete token info from device")
                     Preferences.deleteKey(Preferences.Keys.TOKEN_INFO)
                     Preferences.deleteKey(Preferences.Keys.TOKEN_INFO_DELTA)
+                    Preferences.clearAllData()
 
                     refreshWithRetry(refreshToken)
                 }
@@ -188,8 +190,10 @@ object TokenManager {
 
                 RioLogger.log("TokenManager.refreshWithRetry refreshToken fail")
 
-                clearListener?.invoke()
-
+                /**
+                 * don't logout user if token didn't refreshed
+                 * clearListener?.invoke()
+                 */
                 throw res.exceptionOrNull() ?: TokenFailException("AuthWithCustomToken fail")
             } else {
                 Thread.sleep((100 * retryCount).toLong())
