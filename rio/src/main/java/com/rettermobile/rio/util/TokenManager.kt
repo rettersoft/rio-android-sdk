@@ -190,8 +190,10 @@ object TokenManager {
 
                 RioLogger.log("TokenManager.refreshWithRetry refreshToken fail")
 
-                clearListener?.invoke()
-
+                /**
+                 * don't logout user if token didn't refreshed
+                 * clearListener?.invoke()
+                 */
                 throw res.exceptionOrNull() ?: TokenFailException("AuthWithCustomToken fail")
             } else {
                 Thread.sleep((100 * retryCount).toLong())
