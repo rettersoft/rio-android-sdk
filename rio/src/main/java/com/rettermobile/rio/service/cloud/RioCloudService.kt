@@ -23,8 +23,7 @@ interface RioCloudService {
         @Url url: String,
         @HeaderMap headers: Map<String, String>,
         @Query("__culture") culture: String,
-        @Query("__platform") platform: String = "Android",
-        @Body payload: RequestBody
+        @Query("__platform") platform: String = "Android"
     ): Response<ResponseBody>
 
     @PUT
