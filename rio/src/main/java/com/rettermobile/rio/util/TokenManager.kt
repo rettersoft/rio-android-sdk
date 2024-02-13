@@ -155,12 +155,6 @@ object TokenManager {
                 if (isAccessTokenExpired()) {
                     val refreshToken = tokenInfo?.refreshToken!!
 
-                    // Delete from device
-                    RioLogger.log("TokenManager.checkToken delete token info from device")
-                    Preferences.deleteKey(Preferences.Keys.TOKEN_INFO)
-                    Preferences.deleteKey(Preferences.Keys.TOKEN_INFO_DELTA)
-                    Preferences.clearAllData()
-
                     refreshWithRetry(refreshToken)
                 }
             }
