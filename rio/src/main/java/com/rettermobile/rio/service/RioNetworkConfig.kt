@@ -41,6 +41,7 @@ class RioNetworkConfig(
             builder.headerInterceptor,
             builder.firebaseEnable,
             builder.logLevel,
+            builder.connectionSpec
         )
     }
 
@@ -61,6 +62,7 @@ class RioNetworkConfig(
         var headerInterceptor: HeaderInterceptor? = null
         var firebaseEnable: Boolean = true
         var logLevel: HttpLoggingInterceptor.Level = HttpLoggingInterceptor.Level.BODY
+        var connectionSpec: List<ConnectionSpec>? = null
 
         fun build() = RioNetworkConfig().init(this)
     }
