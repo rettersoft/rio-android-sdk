@@ -3,6 +3,7 @@ package com.rettermobile.rio.service
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.rettermobile.rio.util.RioRegion
+import okhttp3.ConnectionSpec
 import okhttp3.Interceptor
 import okhttp3.logging.HttpLoggingInterceptor
 
@@ -19,7 +20,8 @@ class RioNetworkConfig(
     var sslPins: List<Pair<String, String>>? = null,
     var headerInterceptor: HeaderInterceptor? = null,
     var firebaseEnable: Boolean = true,
-    var logLevel: HttpLoggingInterceptor.Level = HttpLoggingInterceptor.Level.BODY
+    var logLevel: HttpLoggingInterceptor.Level = HttpLoggingInterceptor.Level.BODY,
+    var connectionSpec: List<ConnectionSpec>? = null
 ) {
     private fun init(builder: Builder): RioNetworkConfig {
         if (builder.region == null && builder.customDomain == null) {

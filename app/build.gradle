@@ -2,13 +2,13 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 33
-    buildToolsVersion "30.0.3"
+    namespace "com.rbs.android.example"
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.rbs.android.example"
-        minSdkVersion 21
-        targetSdkVersion 31
+        minSdk 23
+        targetSdk 35
         versionCode 1
         versionName "1.0"
 
@@ -30,6 +30,16 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+        freeCompilerArgs = ["-Xallow-result-return-type"]
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 }
 

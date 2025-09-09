@@ -71,6 +71,11 @@ class RioNetwork {
 
     private fun provideOkHttp(): OkHttpClient {
         val builder = OkHttpClient.Builder()
+
+        RioConfig.config.connectionSpec?.let {
+            builder.connectionSpecs(it)
+        }
+
         val interceptor = HttpLoggingInterceptor() {
             RioLogger.log("Okhttp: $it")
         }.apply {
@@ -87,7 +92,7 @@ class RioNetwork {
             val newRequestBuilder = originalRequest.newBuilder()
 
             newRequestBuilder
-                .header("sdk-user-agent", "android-1.6.9")
+                .header("sdk-user-agent", "android-1.7.0")
                 .header("User-Agent", httpAgent())
                 .addHeader("Content-Type", "application/json;charset=UTF-8")
                 .addHeader("x-rio-sdk-client", "android")
