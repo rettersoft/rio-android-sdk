@@ -13,6 +13,7 @@ import com.rettermobile.rio.service.model.RioTokenModel
 import com.rettermobile.rio.service.model.exception.TokenFailException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import retrofit2.HttpException
 import java.util.*
 
 /**
@@ -86,14 +87,13 @@ object TokenManager {
             tokenRefreshListener?.invoke()
         } else {
             if (retryCount > 3) {
-                RioLogger.log("TokenManager.refreshWithRetry refreshToken fail signOut called")
+                if (res.exceptionOrNull() is HttpException) {
+                    RioLogger.log("TokenManager.refreshWithRetry clear token")
+                    clearListener?.invoke()
+                } else {
+                    RioLogger.log("TokenManager.refreshWithRetry retryCount > 3 but not HttpException ${res.exceptionOrNull()?.stackTraceToString()}")
+                }
 
-                RioLogger.log("TokenManager.refreshWithRetry refreshToken fail")
-
-                /**
-                 * don't logout user if token didn't refreshed
-                 * clearListener?.invoke()
-                 */
                 throw res.exceptionOrNull() ?: TokenFailException("AuthWithCustomToken fail")
             } else {
                 Thread.sleep((100 * retryCount).toLong())
