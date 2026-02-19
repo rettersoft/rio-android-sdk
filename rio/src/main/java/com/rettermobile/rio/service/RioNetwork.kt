@@ -97,7 +97,7 @@ class RioNetwork {
             val newRequestBuilder = originalRequest.newBuilder()
 
             newRequestBuilder
-                .header("sdk-user-agent", "android-1.8.0")
+                .header("sdk-user-agent", "android-1.8.1")
                 .header("User-Agent", httpAgent())
                 .addHeader("Content-Type", "application/json;charset=UTF-8")
                 .addHeader("x-rio-sdk-client", "android")
@@ -220,8 +220,10 @@ class RioNetwork {
             throw SSLPeerUnverifiedException("TLS peer certificates are missing for PEM pinning validation.")
         }
 
-        val expected = expectedCertificates.map { it.encoded }.toSet()
-        val matches = peerCertificates.any { peer -> expected.contains(peer.encoded) }
+        val expected = expectedCertificates.map { it.encoded }
+        val matches = peerCertificates.any { peer ->
+            expected.any { expectedEncoded -> expectedEncoded.contentEquals(peer.encoded) }
+        }
 
         if (!matches) {
             throw SSLPeerUnverifiedException("PEM certificate pinning failure: server certificate did not match the provided PEM.")
