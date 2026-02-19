@@ -18,6 +18,7 @@ class RioNetworkConfig(
     var networkInterceptor: Interceptor? = null,
     var gson: Gson = GsonBuilder().create(),
     var sslPins: List<Pair<String, String>>? = null,
+    var pinnedPemCertificate: String? = null,
     var headerInterceptor: HeaderInterceptor? = null,
     var firebaseEnable: Boolean = true,
     var logLevel: HttpLoggingInterceptor.Level = HttpLoggingInterceptor.Level.BODY,
@@ -38,6 +39,7 @@ class RioNetworkConfig(
             builder.networkInterceptor,
             builder.gson,
             builder.sslPins,
+            builder.pinnedPemCertificate,
             builder.headerInterceptor,
             builder.firebaseEnable,
             builder.logLevel,
@@ -59,6 +61,7 @@ class RioNetworkConfig(
         var networkInterceptor: Interceptor? = null
         var gson: Gson = GsonBuilder().create()
         var sslPins: List<Pair<String, String>>? = null
+        var pinnedPemCertificate: String? = null
         var headerInterceptor: HeaderInterceptor? = null
         var firebaseEnable: Boolean = true
         var logLevel: HttpLoggingInterceptor.Level = HttpLoggingInterceptor.Level.BODY

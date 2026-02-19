@@ -13,7 +13,11 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.ByteArrayInputStream
+import java.security.cert.CertificateFactory
+import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLPeerUnverifiedException
 
 /**
  * Created by semihozkoroglu on 22.11.2020.
@@ -71,6 +75,7 @@ class RioNetwork {
 
     private fun provideOkHttp(): OkHttpClient {
         val builder = OkHttpClient.Builder()
+        val pinnedPemCertificates = loadPinnedPemCertificates()
 
         RioConfig.config.connectionSpec?.let {
             builder.connectionSpecs(it)
@@ -92,7 +97,7 @@ class RioNetwork {
             val newRequestBuilder = originalRequest.newBuilder()
 
             newRequestBuilder
-                .header("sdk-user-agent", "android-1.7.3")
+                .header("sdk-user-agent", "android-1.8.0")
                 .header("User-Agent", httpAgent())
                 .addHeader("Content-Type", "application/json;charset=UTF-8")
                 .addHeader("x-rio-sdk-client", "android")
@@ -111,6 +116,19 @@ class RioNetwork {
             }
 
             return@addInterceptor chain.proceed(newRequestBuilder.build())
+        }
+
+        pinnedPemCertificates?.let { certificates ->
+            builder.addInterceptor { chain ->
+                val response = chain.proceed(chain.request())
+                try {
+                    validatePinnedPemCertificate(certificates, response.handshake?.peerCertificates)
+                } catch (e: Exception) {
+                    response.close()
+                    throw e
+                }
+                response
+            }
         }
 
         val sessionTimeout = 120L
@@ -174,6 +192,40 @@ class RioNetwork {
         System.getProperty("http.agent") ?: "Android"
     } catch (e: Exception) {
         "Android"
+    }
+
+    private fun loadPinnedPemCertificates(): List<X509Certificate>? {
+        val pem = RioConfig.config.pinnedPemCertificate?.trim().orEmpty()
+
+        if (pem.isEmpty()) {
+            return null
+        }
+
+        val certificateFactory = CertificateFactory.getInstance("X.509")
+        val certificates = certificateFactory.generateCertificates(ByteArrayInputStream(pem.toByteArray()))
+            .filterIsInstance<X509Certificate>()
+
+        if (certificates.isEmpty()) {
+            throw IllegalArgumentException("Invalid PEM certificate. Please provide at least one X.509 certificate.")
+        }
+
+        return certificates
+    }
+
+    private fun validatePinnedPemCertificate(
+        expectedCertificates: List<X509Certificate>,
+        peerCertificates: List<java.security.cert.Certificate>?
+    ) {
+        if (peerCertificates.isNullOrEmpty()) {
+            throw SSLPeerUnverifiedException("TLS peer certificates are missing for PEM pinning validation.")
+        }
+
+        val expected = expectedCertificates.map { it.encoded }.toSet()
+        val matches = peerCertificates.any { peer -> expected.contains(peer.encoded) }
+
+        if (!matches) {
+            throw SSLPeerUnverifiedException("PEM certificate pinning failure: server certificate did not match the provided PEM.")
+        }
     }
 
 }
