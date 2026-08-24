@@ -236,8 +236,11 @@ rio.getCloudObject(
 )
 ```
 
-`classId` is required. Calling `getCloudObject` without one fails with
-`ClassIdRequiredException` instead of sending a malformed request.
+`classId` is required for the remote path. Calling `getCloudObject` without one
+fails with `ClassIdRequiredException` instead of sending a malformed request.
+A local object (see `useLocal` below) is still constructed without a `classId`,
+but it is logged as a warning, because `call(...)` and state subscriptions
+cannot work without one.
 
 #### Skipping the network round trip: `useLocal`
 

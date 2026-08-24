@@ -22,15 +22,26 @@ internal object RioCloudRequestManager {
     ): RioCloudObject {
         TokenManager.checkToken()
 
-        if (options.classId.isNullOrEmpty()) {
-            RioLogger.log("RIOCloudManager.exec classId is missing")
-            throw ClassIdRequiredException("classId is required to get a cloud object")
-        }
-
         return if (options.useLocal && !options.instanceId.isNullOrEmpty()) {
+            if (options.classId.isNullOrEmpty()) {
+                // The local branch has never needed a classId to construct the
+                // handle, so this stays permitted for backwards compatibility.
+                // The object cannot call methods or subscribe to state without
+                // one though, so do not let it pass unnoticed.
+                RioLogger.log(
+                    "RIOCloudManager.exec WARNING: classId is missing. The object is created " +
+                            "locally, but call() and state subscriptions will not work without a classId."
+                )
+            }
+
             RioLogger.log("RIOCloudManager.exec create cloud object in-memory")
             RioCloudObject(options, null).apply { isLocal = true }
         } else {
+            if (options.classId.isNullOrEmpty()) {
+                RioLogger.log("RIOCloudManager.exec classId is missing")
+                throw ClassIdRequiredException("classId is required to get a cloud object")
+            }
+
             if (options.useLocal) {
                 // useLocal was requested but cannot be satisfied: constructing the
                 // object locally needs an instanceId. Behaviour is unchanged - the
