@@ -108,6 +108,13 @@ class Rio(
         noinline onSuccess: ((RioCloudSuccessResponse<T>) -> Unit)? = null,
         noinline onError: ((Throwable?) -> Unit)? = null
     ) {
+        if (options.useLocal) {
+            RioLogger.log(
+                "Rio.makeStaticCall WARNING: useLocal is not honoured on the static call path; " +
+                        "the request is always sent remotely. Use getCloudObject to construct a local object."
+            )
+        }
+
         RioCloudObject(options)
             .call(
                 RioCallMethodOptions(

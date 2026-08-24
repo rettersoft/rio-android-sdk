@@ -236,6 +236,40 @@ rio.getCloudObject(
 )
 ```
 
+`classId` is required. Calling `getCloudObject` without one fails with
+`ClassIdRequiredException` instead of sending a malformed request.
+
+#### Skipping the network round trip: `useLocal`
+
+By default `getCloudObject` performs an INSTANCE request to resolve the instance
+remotely. When you already know the `instanceId`, set `useLocal = true` to build
+the object handle in memory instead, with no network call:
+
+```kotlin
+rio.getCloudObject(
+    RioCloudObjectOptions(
+        classId = "<CLASS_ID>",
+        instanceId = "<INSTANCE_ID>",
+        useLocal = true
+    ),
+    onSuccess = { cloudObject ->
+        cloudObject.isLocal // true - no INSTANCE request was sent
+    }
+)
+```
+
+Notes:
+
+- `useLocal = true` requires `instanceId`. A `key` cannot be resolved without
+  contacting the server, so `useLocal = true` together with `key` still performs
+  the remote request. Whenever `useLocal` cannot be satisfied the SDK logs a
+  warning and falls back to the remote path; the returned object's `isLocal` is
+  then `false`.
+- `RioCloudObject.isLocal` tells you which branch produced the object. It is
+  read-only for callers.
+- `useLocal` is only honoured by `getCloudObject`. It has no effect on
+  `makeStaticCall` or `cloudObject.call(...)`, which always go to the network.
+
 ### 2. Call cloud object method
 
 ```kotlin

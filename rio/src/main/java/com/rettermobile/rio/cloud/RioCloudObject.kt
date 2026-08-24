@@ -16,6 +16,18 @@ import kotlinx.coroutines.*
  */
 class RioCloudObject(val options: RioCloudObjectOptions, var instance: RioInstanceResponse? = null) {
 
+    /**
+     * True when this object was constructed locally, without an
+     * `rbs.core.request.INSTANCE` round trip, because
+     * [RioCloudObjectOptions.useLocal] was set and an instanceId was supplied.
+     *
+     * False when the instance was resolved remotely. Read this to assert which
+     * branch produced the object; it is set by the SDK and cannot be changed by
+     * callers.
+     */
+    var isLocal: Boolean = false
+        internal set
+
     var user = RioCloudUserObjectState(options)
     var role = RioCloudRoleObjectState(options)
     var public = RioCloudPublicObjectState(options)
