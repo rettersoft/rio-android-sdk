@@ -156,6 +156,9 @@ Common `RioNetworkConfig` fields:
 - `headerInterceptor`: Add custom headers to every request.
 - `connectionSpec`: Customize TLS connection specs.
 - `logLevel`: OkHttp logging level.
+- `strictSignOutResult`: Report the real outcome of `signOut` to its callback.
+  Default is `false`, which keeps the pre-1.10.0 behaviour. See
+  [Sign out](#sign-out).
 
 ## Certificate Pinning
 
@@ -206,6 +209,46 @@ rio.signOut { isSuccess, throwable ->
     }
 }
 ```
+
+`signOut` clears the local session - access token, refresh token and the
+Firebase session - regardless of what the server answers. After it returns, the
+device never holds a usable session.
+
+Before sending the request the SDK refreshes an expired access token, so the
+server receives a valid token and can revoke the session. Up to 1.9.1 this step
+was skipped and a logout performed after the access token had expired could be
+rejected by the server with `ACCESS_DENIED` / `jwt expired`.
+
+#### Reporting the real result: `strictSignOutResult`
+
+Up to 1.9.1 the callback reported `isSuccess = true` unconditionally, even for a
+transport failure, a non-2xx response, or a business error returned inside a 2xx
+response. That is still the default, so existing integrations are unaffected.
+
+Set `strictSignOutResult = true` to receive the real outcome:
+
+```kotlin
+val config = RioNetworkConfig.build {
+    region = RioRegion.EU_WEST_1
+    strictSignOutResult = true
+}
+
+rio.signOut { isSuccess, throwable ->
+    // isSuccess = false when the server did not confirm the sign out.
+    // throwable is a RioErrorResponse carrying the status code and raw body.
+    if (!isSuccess && throwable is RioErrorResponse) {
+        val code = throwable.code
+        val raw = throwable.rawBody
+    }
+
+    // The local session is already cleared at this point, so navigate to your
+    // signed-out screen either way.
+}
+```
+
+A `false` result means the server may not have revoked the session - it never
+means the device is still signed in. Navigate to your signed-out screen in both
+branches; use the failure only for logging, retry or reporting.
 
 ### Listen auth status
 

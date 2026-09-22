@@ -93,6 +93,13 @@ object TokenData {
         }
     }
 
+    /**
+     * True when there is nothing left to refresh with - no token at all, or a
+     * refresh token that has itself expired. Attempting a refresh in that state
+     * costs four rejected requests before it gives up.
+     */
+    fun isRefreshTokenExpired(): Boolean = isRefreshTokenExpired(token)
+
     private fun isRefreshTokenExpired(token: RioTokenModel?): Boolean {
         if (token == null) return true
 

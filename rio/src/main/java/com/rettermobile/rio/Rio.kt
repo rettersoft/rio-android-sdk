@@ -19,6 +19,9 @@ import com.rettermobile.rio.util.TokenData
 import com.rettermobile.rio.util.TokenManager
 import kotlinx.coroutines.*
 
+private const val USER_SIGN_OUT = "user"
+private const val SDK_SIGN_OUT = "sdk"
+
 /**
  * Created by semihozkoroglu on 22.11.2020.
  */
@@ -43,7 +46,7 @@ class Rio(
         RioConfig.retryConfig = retryConfig ?: RioRetryConfig()
 
         TokenData.tokenUpdateListener = { sendAuthStatus() }
-        TokenManager.clearListener = { signOutMethod(type = "sdk") }
+        TokenManager.clearListener = { signOutMethod(type = SDK_SIGN_OUT) }
 
         TokenData.initialize()
     }
@@ -194,20 +197,50 @@ class Rio(
 
             callback?.invoke(false, e)
         }) {
+            // A user initiated signOut has to reach the server with a valid
+            // access token, otherwise the server cannot tell which session to
+            // revoke and answers with ACCESS_DENIED / jwt expired. Every cloud
+            // call already refreshes here; this path used to skip it.
+            //
+            // The "sdk" type is triggered from TokenManager.clearListener,
+            // which fires *because* the refresh already failed - refreshing
+            // again would re-enter that failure and loop - so it is skipped.
+            // Skipped when the refresh token is gone or expired too: there is
+            // nothing to refresh with, and checkToken would spend four rejected
+            // requests finding that out while the user waits on the logout.
+            if (type == USER_SIGN_OUT && !TokenData.isRefreshTokenExpired()) {
+                runCatching { TokenManager.checkToken() }.onFailure {
+                    RioLogger.log("signOut token refresh failed, continuing with sign out: ${it.message}")
+                }
+            }
+
             val res = runCatching { RioAuthRequestManager.signOut(type) }
 
+            // The local session is dropped whatever the server answered, so the
+            // device never keeps a usable session after signOut.
             clear()
 
-            if (res.isSuccess) {
-                withContext(Dispatchers.Main) { callback?.invoke(true, null) }
-            } else {
-                withContext(Dispatchers.Main) { callback?.invoke(false, res.exceptionOrNull()) }
+            if (res.isFailure) {
+                RioLogger.log("signOut request failed: ${res.exceptionOrNull()?.message}")
+            }
+
+            // Reporting the failure is opt-in: integrations written against
+            // <= 1.9.1 rely on the callback always reporting success, and
+            // gating their navigation on it would strand the user on screen.
+            val reportFailure = RioConfig.config.strictSignOutResult && res.isFailure
+
+            withContext(Dispatchers.Main) {
+                if (reportFailure) {
+                    callback?.invoke(false, res.exceptionOrNull())
+                } else {
+                    callback?.invoke(true, null)
+                }
             }
         }
     }
 
     fun signOut(callback: ((Boolean, Throwable?) -> Unit)? = null) {
-        signOutMethod(type = "user", callback)
+        signOutMethod(type = USER_SIGN_OUT, callback)
     }
 
     private fun clear() {
