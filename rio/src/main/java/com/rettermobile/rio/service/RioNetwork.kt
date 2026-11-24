@@ -142,8 +142,6 @@ class RioNetwork {
         builder.readTimeout(sessionTimeout, TimeUnit.SECONDS)
         builder.writeTimeout(sessionTimeout, TimeUnit.SECONDS)
 
-        builder.hostnameVerifier { hostname, session -> true }
-
         return builder.build()
     }
 
