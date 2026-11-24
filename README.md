@@ -162,6 +162,23 @@ Common `RioNetworkConfig` fields:
 
 ## Certificate Pinning
 
+### Hostname verification (1.11.0+)
+
+Since 1.11.0 the SDK verifies that the server's TLS certificate covers the
+hostname it connects to - the standard check every HTTPS client performs. Up to
+1.10.0 this check was disabled.
+
+If you use `customDomain`, make sure its certificate is issued for that exact
+hostname (or a matching wildcard). Otherwise every request fails with
+`SSLPeerUnverifiedException` after upgrading. Check it before upgrading with:
+
+```bash
+openssl s_client -connect <your-domain>:443 -servername <your-domain> \
+  -verify_hostname <your-domain> </dev/null 2>&1 | grep "Verify return code"
+```
+
+`Verify return code: 0 (ok)` means you are not affected.
+
 The SDK supports public key pinning by default. You can additionally enforce PEM certificate pinning.
 
 Rules:
